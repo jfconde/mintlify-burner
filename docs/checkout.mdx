@@ -1,0 +1,54 @@
+---
+updatedAt: 2025-08-11T21:18:43.000Z
+title: "Checkout"
+url: "guides/custom-url-path"
+---
+
+Fetch the complete documentation index at: https://docs.payrails.com/llms.txt. Use this file to discover all available pages before exploring further.
+
+# Checkout
+
+With Payrails' checkout solutions, you can seamlessly accept payments through various methods, including credit cards, digital wallets, and alternative payment methods, while maintaining the highest security standards.![](https://files.readme.io/ba11aa9-small-dropin-gui.png)
+
+# Handle payment operations with ease
+
+The Payrails is designed to efficiently handle complex scenarios, allowing you to focus on your core business operations.
+
+- **Payment methods and instruments**: Present all available payment methods and instruments for a given context based on the rules defined in the Payrails Portal.
+- **Tokenization**: Securely tokenize new payment instruments, such as cards, ensuring maximum security for your customers' sensitive data.
+- **3D-Secure flows**: Handle complex 3D-Secure authentication flows seamlessly, providing a smooth checkout experience for your customers.
+- **APM redirection flows**: Effectively manage redirection flows for Alternative Payment Methods (APMs).
+- **Customizability:** Customize the look and feel of your checkout interface using JavaScript StyleSheet (JSS), ensuring a consistent brand experience.
+- **Open-ended meta object**: This object collects payment details like order reference, user reference, cart items, and more in a flexible and extensible way.
+
+By leveraging these features, you can optimize your checkout process, improve customer satisfaction, and drive more conversions.
+
+# How to use Payrails in your checkout
+
+> 📘
+>
+> There are different ways to implement Payrails in your checkout and customize how it behaves. Below is an overview of implementation and configuration options
+
+## Integrate Payrails
+
+Choose your preferred method of integration from the following options:
+
+- With our [SDK](https://payrails.readme.io/docs/sdk), you can easily embed our checkout solutions in your web or mobile applications. We offer several options here, ranging from a [drop-in](https://payrails.readme.io/docs/drop-in) with composable [elements](https://payrails.readme.io/docs/elements) to [secure fields](https://payrails.readme.io/docs/secure-fields).
+
+## Configure Checkout and Payment Options
+
+After setting up your checkout flow and payment options in the Payrails portal.
+
+- Set up your [processor integrations ](https://payrails.readme.io/docs/processor-integrations) and enable payment methods for those processors
+- Set up dynamic [routing](https://payrails.readme.io/docs/routing) rules to direct payments to different PSPs based on flexible rulesets
+- Configure [payment options](https://payrails.readme.io/docs/configure-your-payment-options) to determine which payment methods are presented in what context
+
+## Handle Notifications
+
+As Payrails operates asynchronously, you will receive webhooks that will notify you of the outcome of operations like authorization, capture, cancellation, and refund. You must set up endpoints on your server to receive these notifications and handle them appropriately. See our guide [here](https://payrails.readme.io/docs/receive-notifications).
+
+## Handle Post-Payment Operations
+
+Once you're set up to authorize payments with Payrails in your checkout, you can also use our APIs and merchant portal to handle post-authorization payment actions: [capture](https://payrails.readme.io/docs/capture-a-payment), [cancel](https://payrails.readme.io/docs/cancel-a-payment), [refund](https://payrails.readme.io/docs/refund-a-payment).
+
+Additionally, you can [manage instruments](https://docs.payrails.com/docs/manage-instruments) yourself and build UIs around our payment instrument management APIs to enable your customers to manage their stored payment methods on your website.

@@ -1,37 +1,491 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mintlify Starter Kit",
-  "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+  "theme": "maple",
+  "fonts": {
+    "family": "Archivo"
   },
-  "favicon": "/favicon.svg",
+  "servers": [{ "url": "https://api.payrails.com" }],
+  "name": "Payrails Docs (Juan test)",
+  "colors": {
+    "primary": "#0a6cff",
+    "light": "#0a6cff",
+    "dark": "#2222ff"
+  },
+  "appearance": {
+    "default": "light"
+  },
+  "background": {
+    "decoration": "grid",
+    "color": {
+      "light": "#fff"
+    }
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
+  "favicon": "/favicon.png",
   "navigation": {
-    "pages": [
+    "global": {
+      "anchors": []
+    },
+    "tabs": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
+        "tab": "Home",
+        "icon": "house",
+        "groups": [
+          {
+            "group": "Home",
+            "pages": ["index", "quickstart"]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "docs/explore-payrails",
+              {
+                "group": "Overview",
+                "pages": [
+                  "overview",
+                  "workflows",
+                  "checkout",
+                  "docs/checkout",
+                  "routing",
+                  "payment-options",
+                  "vault"
+                ]
+              },
+              {
+                "group": "Set up your Payrails account and environment",
+                "pages": [
+                  "set-up-your-payrails-account-and-environment",
+                  "api-credentials-1",
+                  "mtls-configuration-1",
+                  {
+                    "group": "User Management",
+                    "pages": [
+                      "user-roles-permissions",
+                      "authentication-1",
+                      "roles-permissions",
+                      "frequently-asked-questions-1",
+                      "single-sign-on"
+                    ]
+                  },
+                  "organizations",
+                  "workspace",
+                  "idempotent-requests"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Payment Orchestration",
+            "pages": [
+              "integrate-payrails-into-your-checkout",
+              {
+                "group": "Payrails Checkout SDKs",
+                "pages": [
+                  "sdk",
+                  {
+                    "group": "Web SDK - Quick Start",
+                    "pages": [
+                      "web-sdk-quick-start",
+                      {
+                        "group": "Guides",
+                        "pages": [
+                          "how-to-customize-the-checkouts-appearance",
+                          "how-to-accept-card-payments",
+                          "how-to-add-apple-pay-and-google-pay",
+                          "how-to-collect-card-data-with-secure-fields-collect-container",
+                          "action-required-event"
+                        ]
+                      },
+                      {
+                        "group": "v6 Migration Guide",
+                        "pages": [
+                          "v6-migration-guide",
+                          "agent-runbook-v6-migration"
+                        ]
+                      },
+                      {
+                        "group": "References",
+                        "pages": [
+                          "event-api-reference",
+                          "appearance-api-reference",
+                          "payrails-api-reference"
+                        ]
+                      }
+                    ]
+                  },
+                  "payrails-web-fraud-sdk",
+                  "accept-payments-via-api",
+                  {
+                    "group": "IOS SDK - Quick start",
+                    "pages": [
+                      "ios-sdk",
+                      "sdk-concepts-1",
+                      "sdk-api-reference-1",
+                      "styling-guide-1",
+                      "troubleshooting-1"
+                    ]
+                  },
+                  {
+                    "group": "React Native SDK",
+                    "pages": [
+                      "react-native-sdk-1",
+                      "how-to-integrate",
+                      "concepts",
+                      "api-references"
+                    ]
+                  },
+                  {
+                    "group": "Android SDK - Quick Start",
+                    "pages": [
+                      "android-sdk-1",
+                      "how-to-accept-paypal-payments",
+                      "how-to-accept-redirect-payments",
+                      "how-to-co-branded-cards",
+                      "how-to-custom-pay-button",
+                      "how-to-execute-payment-headless",
+                      "how-to-query-session-data-at-runtime",
+                      "how-to-tokenize-card",
+                      "sdk-api-reference",
+                      "sdk-concepts",
+                      "styling-guide",
+                      "troubleshooting",
+                      "update-checkout-amount"
+                    ]
+                  },
+                  {
+                    "group": "Web SDK - V5 (legacy)",
+                    "pages": [
+                      "secure-fields",
+                      "elements",
+                      "drop-in",
+                      "sdk-events-glossary",
+                      "headless-integration-using-sdk"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Integrations",
+                "pages": [
+                  "integrations",
+                  "adyen-integration-setup-guide",
+                  "amazon-integration-setup-guide",
+                  "braintree-integration-setup-guide",
+                  "checkout-com-integration-setup-guide",
+                  "dlocal-integration-setup-guide",
+                  "klarna-integration-setup-guide",
+                  "stripe-integration-setup-guide",
+                  "paypal-integration",
+                  "tabby-integration-setup-guide",
+                  "unzer-integration-setup-guide",
+                  "getnet-integration-setup-guide",
+                  "amex-integration-setup-guide",
+                  "2c2p"
+                ]
+              },
+              {
+                "group": "Payment Methods",
+                "pages": [
+                  "set-up-payment-methods",
+                  {
+                    "group": "Cards",
+                    "pages": ["cards", "co-branded-cards"]
+                  },
+                  "1voucher",
+                  "bank-alfalah",
+                  "apple-pay",
+                  "apple-pay-express",
+                  "alipay",
+                  "amazon-pay",
+                  "bank-transfers",
+                  "cashfree-wallets",
+                  "easypaisa",
+                  "eft-pro",
+                  "fawrypay",
+                  "google-pay",
+                  "jazzcash",
+                  "konnect",
+                  "mercadopago",
+                  "mobile-wallets",
+                  "direct-carrier-billing",
+                  "mono",
+                  "netbanking",
+                  "nibss",
+                  "opay",
+                  "paga-wallet",
+                  "payflex",
+                  "payjustnow",
+                  {
+                    "group": "PayPal",
+                    "pages": ["paypal", "paypal-express-flow"]
+                  },
+                  "paytm",
+                  "pix",
+                  "upi",
+                  "wafacash",
+                  "kakaopay",
+                  "ideal",
+                  "boleto",
+                  "picpay",
+                  "maya",
+                  "ovo",
+                  "truemoney",
+                  "napas",
+                  "pse",
+                  "pagoefectivo",
+                  "nequi",
+                  "grabpay",
+                  "duitnow-qr",
+                  "shopeepay",
+                  "gcash",
+                  "touch-n-go",
+                  "konbini",
+                  "vietqr",
+                  "momo",
+                  "qris",
+                  "promptpay",
+                  "spei",
+                  "oxxo",
+                  "mb-way",
+                  "payco",
+                  "korean-local-cards",
+                  "mobilepay",
+                  "multibanco",
+                  "blik",
+                  "bancontact",
+                  "klarna-1"
+                ]
+              },
+              {
+                "group": "Workflow Studio",
+                "pages": [
+                  "workflow-studio-overview",
+                  "workflow-studio-quick-start",
+                  "workflow-studio-triggers",
+                  "workflow-studio-actions",
+                  {
+                    "group": "Conditions and Branching",
+                    "pages": [
+                      "workflow-studio-conditions",
+                      "workflow-studio-condition-operators"
+                    ]
+                  },
+                  {
+                    "group": "Monitoring Workflow Executions",
+                    "pages": [
+                      "workflow-studio-monitoring",
+                      "workflow-studio-status-codes"
+                    ]
+                  },
+                  {
+                    "group": "Workflow Examples",
+                    "pages": [
+                      "workflow-studio-examples",
+                      "workflow-studio-example-simple-authorization",
+                      "workflow-studio-example-authorization-with-fraud",
+                      "workflow-studio-example-authorization-with-3ds",
+                      "workflow-studio-example-full-authorization",
+                      "workflow-studio-example-capture-with-fraud-update",
+                      "workflow-studio-example-conditional-refund",
+                      "workflow-studio-example-event-driven-auto-capture",
+                      "workflow-studio-example-provider-routing"
+                    ]
+                  },
+                  "workflow-studio-glossary"
+                ]
+              },
+              {
+                "group": "Payment Acceptance",
+                "pages": [
+                  "create-a-workflow-execution",
+                  "lookup-payment-options",
+                  "authorize-a-payment",
+                  "capture-a-payment",
+                  "cancel-a-payment",
+                  "refund-a-payment",
+                  "test-payments",
+                  "receive-notifications",
+                  "3d-secure"
+                ]
+              },
+              "in-person"
+            ]
+          },
+          {
+            "group": "Token Vault",
+            "pages": [
+              "getting-started-1",
+              {
+                "group": "Vault Proxy",
+                "pages": [
+                  "vault-proxy",
+                  {
+                    "group": "Instant Proxy",
+                    "pages": [
+                      "proxy-payment-instruments",
+                      "apple-pay-via-proxy",
+                      "google-pay-via-proxy"
+                    ]
+                  },
+                  {
+                    "group": "Configurable Proxy",
+                    "pages": [
+                      "proxy-connections",
+                      "managing-connections",
+                      "invoking-connections"
+                    ]
+                  }
+                ]
+              },
+              "tokenize-records",
+              {
+                "group": "Tokenize Cards via SDK",
+                "pages": [
+                  "tokenize-payment-instruments",
+                  "tokenize-cards-with-secure-fields",
+                  "tokenize-cards-with-client-side-encryption",
+                  "tokenize-cards-with-api-only"
+                ]
+              },
+              {
+                "group": "Display Cards via SDK",
+                "pages": ["display-sdk", "dynamic-styling-based-on-bin"]
+              },
+              {
+                "group": "Network Tokens",
+                "pages": [
+                  "network-tokens",
+                  "onboarding-to-networks",
+                  "provision-network-tokens",
+                  "transacting-with-network-tokens",
+                  "automatic-lifecycle-updates"
+                ]
+              },
+              {
+                "group": "Token Migration",
+                "pages": ["token-migration", "self-serve-migration"]
+              },
+              "frequently-asked-questions"
+            ]
+          },
+          {
+            "group": "Analytics & Reporting",
+            "pages": [
+              {
+                "group": "Getting Started",
+                "pages": [
+                  {
+                    "group": "Connect your data sources",
+                    "pages": [
+                      "connect-your-data-sources",
+                      "adyen-1",
+                      "amex-1",
+                      "braintree-1",
+                      "checkout-1",
+                      "dlocal-1",
+                      "jp-morgan",
+                      "klarna",
+                      "mangopay",
+                      "paypal-1",
+                      "stripe-1",
+                      "tap-1"
+                    ]
+                  }
+                ]
+              },
+              "upload-files",
+              {
+                "group": "Reports",
+                "pages": [
+                  "reports-1",
+                  "report-payments",
+                  "report-settlements",
+                  "report-transactions",
+                  "report-disputes"
+                ]
+              },
+              "unified-analytics",
+              "dashboards"
+            ]
+          },
+          {
+            "group": "Fraud Management",
+            "pages": ["fraud-score"]
+          },
+          {
+            "group": "Chargeback",
+            "pages": [
+              "chargeback-getting-started",
+              {
+                "group": "Integrations",
+                "pages": [
+                  "chargeback-integrations",
+                  "adyen-chargeback-integration",
+                  "checkout-chargeback-integration",
+                  "stripe-chargeback-integration",
+                  "klarna-chargeback-integration",
+                  "nuvei-chargeback-integration"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Monitoring",
+            "pages": ["configure-alerts"]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              {
+                "group": "Payments",
+                "pages": [
+                  "payments",
+                  "payment-status",
+                  "operation-types",
+                  "operation-results",
+                  "authorization-flags"
+                ]
+              },
+              "executions",
+              "holder",
+              "manage-instruments",
+              {
+                "group": "Notifications",
+                "pages": ["notifications", "dispute-notifications"]
+              },
+              "error-codes",
+              "currency-codes"
+            ]
+          },
+          {
+            "group": "Use Cases",
+            "pages": [
+              "billing-use-cases",
+              "server-to-server-integration-reference-architecture"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "Endpoints",
+            "version": "v1",
+            "openapi": "./api-oas/openapi.yaml"
+          }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -40,15 +494,10 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "Payrails (test)",
+        "href": "https://payrails.com"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
-    }
+    ]
   },
   "contextual": {
     "options": [
