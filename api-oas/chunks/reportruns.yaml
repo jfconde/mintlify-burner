@@ -1,0 +1,1039 @@
+openapi: 3.1.0
+info:
+  version: 1.3.15
+  title: Payrails API Reference
+  contact:
+    name: Payrails
+    url: https://www.payrails.com
+    email: tech@payrails.com
+  license:
+    name: Payrails GmbH
+    url: https://www.payrails.com/
+  description: |
+    ---
+    Payrails provides a collection of APIs that enable you to process and manage payments. Our APIs accept and return JSON in the HTTP body, and return standard HTTP response codes. You can consume the APIs directly using your favorite HTTP/REST library.
+servers:
+  - url: https://api.staging.payrails.io
+    description: Payrails environment.
+security:
+  - ApiKey: []
+tags:
+  - name: ReportRuns
+    description: Operations to generate and retrieve report runs.
+paths:
+  /analytics/reportRuns:
+    get:
+      summary: Search & list report runs
+      operationId: listReportRuns
+      description: Fetch a list of report runs.
+      security:
+        - BearerToken:
+            - reportruns:list
+      tags:
+        - ReportRuns
+      parameters:
+        - name: page[after]
+          in: query
+          description: Search collection items after that cursor.
+          required: false
+          schema:
+            type: string
+            description: Cursor for paging results.
+          example: xk2h55zsy5
+        - name: page[before]
+          in: query
+          description: Search collection items before that cursor.
+          required: false
+          schema:
+            type: string
+            description: Cursor for paging results.
+          example: 9wkueqcavq
+        - name: page[size]
+          in: query
+          description: Length of the collection to search.
+          required: false
+          schema:
+            type: integer
+            format: int32
+          example: 20
+        - name: filter[workspaceId]
+          in: query
+          description: Filter by Workspace ID.
+          schema:
+            type: string
+        - name: filter[reportCode]
+          in: query
+          description: Filter by Report Code.
+          schema:
+            type: string
+            enum:
+              - transaction_details
+              - payments
+              - settlements
+              - transactions
+              - disputes
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - links
+                  - results
+                properties:
+                  links:
+                    required:
+                      - self
+                    properties:
+                      self:
+                        type: string
+                      prev:
+                        type: string
+                      next:
+                        type: string
+                      first:
+                        type: string
+                      last:
+                        type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - createdAt
+                        - parameters
+                        - status
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: The unique identifier of the report run.
+                        workspaceId:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of a workspace in Payrails.
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: Time at which the reportRun was created.
+                        report:
+                          type: object
+                          required:
+                            - id
+                            - code
+                            - name
+                            - description
+                          properties:
+                            id:
+                              type: string
+                              format: uuid
+                              description: The unique identifier of the report.
+                            code:
+                              type: string
+                              description: The unique code identifying the report.
+                            name:
+                              type: string
+                              description: Human-readable name of the report.
+                            description:
+                              type: string
+                              description: Description of the report.
+                        parameters:
+                          type: object
+                          properties:
+                            timezone:
+                              type: string
+                              description: Defaults to Etc/UTC. The output timezone for all timestamps in the report. A list of possible time zone values is maintained at the IANA Time Zone Database.
+                            intervalStart:
+                              type: string
+                              format: date
+                              description: The start interval for the report.
+                            intervalEnd:
+                              type: string
+                              format: date
+                              description: The end interval for the report.
+                        status:
+                          type: string
+                          description: The status of the report run.
+                          enum:
+                            - pending
+                            - successful
+                            - failed
+                        result:
+                          type: object
+                          description: If the report run is successful (i.e. status=successful), the details about the generated report file.
+                          nullable: true
+                          properties:
+                            fileName:
+                              type: string
+                              description: The suitable name for saving the file to a filesystem. Containing the directory and the name of the file (without the file extension).
+                            fileType:
+                              type: string
+                              description: The returned file type.
+                              enum:
+                                - csv
+                            url:
+                              type: string
+                              description: The URL from which to download the file.
+                            expiresAt:
+                              type: string
+                              format: date-time
+                              description: The time at which the URL will expire and the file will no longer be accessible.
+                        error:
+                          type: string
+                          description: If the report run fails (i.e. status=failed), a message about the failure.
+                          nullable: true
+                        completedAt:
+                          type: string
+                          format: date-time
+                          description: The time at which the report run completes.
+                          nullable: true
+              example:
+                links:
+                  self: https://api.staging.payrails.io/analytics/reportRuns?page[cursor]=MQ==&page[size]=20
+                  prev: https://api.staging.payrails.io/analytics/reportRuns?page[before]=MA==&page[size]=20
+                  next: https://api.staging.payrails.io/analytics/reportRuns?page[after]=Mg==&page[size]=20
+                  first: https://api.staging.payrails.io/analytics/reportRuns?page[size]=20
+                  last: https://api.staging.payrails.io/analytics/reportRuns?page[before]=Ng==&page[size]=20
+                results:
+                  - id: cadb0015-3c26-4d7a-a9d3-2f8768b6d45a
+                    createdAt: '2023-01-05T10:20:00.000Z'
+                    report:
+                      id: 7f9f1882-a103-408d-ac96-46a7021e537a
+                      code: payments.itemized.1
+                      name: Payments
+                      description: The payments report
+                    parameters:
+                      timezone: Etc/UTC
+                      intervalStart: '2022-04-22'
+                      intervalEnd: '2022-04-24'
+                    status: successful
+                    result:
+                      fileName: payments_itemized_1_2022-04-22_2022-04-24
+                      fileType: csv
+                      url: https//payrails-reports.s3.amazonaws.com/payments_itemized_1_2022-04-22_2022-04-24.csv
+                      expiresAt: '2023-01-06T10:20:00.000Z'
+                    completedAt: '2023-01-05T10:21:00.000Z'
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.malformed
+                    detail: The request has malformed syntax
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestmalformed
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+    post:
+      summary: Create a report run
+      operationId: createReportRun
+      description: Create a report run for the provided report.
+      security:
+        - BearerToken:
+            - reportruns:create
+      tags:
+        - ReportRuns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportCode
+                - parameters
+              properties:
+                reportCode:
+                  type: string
+                  description: The unique code of the report.
+                workspaceId:
+                  type: string
+                  format: uuid
+                  description: Unique identifier of a workspace in Payrails.
+                  nullable: true
+                parameters:
+                  type: object
+                  properties:
+                    timezone:
+                      type: string
+                      description: Defaults to Etc/UTC. The output timezone for all timestamps in the report. A list of possible time zone values is maintained at the IANA Time Zone Database.
+                    intervalStart:
+                      type: string
+                      format: date
+                      description: The start interval for the report.
+                    intervalEnd:
+                      type: string
+                      format: date
+                      description: The end interval for the report.
+            example:
+              reportCode: transaction_details
+              workspaceId: 7f9f1882-a103-408d-ac96-46a7021e537a
+              parameters:
+                timezone: Etc/UTC
+                intervalStart: '2025-12-01'
+                intervalEnd: '2025-12-07'
+      responses:
+        '202':
+          description: Accepted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - createdAt
+                  - parameters
+                  - status
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: The unique identifier of the report run.
+                  workspaceId:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of a workspace in Payrails.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Time at which the reportRun was created.
+                  report:
+                    type: object
+                    required:
+                      - id
+                      - code
+                      - name
+                      - description
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: The unique identifier of the report.
+                      code:
+                        type: string
+                        description: The unique code identifying the report.
+                      name:
+                        type: string
+                        description: Human-readable name of the report.
+                      description:
+                        type: string
+                        description: Description of the report.
+                  parameters:
+                    type: object
+                    properties:
+                      timezone:
+                        type: string
+                        description: Defaults to Etc/UTC. The output timezone for all timestamps in the report. A list of possible time zone values is maintained at the IANA Time Zone Database.
+                      intervalStart:
+                        type: string
+                        format: date
+                        description: The start interval for the report.
+                      intervalEnd:
+                        type: string
+                        format: date
+                        description: The end interval for the report.
+                  status:
+                    type: string
+                    description: The status of the report run.
+                    enum:
+                      - pending
+                      - successful
+                      - failed
+                  result:
+                    type: object
+                    description: If the report run is successful (i.e. status=successful), the details about the generated report file.
+                    nullable: true
+                    properties:
+                      fileName:
+                        type: string
+                        description: The suitable name for saving the file to a filesystem. Containing the directory and the name of the file (without the file extension).
+                      fileType:
+                        type: string
+                        description: The returned file type.
+                        enum:
+                          - csv
+                      url:
+                        type: string
+                        description: The URL from which to download the file.
+                      expiresAt:
+                        type: string
+                        format: date-time
+                        description: The time at which the URL will expire and the file will no longer be accessible.
+                  error:
+                    type: string
+                    description: If the report run fails (i.e. status=failed), a message about the failure.
+                    nullable: true
+                  completedAt:
+                    type: string
+                    format: date-time
+                    description: The time at which the report run completes.
+                    nullable: true
+              example:
+                id: cadb0015-3c26-4d7a-a9d3-2f8768b6d45a
+                createdAt: '2023-01-05T10:20:00.000Z'
+                workspaceId: 7f9f1882-a103-408d-ac96-46a7021e537a
+                report:
+                  id: 7f9f1882-a103-408d-ac96-46a7021e537a
+                  code: payments.itemized.1
+                  name: Payments
+                  description: The payments report.
+                parameters:
+                  timezone: Etc/UTC
+                  intervalStart: '2022-04-22'
+                  intervalEnd: '2022-04-24'
+                status: pending
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.malformed
+                    detail: The request has malformed syntax
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestmalformed
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+  /analytics/reportRuns/{reportRunId}:
+    get:
+      summary: Get a report run by ID
+      operationId: getReportRun
+      description: Get a reportRun by ID.
+      security:
+        - BearerToken:
+            - reportruns:read
+      tags:
+        - ReportRuns
+      parameters:
+        - name: reportRunId
+          in: path
+          description: Identifier of the resource in Payrails.
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: d5454c2f-ae5e-44f3-8edf-f6dad64f005f
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - createdAt
+                  - parameters
+                  - status
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: The unique identifier of the report run.
+                  workspaceId:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of a workspace in Payrails.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Time at which the reportRun was created.
+                  report:
+                    type: object
+                    required:
+                      - id
+                      - code
+                      - name
+                      - description
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: The unique identifier of the report.
+                      code:
+                        type: string
+                        description: The unique code identifying the report.
+                      name:
+                        type: string
+                        description: Human-readable name of the report.
+                      description:
+                        type: string
+                        description: Description of the report.
+                  parameters:
+                    type: object
+                    properties:
+                      timezone:
+                        type: string
+                        description: Defaults to Etc/UTC. The output timezone for all timestamps in the report. A list of possible time zone values is maintained at the IANA Time Zone Database.
+                      intervalStart:
+                        type: string
+                        format: date
+                        description: The start interval for the report.
+                      intervalEnd:
+                        type: string
+                        format: date
+                        description: The end interval for the report.
+                  status:
+                    type: string
+                    description: The status of the report run.
+                    enum:
+                      - pending
+                      - successful
+                      - failed
+                  result:
+                    type: object
+                    description: If the report run is successful (i.e. status=successful), the details about the generated report file.
+                    nullable: true
+                    properties:
+                      fileName:
+                        type: string
+                        description: The suitable name for saving the file to a filesystem. Containing the directory and the name of the file (without the file extension).
+                      fileType:
+                        type: string
+                        description: The returned file type.
+                        enum:
+                          - csv
+                      url:
+                        type: string
+                        description: The URL from which to download the file.
+                      expiresAt:
+                        type: string
+                        format: date-time
+                        description: The time at which the URL will expire and the file will no longer be accessible.
+                  error:
+                    type: string
+                    description: If the report run fails (i.e. status=failed), a message about the failure.
+                    nullable: true
+                  completedAt:
+                    type: string
+                    format: date-time
+                    description: The time at which the report run completes.
+                    nullable: true
+              example:
+                id: cadb0015-3c26-4d7a-a9d3-2f8768b6d45a
+                createdAt: '2023-01-05T10:20:00.000Z'
+                workspaceId: 7f9f1882-a103-408d-ac96-46a7021e537a
+                report:
+                  id: 7f9f1882-a103-408d-ac96-46a7021e537a
+                  code: payments.itemized.1
+                  name: Payments
+                  description: The payments report
+                parameters:
+                  timezone: Etc/UTC
+                  intervalStart: '2022-04-22'
+                  intervalEnd: '2022-04-24'
+                status: successful
+                result:
+                  fileName: payments_itemized_1_2022-04-22_2022-04-24
+                  fileType: csv
+                  url: https//payrails-reports.s3.amazonaws.com/payments_itemized_1_2022-04-22_2022-04-24.csv
+                  expiresAt: '2023-01-06T10:20:00.000Z'
+                completedAt: '2023-01-05T10:21:00.000Z'
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.malformed
+                    detail: The request has malformed syntax
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestmalformed
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: |
+        You can use your secret API key in the `x-api-key` header of your API requests for supported endpoints: `x-api-key: <YOUR_API_KEY_HERE>`.
+        API keys are environment specific and should be securely guarded.
+
+        You don't have your API key yet? Contact your Payrails account manager.
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [access token endpoint](#operation/getOAuthToken) endpoint.
+    BearerVaultClientToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [vault client init](#operation/vaultClientInit) endpoint.

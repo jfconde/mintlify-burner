@@ -1,0 +1,711 @@
+openapi: 3.1.0
+info:
+  version: 1.3.15
+  title: Payrails API Reference
+  contact:
+    name: Payrails
+    url: https://www.payrails.com
+    email: tech@payrails.com
+  license:
+    name: Payrails GmbH
+    url: https://www.payrails.com/
+  description: |
+    ---
+    Payrails provides a collection of APIs that enable you to process and manage payments. Our APIs accept and return JSON in the HTTP body, and return standard HTTP response codes. You can consume the APIs directly using your favorite HTTP/REST library.
+servers:
+  - url: https://api.staging.payrails.io
+    description: Payrails environment.
+security:
+  - ApiKey: []
+tags:
+  - name: Vault Instant Proxy
+    description: Operations related to Instant Proxy API requests.
+paths:
+  /payment/providers/{providerId}/proxy:
+    post:
+      tags:
+        - Vault Instant Proxy
+      summary: Execute an instant proxy request
+      description: Executes a proxy request from our Vault to an external provider.
+      operationId: vaultProxy
+      security:
+        - BearerToken:
+            - providers:proxy
+      parameters:
+        - name: x-idempotency-key
+          in: header
+          description: |
+            Idempotency key to be used.
+            Sending again the same key would return the same result without re-executing the update.
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: 91874e4d-81e9-4486-aee4-ee1de84da890
+        - name: providerId
+          in: path
+          description: Identifier of the resource in Payrails.
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: d5454c2f-ae5e-44f3-8edf-f6dad64f005f
+        - name: Accept
+          in: header
+          description: Accept key indicates which content types the client is able to understand.
+          required: true
+          schema:
+            type: string
+          example: application/json
+        - name: Content-Type
+          in: header
+          description: Content Type key to indicate the original media type of the resource.
+          required: true
+          schema:
+            type: string
+          example: application/json
+        - name: Authorization
+          in: header
+          description: |
+            Authorization header used to authenticate requests.
+            Mandatory for payments via Checkout and send the bearer token from Checkout.
+          required: false
+          schema:
+            type: string
+          example: application/json
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - paymentInstrumentId
+                - body
+                - headers
+                - url
+              properties:
+                paymentInstrumentId:
+                  type: string
+                  format: uuid
+                  description: Payment Instrument that should be used.
+                headers:
+                  type: object
+                  description: Headers that should be used for the request to the provider. The "Content-Type" header is required and must be passed exactly once.
+                  additionalProperties: true
+                url:
+                  type: string
+                  format: uri
+                  description: URL address of the payment provider server to be called.
+                body:
+                  type: object
+                  description: Body that should be used for the request to the provider.
+                  additionalProperties: true
+                encryptedSecurityCode:
+                  type: string
+                  description: |
+                    Encrypted instrument security code replacing the security code from an earlier tokenization (if any).
+                    The instrument security code should be encrypted with the RSA public key provided by Payrails SDK using JWE with encryption algorithm RSA-OAEP-256 and content encryption A256CBC-HS512.
+                preProcessors:
+                  type: array
+                  description: Array of processors used when you need Payrails to make a customization in the request before forwarding it to the downstream destination, i.e. calculating a signature of body including sensitive data.
+                  items:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: Representation of a certain pre or post processor in Payrails.
+                      parameters:
+                        type: object
+                        description: Parameters required for a certain pre or post processor in Payrails, refer to API guides for parameters of a specific processor.
+                postProcessors:
+                  type: array
+                  description: Array of processors used when you need Payrails to make a customization in the response of the downstream destination before forwarding it to your system. i.e. redact any sensitive information in the response from a payment processor.
+                  items:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: Representation of a certain pre or post processor in Payrails.
+                      parameters:
+                        type: object
+                        description: Parameters required for a certain pre or post processor in Payrails, refer to API guides for parameters of a specific processor.
+            examples:
+              adyen:
+                description: Adyen.
+                value:
+                  paymentInstrumentId: eeaac45c-f032-49bc-a8c5-ec99d79b74e2
+                  url: https://checkout-test.adyen.com/v69/payments
+                  headers:
+                    x-API-key: YOUR_API_KEY
+                    Accept: application/json
+                    Content-Type: application/json
+                  body:
+                    amount:
+                      currency: USD
+                      value: 1000
+                    reference: your-order-number
+                    paymentMethod:
+                      type: scheme
+                      number: '{{cardNumber}}'
+                      expiryMonth: '{{cardExpiryMonth}}'
+                      expiryYear: '{{cardExpiryYear}}'
+                      holderName: '{{cardHolderName}}'
+                      cvc: '{{cardSecurityCode}}'
+                    returnUrl: https://your-company.com/...
+                    merchantAccount: YOUR_MERCHANT_ACCOUNT
+              checkout:
+                description: Adyen.
+                value:
+                  paymentInstrumentId: eeaac45c-f032-49bc-a8c5-ec99d79b74e2
+                  url: https://api.sandbox.checkout.com/payments
+                  headers:
+                    Cko-Idempotency-Key: some-key
+                    Accept: application/json
+                    Content-Type: application/json
+                    Authorization: token
+                  body:
+                    source:
+                      type: card
+                      number: '{{cardNumber}}'
+                      expiry_month: '{{cardExpiryMonth}}'
+                      expiry_year: '{{cardExpiryYear}}'
+                      name: '{{cardHolderName}}'
+                      cvv: '{{cardSecurityCode}}'
+                      stored: false
+                      store_for_future_use: true
+                    3ds:
+                      attempt_n3d: true
+                      cryptogram: AgAAAAAAAIR8CQrXcIhbQAAAAAA=
+                      eci: '05'
+                      enabled: true
+                      version: 2.0.1
+                      xid: MDAwMDAwMDAwMDAwMDAwMzIyNzY=
+                    amount: 6540
+                    billing_descriptor:
+                      city: GOTHAM
+                      name: SUPERHEROES.COM
+                    capture: true
+                    capture_on: '2019-09-10T10:11:12Z'
+                    currency: USD
+                    customer:
+                      email: brucewayne@gmail.com
+                      id: cus_udst2tfldj6upmye2reztkmm4i
+                      name: Bruce Wayne
+                      phone:
+                        country_code: '+1'
+                        number: 415 555 2671
+                    description: Set of 3 masks
+                    failure_url: http://example.com/payments/fail
+                    metadata:
+                      coupon_code: NY2018
+                      partner_id: 123989
+                    payment_ip: 90.197.169.245
+                    payment_type: Recurring
+                    previous_payment_id: pay_fun26akvvjjerahhctaq2uzhu4
+                    recipient:
+                      account_number: '5555554444'
+                      dob: '1985-05-15'
+                      last_name: Jones
+                      zip: W1T
+                    reference: ORD-5023-4E89
+                    risk:
+                      enabled: false
+                    shipping:
+                      address:
+                        address_line1: Checkout.com
+                        address_line2: 90 Tottenham Court Road
+                        city: London
+                        country: GB
+                        state: London
+                        zip: W1T 4TJ
+                      phone:
+                        country_code: '+1'
+                        number: 415 555 2671
+                    success_url: http://example.com/payments/success
+              mangopay:
+                description: Adyen.
+                value:
+                  paymentInstrumentId: eeaac45c-f032-49bc-a8c5-ec99d79b74e2
+                  url: https://pci.sandbox.mangopay.com/pci/v2.01/your-client-id/preauthorizations/card/direct/raw
+                  headers:
+                    Authorization: Basic xyz
+                    Accept: application/json
+                    Content-Type: application/json
+                  body:
+                    Tag: Custom meta
+                    AuthorId: '213876498'
+                    DebitedFunds:
+                      Currency: EUR
+                      Amount: 5000
+                    SecureModeReturnURL: https://mangopay.com/docs/please-ignore
+                    Culture: EN
+                    BrowserInfo:
+                      AcceptHeader: text/html, application/xhtml+xml, application/xml;q=0.9, /;q=0.8
+                      JavaEnabled: true
+                      Language: en-EN
+                      ColorDepth: 4
+                      ScreenHeight: 1800
+                      ScreenWidth: 400
+                      TimeZoneOffset: 60
+                      UserAgent: Mozilla/5.0 (iPhone; CPU iPhone OS 13_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148
+                      JavascriptEnabled: true
+                    IpAddress: b02a:7967:ecc2:d827:cdd0:67d3:6d2f:4fef
+                    Billing:
+                      FirstName: Alex
+                      LastName: Smith
+                      Address:
+                        AddressLine1: 100 rue Rivoli
+                        AddressLine2: null
+                        City: Paris
+                        Region: Ile-de-France
+                        PostalCode: '75001'
+                        Country: FR
+                    Shipping:
+                      FirstName: Alex
+                      LastName: Smith
+                      Address:
+                        AddressLine1: 100 rue Rivoli
+                        AddressLine2: null
+                        City: Paris
+                        Region: Ile-de-France
+                        PostalCode: '75001'
+                        Country: FR
+                    Card:
+                      Number: '{{cardNumber}}'
+                      ExpirationDate: '{{cardExpiryMonth}}{{cardExpiryYear2Digits}}'
+                      CVX: '{{cardSecurityCode}}'
+                    CardType: CB_VISA_MASTERCARD
+              pspWithSignatureCalculation:
+                description: A PSP with signature calculation.
+                value:
+                  paymentInstrumentId: eeaac45c-f032-49bc-a8c5-ec99d79b74e2
+                  url: https://api.somepsp.com/authorize
+                  headers:
+                    x-API-key: YOUR_API_KEY,
+                    Content-Type: application/json
+                    Signature: '{{requestHashSignature}}'
+                  body:
+                    amount:
+                      currency: USD
+                      value: 1000
+                    reference: your-order-number
+                    paymentMethod:
+                      type: scheme
+                      number: '{{cardNumber}}'
+                      expiryMonth: '{{cardExpiryMonth}}'
+                      expiryYear: '{{cardExpiryYear}}'
+                      cvc: '{{cardSecurityCode}}'
+                      holderName: '{{cardHolderName}}'
+                    Signature: '{{requestHashSignature}}'
+                  preProcessors:
+                    - code: calculatehash
+                      parameters:
+                        hashEncoding: base64
+                        payload: string used to calculate the hash with {{cardNumber}} and other placeholders in the body. {{requestBodyString}} is supported if the entire body needs to be used for signature calculation.
+                        algorithm: sha256
+      responses:
+        '200':
+          description: Executed.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - status
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status that was returned by the provider.
+                  headers:
+                    type: object
+                    description: Headers that were returned by the provider.
+                    additionalProperties: true
+                  body:
+                    type: object
+                    description: Body that was returned by the provider.
+                    additionalProperties: true
+              examples:
+                adyen:
+                  description: Adyen.
+                  value:
+                    status: 200
+                    headers:
+                      x-some-key: x-some-value
+                    body:
+                      resultCode: Authorised
+                      pspReference: 993617895204576J
+                      merchantReference: your-order-number
+                      additionalData:
+                        acquirerCode: TestPmmAcquirer
+                        acquirerReference: 8PQMP9VEP3H
+                        authCode: 44925
+                        avsResult: 4 AVS not supported for this card type
+                        avsResultRaw: '4'
+                        cvcResult: 1 Matches
+                        cvcResultRaw: M
+                        refusalReasonRaw: AUTHORISED
+                checkout:
+                  description: Checkout.
+                  value:
+                    status: 200
+                    headers:
+                      x-some-key: x-some-value
+                    body:
+                      status: Authorized
+                      id: pay_mbabizu24mvu3mela5njyhpit4
+                      3ds:
+                        downgraded: true
+                        enrolled: 'N'
+                      _links:
+                        action:
+                          href: https://api.sandbox.checkout.com/payments/pay_mbabizu24mvu3mela5njyhpit4/actions
+                        capture:
+                          href: https://api.sandbox.checkout.com/payments/pay_mbabizu24mvu3mela5njyhpit4/captures
+                        self:
+                          href: https://api.sandbox.checkout.com/payments/pay_mbabizu24mvu3mela5njyhpit4
+                        void:
+                          href: https://api.sandbox.checkout.com/payments/pay_mbabizu24mvu3mela5njyhpit4/voids
+                      action_id: act_mbabizu24mvu3mela5njyhpit4
+                      amount: 6540
+                      approved: true
+                      auth_code: '770687'
+                      currency: USD
+                      customer:
+                        email: brucewayne@gmail.com
+                        id: cus_udst2tfldj6upmye2reztkmm4i
+                        name: Bruce Wayne
+                        phone:
+                          country_code: '+1'
+                          number: 415 555 2671
+                      eci: '06'
+                      processed_on: '2019-09-10T10:11:12Z'
+                      processing:
+                        acquirer_transaction_id: '440644309099499894406'
+                        recommendation_code: '02'
+                        retrieval_reference_number: '909913440644'
+                      reference: ORD-5023-4E89
+                      response_code: '10000'
+                      response_summary: Approved
+                      risk:
+                        flagged: true
+                      scheme_id: '489341065491658'
+                      source:
+                        billing_address:
+                          address_line1: Checkout.com
+                          address_line2: 90 Tottenham Court Road
+                          city: London
+                          country: GB
+                          state: London
+                          zip: W1T 4TJ
+                        bin: '424242'
+                        fingerprint: F31828E2BDABAE63EB694903825CDD36041CC6ED461440B81415895855502832
+                        id: src_nwd3m4in3hkuddfpjsaevunhdy
+                        last4: '4242'
+                        phone:
+                          country_code: '+1'
+                          number: 415 555 2671
+                        type: card
+                mangopay:
+                  description: Mangopay.
+                  value:
+                    status: 200
+                    headers:
+                      x-some-key: x-some-value
+                    body:
+                      Id: '205063633'
+                      Tag: Custom meta
+                      CreationDate: 1696258550
+                      AuthorId: '213876498'
+                      DebitedFunds:
+                        Currency: EUR
+                        Amount: 5000
+                      RemainingFunds:
+                        Currency: EUR
+                        Amount: 5000
+                      AuthorizationDate: null
+                      Status: CREATED
+                      PaymentStatus: WAITING
+                      ExpirationDate: null
+                      PayInId: null
+                      ResultCode: null
+                      ResultMessage: null
+                      SecureMode: DEFAULT
+                      CardId: '205063632'
+                      SecureModeReturnURL: https://mangopay.com/docs/please-ignore?preAuthorizationId=205063633
+                      SecureModeRedirectURL: https://api.sandbox.mangopay.com:443/Redirect/ACSWithoutValidation?token=ad51b7af1184421aa00b545a06560e8d&mgpsecureid=ad51b7af1184421aa00b545a06560e8d
+                      SecureModeNeeded: true
+                      PaymentType: CARD
+                      ExecutionType: DIRECT
+                      StatementDescriptor: null
+                      Culture: EN
+                      SecurityInfo:
+                        AVSResult: NO_CHECK
+                      MultiCapture: true
+                      BrowserInfo:
+                        AcceptHeader: text/html, application/xhtml+xml, application/xml;q=0.9, /;q=0.8
+                        JavaEnabled: true
+                        Language: en-EN
+                        ColorDepth: 4
+                        ScreenHeight: 1800
+                        ScreenWidth: 400
+                        TimeZoneOffset: 60
+                        UserAgent: Mozilla/5.0 (iPhone; CPU iPhone OS 13_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148
+                        JavascriptEnabled: true
+                      IpAddress: b02a:7967:ecc2:d827:cdd0:67d3:6d2f:4fef
+                      Billing:
+                        FirstName: Alex
+                        LastName: Smith
+                        Address:
+                          AddressLine1: 100 rue Rivoli
+                          AddressLine2: null
+                          City: Paris
+                          Region: Ile-de-France
+                          PostalCode: '75001'
+                          Country: FR
+                      Shipping:
+                        FirstName: Alex
+                        LastName: Smith
+                        Address:
+                          AddressLine1: 100 rue Rivoli
+                          AddressLine2: null
+                          City: Paris
+                          Region: Ile-de-France
+                          PostalCode: '75001'
+                          Country: FR
+                      Requested3DSVersion: null
+                      Applied3DSVersion: V2_1
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.malformed
+                    detail: The request has malformed syntax
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestmalformed
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+        '429':
+          description: Too Many Requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.rate-limit
+                    detail: Too many requests
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestrate-limit
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: |
+        You can use your secret API key in the `x-api-key` header of your API requests for supported endpoints: `x-api-key: <YOUR_API_KEY_HERE>`.
+        API keys are environment specific and should be securely guarded.
+
+        You don't have your API key yet? Contact your Payrails account manager.
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [access token endpoint](#operation/getOAuthToken) endpoint.
+    BearerVaultClientToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [vault client init](#operation/vaultClientInit) endpoint.

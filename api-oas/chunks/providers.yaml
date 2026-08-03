@@ -1,0 +1,830 @@
+openapi: 3.1.0
+info:
+  version: 1.3.15
+  title: Payrails API Reference
+  contact:
+    name: Payrails
+    url: https://www.payrails.com
+    email: tech@payrails.com
+  license:
+    name: Payrails GmbH
+    url: https://www.payrails.com/
+  description: |
+    ---
+    Payrails provides a collection of APIs that enable you to process and manage payments. Our APIs accept and return JSON in the HTTP body, and return standard HTTP response codes. You can consume the APIs directly using your favorite HTTP/REST library.
+servers:
+  - url: https://api.staging.payrails.io
+    description: Payrails environment.
+security:
+  - ApiKey: []
+tags:
+  - name: Providers
+    description: Operations related to managing Providers.
+paths:
+  /payment/providers:
+    get:
+      summary: Search & list providers
+      operationId: listProviders
+      description: Fetch a list of providers.
+      tags:
+        - Providers
+      security:
+        - BearerToken:
+            - providers:list
+            - providers:list:active
+      parameters:
+        - name: filter[status]
+          in: query
+          description: Filter by status.
+          schema:
+            type: string
+            description: Status of the provider.
+            enum:
+              - active
+              - inactive
+        - name: filter[type]
+          in: query
+          description: Filter by type.
+          schema:
+            type: string
+            description: Provider type.
+            enum:
+              - Fraud
+              - Payment
+              - Payout
+              - Vault
+              - NetworkOffers
+              - ThreeDS
+              - NetworkGateway
+              - NetworkToken
+              - Bin
+              - Data
+              - Dispute
+              - DisputeAlert
+              - Tax
+        - name: filter[name]
+          in: query
+          schema:
+            type: string
+          description: Filter for a list of providers by name.
+        - name: filter[displayName]
+          in: query
+          schema:
+            type: string
+          description: Filter for a list of providers by display name.
+        - name: filter[createdAt]
+          in: query
+          description: |
+            Filter by `createdAt` field using interval notation.
+
+            `1973-02-03T04:32:11.596Z` - exact date value
+
+            `(1973-02-03T04:32:11.596Z` - after the date excluding it
+
+            `[1973-02-03T04:32:11.596Z` - after the date including it
+
+            `1973-02-03T04:32:11.596Z)` - before the date excluding it
+
+            `1973-02-03T04:32:11.596Z]` - before the date including it
+
+            `(1973-02-03T04:32:11.596Z,1973-04-03T03:20:11.436Z)` - between two dates excluding both
+
+            `(1973-02-03T04:32:11.596Z,1973-04-03T03:20:11.436Z]` - between two dates excluding on the left
+
+            `[1973-02-03T04:32:11.596Z,1973-04-03T03:20:11.436Z)` - between two dates excluding on the right
+
+            `[1973-02-03T04:32:11.596Z,1973-04-03T03:20:11.436Z]` - between two dates including both.
+          schema:
+            type: string
+            example: '[2026-04-01T00:00:00Z,2026-05-01T00:00:00Z)'
+        - name: filter[updatedAt]
+          in: query
+          description: Filter by updatedAt.
+          schema:
+            type: string
+            example: '1978-01-04T19:33:19.261Z'
+            description: |
+              Filter by `updatedAt` field. The value should represent a range one of the following formats
+              `(1973-02-03T04:32:11.596Z` - after the date excluding it
+
+              `[1973-02-03T04:32:11.596Z` - after the date including it
+
+              `1973-02-03T04:32:11.596Z)` - before the date excluding it
+
+              `1973-02-03T04:32:11.596Z]` - before the date including it
+
+              `(1973-02-03T04:32:11.596Z,1973-04-03T03:20:11.436Z)` - between two dates excluding both
+
+              `(1973-02-03T04:32:11.596Z,1973-04-03T03:20:11.436Z]` - between two dates excluding on the left
+
+              `[1973-02-03T04:32:11.596Z,1973-04-03T03:20:11.436Z)` - between two dates excluding on the right
+
+              `[1973-02-03T04:32:11.596Z,1973-04-03T03:20:11.436Z]` - between two dates including both.
+        - name: page[cursor]
+          in: query
+          description: Search collection items from that cursor.
+          required: false
+          schema:
+            type: string
+            description: Cursor for paging results.
+          example: 9wkueqcavq
+        - name: page[after]
+          in: query
+          description: Search collection items after that cursor.
+          required: false
+          schema:
+            type: string
+            description: Cursor for paging results.
+          example: xk2h55zsy5
+        - name: page[before]
+          in: query
+          description: Search collection items before that cursor.
+          required: false
+          schema:
+            type: string
+            description: Cursor for paging results.
+          example: 9wkueqcavq
+        - name: page[size]
+          in: query
+          description: Length of the collection to search.
+          required: false
+          schema:
+            type: integer
+            format: int32
+          example: 20
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - results
+                properties:
+                  links:
+                    required:
+                      - self
+                    properties:
+                      self:
+                        type: string
+                      prev:
+                        type: string
+                      next:
+                        type: string
+                      first:
+                        type: string
+                      last:
+                        type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - name
+                        - displayName
+                        - type
+                        - createdAt
+                        - configSchema
+                      properties:
+                        id:
+                          type: string
+                          description: Unique identifier of the provider.
+                          format: uuid
+                        name:
+                          type: string
+                          description: Name of the provider.
+                        displayName:
+                          type: string
+                          description: Display name of the provider.
+                        type:
+                          type: string
+                          description: Provider type.
+                          enum:
+                            - Fraud
+                            - Payment
+                            - Payout
+                            - Vault
+                            - NetworkOffers
+                            - ThreeDS
+                            - NetworkGateway
+                            - NetworkToken
+                            - Bin
+                            - Data
+                            - Dispute
+                            - DisputeAlert
+                            - Tax
+                        status:
+                          type: string
+                          description: Status of the provider.
+                          enum:
+                            - active
+                            - inactive
+                        configSchema:
+                          type: string
+                          description: JSON schema of the provider configuration.
+                        selfOnboarding:
+                          type: object
+                          description: Self-onboarding capabilities available for this provider.
+                          properties:
+                            enabled:
+                              type: boolean
+                              description: Whether self-onboarding is enabled for this provider.
+                            supportedAuthModes:
+                              type: array
+                              description: Authentication modes supported for self-onboarding.
+                              items:
+                                type: string
+                                enum:
+                                  - none
+                                  - oauth
+                        notificationURLTemplate:
+                          type: string
+                          description: |
+                            Template of the notification URL for provider configs of that provider.
+                            The template contains variables between curly braces that can be mapped to the fields of the provider configs (e.g. `{id}`, `{accountName}`)
+                            and substituted to generate the notification URL of that provider config.
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: Date of creation of the provider.
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          description: Last update of the provider.
+              example:
+                links:
+                  self: https://api.staging.payrails.io/payment/providers?page[cursor]=MQ==&page[size]=20
+                  prev: https://api.staging.payrails.io/payment/providers?page[before]=MA==&page[size]=20
+                  next: https://api.staging.payrails.io/payment/providers?page[after]=Mg==&page[size]=20
+                  first: https://api.staging.payrails.io/payment/providers?page[size]=20
+                  last: https://api.staging.payrails.io/payment/providers?page[before]=Ng==&page[size]=20
+                results:
+                  - id: 5eb08624-ecce-4cbc-9a8a-61d484172815
+                    name: adyen
+                    displayName: Adyen
+                    type: Payment
+                    status: active
+                    configSchema: '{"required":["accountDetails","credentials"],"definitions":{"PspAdyenAccountDetails":{"required":["merchantAccount"],"properties":{"merchantAccount":{"title":"Merchant account","minLength":1,"type":"string"},"prefix":{"title":"Prefix","description":"Account prefix used in URLs (only for Live accounts)","minLength":1,"type":"string"}},"type":"object"},"PspAdyenCredentials":{"required":["apiKey"],"properties":{"apiKey":{"title":"API key","description":"API key used to authenticate requests to the Adyen API","minLength":1,"type":"string","format":"secret"},"hmacKeys":{"title":"HMAC keys","description":"HMAC keys used to authenticate notifications from the Adyen API","pattern":"^[0-9A-F]{64}$","items":{"type":"string"},"type":"array"}},"type":"object"}},"properties":{"accountDetails":{"$ref":"#/definitions/PspAdyenAccountDetails","title":"Account details"},"credentials":{"$ref":"#/definitions/PspAdyenCredentials","title":"Checkout credentials"}},"type":"object"}'
+                    createdAt: '2021-01-05T10:20:00.000Z'
+                    updatedAt: '2021-01-05T10:20:00.000Z'
+                  - id: 1f3cb3c4-3d8d-4f3c-94ad-30a0a17fde6d
+                    name: checkout
+                    displayName: Checkout.com
+                    type: Payment
+                    status: inactive
+                    configSchema: '{"required":["accountDetails","credentials"],"definitions":{"PspCheckoutAccountDetails":{"required":["processingChannelId"],"properties":{"processingChannelId":{"title":"Processing channel ID","minLength":1,"pattern":"^pc_.+$","type":"string"}},"type":"object"},"PspCheckoutCredentials":{"required":["clientId","clientSecret"],"properties":{"clientId":{"title":"Client ID","description":"Client ID used to authenticate requests to the Checkout API","minLength":1,"type":"string"},"clientSecret":{"title":"Client Secret","description":"Client Secret used to authenticate requests to the Checkout API","minLength":1,"type":"string","format":"secret"},"hmacKeys":{"title":"HMAC keys","description":"HMAC keys used to authenticate notifications from the Checkout API","pattern":"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$","items":{"type":"string"},"type":"array","format":"secret"}},"type":"object"}},"properties":{"accountDetails":{"$ref":"#/definitions/PspCheckoutAccountDetails","title":"Account details"},"credentials":{"$ref":"#/definitions/PspCheckoutCredentials","title":"Checkout credentials"}},"type":"object"}'
+                    createdAt: '2021-01-05T10:20:00.000Z'
+                    updatedAt: '2021-01-05T10:20:00.000Z'
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.malformed
+                    detail: The request has malformed syntax
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestmalformed
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+        '429':
+          description: Too Many Requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.rate-limit
+                    detail: Too many requests
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestrate-limit
+  /payment/providers/{providerId}:
+    get:
+      summary: Get provider by ID
+      operationId: getProvider
+      description: Retrieve the provider by provider ID.
+      tags:
+        - Providers
+      parameters:
+        - name: providerId
+          in: path
+          description: Identifier of the resource in Payrails.
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: d5454c2f-ae5e-44f3-8edf-f6dad64f005f
+      responses:
+        '200':
+          description: Created.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - name
+                  - displayName
+                  - type
+                  - createdAt
+                  - configSchema
+                properties:
+                  id:
+                    type: string
+                    description: Unique identifier of the provider.
+                    format: uuid
+                  name:
+                    type: string
+                    description: Name of the provider.
+                  displayName:
+                    type: string
+                    description: Display name of the provider.
+                  type:
+                    type: string
+                    description: Provider type.
+                    enum:
+                      - Fraud
+                      - Payment
+                      - Payout
+                      - Vault
+                      - NetworkOffers
+                      - ThreeDS
+                      - NetworkGateway
+                      - NetworkToken
+                      - Bin
+                      - Data
+                      - Dispute
+                      - DisputeAlert
+                      - Tax
+                  status:
+                    type: string
+                    description: Status of the provider.
+                    enum:
+                      - active
+                      - inactive
+                  configSchema:
+                    type: string
+                    description: JSON schema of the provider configuration.
+                  selfOnboarding:
+                    type: object
+                    description: Self-onboarding capabilities available for this provider.
+                    properties:
+                      enabled:
+                        type: boolean
+                        description: Whether self-onboarding is enabled for this provider.
+                      supportedAuthModes:
+                        type: array
+                        description: Authentication modes supported for self-onboarding.
+                        items:
+                          type: string
+                          enum:
+                            - none
+                            - oauth
+                  notificationURLTemplate:
+                    type: string
+                    description: |
+                      Template of the notification URL for provider configs of that provider.
+                      The template contains variables between curly braces that can be mapped to the fields of the provider configs (e.g. `{id}`, `{accountName}`)
+                      and substituted to generate the notification URL of that provider config.
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Date of creation of the provider.
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    description: Last update of the provider.
+              example:
+                id: 1f3cb3c4-3d8d-4f3c-94ad-30a0a17fde6d
+                name: checkout
+                displayName: Checkout.com
+                type: Payment
+                status: active
+                configSchema: '{"required":["accountDetails","credentials"],"definitions":{"PspCheckoutAccountDetails":{"required":["processingChannelId"],"properties":{"processingChannelId":{"title":"Processing channel ID","minLength":1,"pattern":"^pc_.+$","type":"string"}},"type":"object"},"PspCheckoutCredentials":{"required":["clientId","clientSecret"],"properties":{"clientId":{"title":"Client ID","description":"Client ID used to authenticate requests to the Checkout API","minLength":1,"type":"string"},"clientSecret":{"title":"Client Secret","description":"Client Secret used to authenticate requests to the Checkout API","minLength":1,"type":"string","format":"secret"},"hmacKeys":{"title":"HMAC keys","description":"HMAC keys used to authenticate notifications from the Checkout API","pattern":"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$","items":{"type":"string"},"type":"array","format":"secret"}},"type":"object"}},"properties":{"accountDetails":{"$ref":"#/definitions/PspCheckoutAccountDetails","title":"Account details"},"credentials":{"$ref":"#/definitions/PspCheckoutCredentials","title":"Checkout credentials"}},"type":"object"}'
+                notificationURLTemplate: https://yourenv-api-pub.staging.payrails.io/public/notification/bec28206-4019-4a73-bb2c-a75ff7752c8d/provider/checkout/providerConfigId/{id}
+                createdAt: '2021-01-05T10:20:00.000Z'
+                updatedAt: '2022-06-14T11:50:00.000Z'
+        '400':
+          description: Bad Request.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.malformed
+                    detail: The request has malformed syntax
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestmalformed
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+        '429':
+          description: Too Many Requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.rate-limit
+                    detail: Too many requests
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestrate-limit
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: |
+        You can use your secret API key in the `x-api-key` header of your API requests for supported endpoints: `x-api-key: <YOUR_API_KEY_HERE>`.
+        API keys are environment specific and should be securely guarded.
+
+        You don't have your API key yet? Contact your Payrails account manager.
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [access token endpoint](#operation/getOAuthToken) endpoint.
+    BearerVaultClientToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [vault client init](#operation/vaultClientInit) endpoint.

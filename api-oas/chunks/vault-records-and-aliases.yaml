@@ -1,0 +1,2004 @@
+openapi: 3.1.0
+info:
+  version: 1.3.15
+  title: Payrails API Reference
+  contact:
+    name: Payrails
+    url: https://www.payrails.com
+    email: tech@payrails.com
+  license:
+    name: Payrails GmbH
+    url: https://www.payrails.com/
+  description: |
+    ---
+    Payrails provides a collection of APIs that enable you to process and manage payments. Our APIs accept and return JSON in the HTTP body, and return standard HTTP response codes. You can consume the APIs directly using your favorite HTTP/REST library.
+servers:
+  - url: https://api.staging.payrails.io
+    description: Payrails environment.
+security:
+  - ApiKey: []
+tags:
+  - name: Vault Records and Aliases
+    description: Operations related to managing records and aliases.
+paths:
+  /token/records/fields/{alias}:
+    get:
+      summary: Get field details by alias
+      operationId: fieldByAlias
+      description: |
+        Get field details for the given alias.
+      security:
+        - BearerToken:
+            - vaultrecords:meta:read
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: alias
+          in: path
+          description: Alias of the record's field in Payrails Vault.
+          required: true
+          schema:
+            type: string
+          example: 04a5b266-37c2-45e1-8729-04170b43b808
+        - name: includeVolatileInfo
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding volatile fields should be included in the response.
+        - name: includeDetokenizations
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding performed detokenization attempts should be returned.
+      responses:
+        '200':
+          description: Details about field.
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Field object
+                properties:
+                  alias:
+                    type: string
+                    description: Merchant-facing unique alias for the field. Used as an identifier.
+                  recordId:
+                    type: string
+                    description: Identifier of the record to which the alias belongs.
+                  recordType:
+                    type: string
+                    description: Record type to which this field belongs, e.g. `card` and `networkToken`.
+                  fieldType:
+                    type: string
+                    description: |
+                      Field type of the alias, e.g. `cardNumber`, `expiryMonth`,
+                      `expiryYear`, `securityCode`, `holderName`, `networkToken`, `cryptogram`.
+                  displayableValue:
+                    type: string
+                    nullable: true
+                    description: Displayable value for the field.
+                  allowedDetokenizationCount:
+                    type: integer
+                    nullable: true
+                    title: Allowed detokenization count.
+                    description: It will be restricted if used on a proxy and reaches the limit mentioned in this field.
+                    example: 0
+                  allowedSdkRevealCount:
+                    type: integer
+                    nullable: true
+                    title: Allowed reveal count.
+                    description: It will be restricted if used on a SDK reveal and reaches the limit mentioned in this field.
+                    example: 0
+                  hasValue:
+                    type: boolean
+                    nullable: true
+                    title: Whether volatile field has value.
+                    description: Indicates whether the volatile field has a value associated with it. If false or not present, the field has been deleted or was never set.
+                  maximumExpirationDate:
+                    type: string
+                    nullable: true
+                    format: date-time
+                    title: Maximum expiration date for volatile field.
+                    description: The maximum expiration date for the volatile field value. After this date, the field value will be deleted. Please note that depending on usage of volatile field, value can be deleted even earlier, for example if allowed detokenization or reveal counts are exceeded, or when you explicitly call delete operation on the field.
+                    example: '2024-12-31T23:59:59Z'
+                  detokenizations:
+                    type: array
+                    nullable: true
+                    title: Detokenization attempts.
+                    description: List of detokenization attempts performed on this field. This field is returned only when requested via `includeDetokenizations` query parameter.
+                    items:
+                      type: object
+                      properties:
+                        lastAttemptedAt:
+                          type: string
+                          format: date-time
+                          description: Timestamp when the detokenization was attempted.
+                          example: '2024-01-01T12:00:00Z'
+                        count:
+                          type: integer
+                          description: Number of times this type of detokenization was successfully performed.
+                          example: 1
+                        type:
+                          type: string
+                          description: Type of detokenization attempt. `detokenization` indicates a standard detokenization, while `sdkReveal` indicates a detokenization performed via SDK reveal.
+                          example: detokenization
+                          enum:
+                            - detokenization
+                            - sdkReveal
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+    delete:
+      summary: Delete field by alias
+      operationId: deleteFieldByAlias
+      description: |
+        Delete a field by the given alias.
+      security:
+        - BearerToken:
+            - vaultrecords:delete
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: alias
+          in: path
+          description: Alias of the record's field in Payrails Vault.
+          required: true
+          schema:
+            type: string
+          example: 04a5b266-37c2-45e1-8729-04170b43b808
+      responses:
+        '204':
+          description: The resource was deleted successfully.
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+  /token/records/fields:
+    get:
+      summary: Get field details by alias list
+      operationId: fieldsInfoByAliases
+      description: |
+        Get field details for multiple provided aliases. The order in which aliases returned may not match the order in
+        which you passed the aliases in request. Not found fields will be ignored: if you request fields by aliases
+        a, b, c and there is no field with alias b, then only fields a and c are returned.
+      security:
+        - BearerToken:
+            - vaultrecords:meta:read
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: aliases
+          in: query
+          description: |
+            Comma-separated aliases of fields in Payrails Vault. There should be at least one alias provided
+            and in one call you can provide up to 10 aliases.
+          required: true
+          schema:
+            type: string
+          example: 04a5b266-37c2-45e1-8729-04170b43b808,26ee17ee-a478-40f4-b1f3-49cf8ae9dff6
+        - name: includeVolatileInfo
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding volatile fields should be included in the response.
+        - name: includeDetokenizations
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding performed detokenization attempts should be returned.
+      responses:
+        '200':
+          description: Array of Field objects.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  title: Field object
+                  properties:
+                    alias:
+                      type: string
+                      description: Merchant-facing unique alias for the field. Used as an identifier.
+                    recordId:
+                      type: string
+                      description: Identifier of the record to which the alias belongs.
+                    recordType:
+                      type: string
+                      description: Record type to which this field belongs, e.g. `card` and `networkToken`.
+                    fieldType:
+                      type: string
+                      description: |
+                        Field type of the alias, e.g. `cardNumber`, `expiryMonth`,
+                        `expiryYear`, `securityCode`, `holderName`, `networkToken`, `cryptogram`.
+                    displayableValue:
+                      type: string
+                      nullable: true
+                      description: Displayable value for the field.
+                    allowedDetokenizationCount:
+                      type: integer
+                      nullable: true
+                      title: Allowed detokenization count.
+                      description: It will be restricted if used on a proxy and reaches the limit mentioned in this field.
+                      example: 0
+                    allowedSdkRevealCount:
+                      type: integer
+                      nullable: true
+                      title: Allowed reveal count.
+                      description: It will be restricted if used on a SDK reveal and reaches the limit mentioned in this field.
+                      example: 0
+                    hasValue:
+                      type: boolean
+                      nullable: true
+                      title: Whether volatile field has value.
+                      description: Indicates whether the volatile field has a value associated with it. If false or not present, the field has been deleted or was never set.
+                    maximumExpirationDate:
+                      type: string
+                      nullable: true
+                      format: date-time
+                      title: Maximum expiration date for volatile field.
+                      description: The maximum expiration date for the volatile field value. After this date, the field value will be deleted. Please note that depending on usage of volatile field, value can be deleted even earlier, for example if allowed detokenization or reveal counts are exceeded, or when you explicitly call delete operation on the field.
+                      example: '2024-12-31T23:59:59Z'
+                    detokenizations:
+                      type: array
+                      nullable: true
+                      title: Detokenization attempts.
+                      description: List of detokenization attempts performed on this field. This field is returned only when requested via `includeDetokenizations` query parameter.
+                      items:
+                        type: object
+                        properties:
+                          lastAttemptedAt:
+                            type: string
+                            format: date-time
+                            description: Timestamp when the detokenization was attempted.
+                            example: '2024-01-01T12:00:00Z'
+                          count:
+                            type: integer
+                            description: Number of times this type of detokenization was successfully performed.
+                            example: 1
+                          type:
+                            type: string
+                            description: Type of detokenization attempt. `detokenization` indicates a standard detokenization, while `sdkReveal` indicates a detokenization performed via SDK reveal.
+                            example: detokenization
+                            enum:
+                              - detokenization
+                              - sdkReveal
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '422':
+          description: Unprocessable Entity.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: 07a1d642-dbf5-47d3-8563-700514b38e46
+                    code: request.header.missing
+                    detail: The request is missing a required header
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestheadermissing
+  /token/records/{recordId}:
+    get:
+      summary: Get record and its fields by ID
+      operationId: getRecord
+      description: |
+        Get a record and all fields associated with the record by the given ID.
+      security:
+        - BearerToken:
+            - vaultrecords:meta:read
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: recordId
+          in: path
+          description: Identifier of the resource in Payrails.
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: d5454c2f-ae5e-44f3-8edf-f6dad64f005f
+        - name: includeVolatileInfo
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding volatile fields should be included in the response.
+        - name: includeDetokenizations
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding performed detokenization attempts should be returned.
+      responses:
+        '200':
+          description: Record and its fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Record object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Payrails unique identifier of the record.
+                  type:
+                    type: string
+                    description: Type of this record, e.g. `card` or `networkToken`.
+                  fingerprint:
+                    type: string
+                    description: The fingerprint of the record. Depending on type can be used to match with other records.
+                  fields:
+                    description: Fields belong to this record.
+                    type: array
+                    items:
+                      type: object
+                      title: Field object
+                      properties:
+                        alias:
+                          type: string
+                          description: Merchant-facing unique alias for the field. Used as an identifier.
+                        recordId:
+                          type: string
+                          description: Identifier of the record to which the alias belongs.
+                        recordType:
+                          type: string
+                          description: Record type to which this field belongs, e.g. `card` and `networkToken`.
+                        fieldType:
+                          type: string
+                          description: |
+                            Field type of the alias, e.g. `cardNumber`, `expiryMonth`,
+                            `expiryYear`, `securityCode`, `holderName`, `networkToken`, `cryptogram`.
+                        displayableValue:
+                          type: string
+                          nullable: true
+                          description: Displayable value for the field.
+                        allowedDetokenizationCount:
+                          type: integer
+                          nullable: true
+                          title: Allowed detokenization count.
+                          description: It will be restricted if used on a proxy and reaches the limit mentioned in this field.
+                          example: 0
+                        allowedSdkRevealCount:
+                          type: integer
+                          nullable: true
+                          title: Allowed reveal count.
+                          description: It will be restricted if used on a SDK reveal and reaches the limit mentioned in this field.
+                          example: 0
+                        hasValue:
+                          type: boolean
+                          nullable: true
+                          title: Whether volatile field has value.
+                          description: Indicates whether the volatile field has a value associated with it. If false or not present, the field has been deleted or was never set.
+                        maximumExpirationDate:
+                          type: string
+                          nullable: true
+                          format: date-time
+                          title: Maximum expiration date for volatile field.
+                          description: The maximum expiration date for the volatile field value. After this date, the field value will be deleted. Please note that depending on usage of volatile field, value can be deleted even earlier, for example if allowed detokenization or reveal counts are exceeded, or when you explicitly call delete operation on the field.
+                          example: '2024-12-31T23:59:59Z'
+                        detokenizations:
+                          type: array
+                          nullable: true
+                          title: Detokenization attempts.
+                          description: List of detokenization attempts performed on this field. This field is returned only when requested via `includeDetokenizations` query parameter.
+                          items:
+                            type: object
+                            properties:
+                              lastAttemptedAt:
+                                type: string
+                                format: date-time
+                                description: Timestamp when the detokenization was attempted.
+                                example: '2024-01-01T12:00:00Z'
+                              count:
+                                type: integer
+                                description: Number of times this type of detokenization was successfully performed.
+                                example: 1
+                              type:
+                                type: string
+                                description: Type of detokenization attempt. `detokenization` indicates a standard detokenization, while `sdkReveal` indicates a detokenization performed via SDK reveal.
+                                example: detokenization
+                                enum:
+                                  - detokenization
+                                  - sdkReveal
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+        '422':
+          description: Unprocessable Entity.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: 07a1d642-dbf5-47d3-8563-700514b38e46
+                    code: request.header.missing
+                    detail: The request is missing a required header
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestheadermissing
+    delete:
+      summary: Delete record by ID
+      operationId: deleteRecord
+      description: |
+        Delete a record and all fields associated with it.
+      security:
+        - BearerToken:
+            - vaultrecords:delete
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: recordId
+          in: path
+          description: Identifier of the resource in Payrails.
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: d5454c2f-ae5e-44f3-8edf-f6dad64f005f
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Boolean indicating if the operation was successful. In case of `false`, please notify Payrails to act on a resolution asap.
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+        '422':
+          description: Unprocessable Entity.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: 07a1d642-dbf5-47d3-8563-700514b38e46
+                    code: request.header.missing
+                    detail: The request is missing a required header
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestheadermissing
+  /token/records/{recordId}/fields/{fieldType}:
+    delete:
+      summary: Delete field by record ID and type
+      operationId: deleteFieldByRecordIdAndType
+      description: |
+        Delete a field by the given record ID and field type.
+      security:
+        - BearerToken:
+            - vaultrecords:delete
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: recordId
+          in: path
+          description: Identifier of the resource in Payrails.
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: d5454c2f-ae5e-44f3-8edf-f6dad64f005f
+        - name: fieldType
+          in: path
+          description: Type of the record field / alias.
+          required: true
+          schema:
+            type: string
+            enum:
+              - cardNumber
+              - expiryMonth
+              - expiryYear
+              - securityCode
+              - holderName
+              - networkToken
+              - cryptogram
+          example: securityCode
+      responses:
+        '204':
+          description: The resource was deleted successfully.
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+  /token/records:
+    get:
+      summary: Get record and its fields by alias
+      operationId: getRecordByAlias
+      description: |
+        Retrieve a record and all fields associated with the record by the alias of one of its fields.
+      security:
+        - BearerToken:
+            - vaultrecords:meta:read
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: alias
+          in: query
+          description: |
+            Alias of a Record Field.
+          required: true
+          schema:
+            type: string
+          example: 04a5b266-37c2-45e1-8729-04170b43b808
+        - name: includeVolatileInfo
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding volatile fields should be included in the response.
+        - name: includeDetokenizations
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding performed detokenization attempts should be returned.
+      responses:
+        '200':
+          description: Record and its fields.
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Record object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Payrails unique identifier of the record.
+                  type:
+                    type: string
+                    description: Type of this record, e.g. `card` or `networkToken`.
+                  fingerprint:
+                    type: string
+                    description: The fingerprint of the record. Depending on type can be used to match with other records.
+                  fields:
+                    description: Fields belong to this record.
+                    type: array
+                    items:
+                      type: object
+                      title: Field object
+                      properties:
+                        alias:
+                          type: string
+                          description: Merchant-facing unique alias for the field. Used as an identifier.
+                        recordId:
+                          type: string
+                          description: Identifier of the record to which the alias belongs.
+                        recordType:
+                          type: string
+                          description: Record type to which this field belongs, e.g. `card` and `networkToken`.
+                        fieldType:
+                          type: string
+                          description: |
+                            Field type of the alias, e.g. `cardNumber`, `expiryMonth`,
+                            `expiryYear`, `securityCode`, `holderName`, `networkToken`, `cryptogram`.
+                        displayableValue:
+                          type: string
+                          nullable: true
+                          description: Displayable value for the field.
+                        allowedDetokenizationCount:
+                          type: integer
+                          nullable: true
+                          title: Allowed detokenization count.
+                          description: It will be restricted if used on a proxy and reaches the limit mentioned in this field.
+                          example: 0
+                        allowedSdkRevealCount:
+                          type: integer
+                          nullable: true
+                          title: Allowed reveal count.
+                          description: It will be restricted if used on a SDK reveal and reaches the limit mentioned in this field.
+                          example: 0
+                        hasValue:
+                          type: boolean
+                          nullable: true
+                          title: Whether volatile field has value.
+                          description: Indicates whether the volatile field has a value associated with it. If false or not present, the field has been deleted or was never set.
+                        maximumExpirationDate:
+                          type: string
+                          nullable: true
+                          format: date-time
+                          title: Maximum expiration date for volatile field.
+                          description: The maximum expiration date for the volatile field value. After this date, the field value will be deleted. Please note that depending on usage of volatile field, value can be deleted even earlier, for example if allowed detokenization or reveal counts are exceeded, or when you explicitly call delete operation on the field.
+                          example: '2024-12-31T23:59:59Z'
+                        detokenizations:
+                          type: array
+                          nullable: true
+                          title: Detokenization attempts.
+                          description: List of detokenization attempts performed on this field. This field is returned only when requested via `includeDetokenizations` query parameter.
+                          items:
+                            type: object
+                            properties:
+                              lastAttemptedAt:
+                                type: string
+                                format: date-time
+                                description: Timestamp when the detokenization was attempted.
+                                example: '2024-01-01T12:00:00Z'
+                              count:
+                                type: integer
+                                description: Number of times this type of detokenization was successfully performed.
+                                example: 1
+                              type:
+                                type: string
+                                description: Type of detokenization attempt. `detokenization` indicates a standard detokenization, while `sdkReveal` indicates a detokenization performed via SDK reveal.
+                                example: detokenization
+                                enum:
+                                  - detokenization
+                                  - sdkReveal
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+        '422':
+          description: Unprocessable Entity.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: 07a1d642-dbf5-47d3-8563-700514b38e46
+                    code: request.header.missing
+                    detail: The request is missing a required header
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestheadermissing
+    delete:
+      summary: Delete a record by the alias of one of its fields
+      operationId: deleteRecordByAlias
+      description: |
+        Delete a record and all fields associated with it by the alias of one of its fields.
+      security:
+        - BearerToken:
+            - vaultrecords:delete
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: alias
+          in: query
+          description: |
+            Alias of a Record Field.
+          required: true
+          schema:
+            type: string
+          example: 04a5b266-37c2-45e1-8729-04170b43b808
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Boolean indicating if the operation was successful. In case of `false`, please notify Payrails to act on a resolution asap.
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '404':
+          description: Not Found.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.not-found
+                    detail: The requested resource was not found
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestnot-found
+        '422':
+          description: Unprocessable Entity.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: 07a1d642-dbf5-47d3-8563-700514b38e46
+                    code: request.header.missing
+                    detail: The request is missing a required header
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestheadermissing
+  /token/instruments/{instrumentId}/records:
+    get:
+      summary: Get record and aliases for a given instrumentId.
+      operationId: recordsForInstrument
+      description: Get record, aliases, and all associated fields for a given instrumentId.
+      security:
+        - BearerToken:
+            - vaultrecords:meta:read
+      tags:
+        - Vault Records and Aliases
+      parameters:
+        - name: instrumentId
+          in: path
+          description: Identifier of the resource in Payrails.
+          required: true
+          schema:
+            type: string
+            format: uuid
+          example: d5454c2f-ae5e-44f3-8edf-f6dad64f005f
+        - name: includeVolatileInfo
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Boolean indicating if additional information regarding volatile fields should be included in the response.
+      responses:
+        '200':
+          description: Successful retrieval of records and aliases by instrumentId.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  instrumentId:
+                    type: string
+                    format: uuid
+                  records:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        type:
+                          type: string
+                          enum:
+                            - card
+                            - networkToken
+                        fields:
+                          type: array
+                          items:
+                            type: object
+                            title: Field object
+                            properties:
+                              alias:
+                                type: string
+                                description: Merchant-facing unique alias for the field. Used as an identifier.
+                              recordId:
+                                type: string
+                                description: Identifier of the record to which the alias belongs.
+                              recordType:
+                                type: string
+                                description: Record type to which this field belongs, e.g. `card` and `networkToken`.
+                              fieldType:
+                                type: string
+                                description: |
+                                  Field type of the alias, e.g. `cardNumber`, `expiryMonth`,
+                                  `expiryYear`, `securityCode`, `holderName`, `networkToken`, `cryptogram`.
+                              displayableValue:
+                                type: string
+                                nullable: true
+                                description: Displayable value for the field.
+                              allowedDetokenizationCount:
+                                type: integer
+                                nullable: true
+                                title: Allowed detokenization count.
+                                description: It will be restricted if used on a proxy and reaches the limit mentioned in this field.
+                                example: 0
+                              allowedSdkRevealCount:
+                                type: integer
+                                nullable: true
+                                title: Allowed reveal count.
+                                description: It will be restricted if used on a SDK reveal and reaches the limit mentioned in this field.
+                                example: 0
+                              hasValue:
+                                type: boolean
+                                nullable: true
+                                title: Whether volatile field has value.
+                                description: Indicates whether the volatile field has a value associated with it. If false or not present, the field has been deleted or was never set.
+                              maximumExpirationDate:
+                                type: string
+                                nullable: true
+                                format: date-time
+                                title: Maximum expiration date for volatile field.
+                                description: The maximum expiration date for the volatile field value. After this date, the field value will be deleted. Please note that depending on usage of volatile field, value can be deleted even earlier, for example if allowed detokenization or reveal counts are exceeded, or when you explicitly call delete operation on the field.
+                                example: '2024-12-31T23:59:59Z'
+                              detokenizations:
+                                type: array
+                                nullable: true
+                                title: Detokenization attempts.
+                                description: List of detokenization attempts performed on this field. This field is returned only when requested via `includeDetokenizations` query parameter.
+                                items:
+                                  type: object
+                                  properties:
+                                    lastAttemptedAt:
+                                      type: string
+                                      format: date-time
+                                      description: Timestamp when the detokenization was attempted.
+                                      example: '2024-01-01T12:00:00Z'
+                                    count:
+                                      type: integer
+                                      description: Number of times this type of detokenization was successfully performed.
+                                      example: 1
+                                    type:
+                                      type: string
+                                      description: Type of detokenization attempt. `detokenization` indicates a standard detokenization, while `sdkReveal` indicates a detokenization performed via SDK reveal.
+                                      example: detokenization
+                                      enum:
+                                        - detokenization
+                                        - sdkReveal
+                example:
+                  instrumentId: 882da741-c493-491c-9d11-993e4d709f4a
+                  records:
+                    - id: a5e219cd-1707-4dd7-b963-115c382c57e4
+                      type: card
+                      fingerprint: 581a61af-d92d-4b7e-bfe4-303bd500d06e
+                      fields:
+                        - recordId: a5e219cd-1707-4dd7-b963-115c382c57e4
+                          recordType: card
+                          alias: 0cdedf0b-6ea7-4d7f-9942-0a4ddda0f7fd
+                          fieldType: cardNumber
+                          displayableValue: 411111**1111
+                          allowedDetokenizationCount: null
+                          allowedSdkRevealCount: 0
+                        - recordId: a5e219cd-1707-4dd7-b963-115c382c57e4
+                          recordType: card
+                          alias: 651e66f1-7c09-4ba2-baef-d29050e6362e
+                          fieldType: expiryMonth
+                          displayableValue: '01'
+                          allowedDetokenizationCount: null
+                          allowedSdkRevealCount: 0
+                        - recordId: a5e219cd-1707-4dd7-b963-115c382c57e4
+                          recordType: card
+                          alias: 5c862e69-22b3-4eaf-92fa-5068813c863f
+                          fieldType: expiryYear
+                          displayableValue: '25'
+                          allowedDetokenizationCount: null
+                          allowedSdkRevealCount: 0
+                        - recordId: a5e219cd-1707-4dd7-b963-115c382c57e4
+                          recordType: card
+                          alias: 52661250-8140-4d92-8b44-bc9a6f17fd48
+                          fieldType: holderName
+                          displayableValue: Foo
+                          allowedDetokenizationCount: null
+                          allowedSdkRevealCount: 0
+                        - recordId: a5e219cd-1707-4dd7-b963-115c382c57e4
+                          recordType: card
+                          alias: db821554-6f4c-4cd8-87d0-f22dd3cdcc40
+                          fieldType: securityCode
+                          displayableValue: null
+                          allowedDetokenizationCount: 1
+                          allowedSdkRevealCount: 0
+                    - id: f1dd67f4-771d-465f-bb2e-bed7e7e8bf39
+                      type: networkToken
+                      fingerprint: 581a61af-d92d-4b7e-bfe4-303bd500d06e
+                      fields:
+                        - recordId: f1dd67f4-771d-465f-bb2e-bed7e7e8bf39
+                          recordType: networkToken
+                          alias: 88774a64-9bc7-4641-b4b9-4800896a5303
+                          fieldType: cryptogram
+                          displayableValue: null
+                          allowedDetokenizationCount: 1
+                          allowedSdkRevealCount: 0
+                        - recordId: f1dd67f4-771d-465f-bb2e-bed7e7e8bf39
+                          recordType: networkToken
+                          alias: ebd69b8d-1e9e-46fc-a197-91d5993b2c89
+                          fieldType: expiryMonth
+                          displayableValue: '01'
+                          allowedDetokenizationCount: null
+                          allowedSdkRevealCount: 0
+                        - recordId: f1dd67f4-771d-465f-bb2e-bed7e7e8bf39
+                          recordType: networkToken
+                          alias: 9322f77c-b093-48e6-a628-bccab0a606dd
+                          fieldType: expiryYear
+                          displayableValue: '35'
+                          allowedDetokenizationCount: null
+                          allowedSdkRevealCount: 0
+                        - recordId: f1dd67f4-771d-465f-bb2e-bed7e7e8bf39
+                          recordType: networkToken
+                          alias: 8fad08c9-1c2b-4f45-9ddc-2d6d53f7033d
+                          fieldType: networkToken
+                          displayableValue: 411111**1111
+                          allowedDetokenizationCount: null
+                          allowedSdkRevealCount: 0
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: |
+        You can use your secret API key in the `x-api-key` header of your API requests for supported endpoints: `x-api-key: <YOUR_API_KEY_HERE>`.
+        API keys are environment specific and should be securely guarded.
+
+        You don't have your API key yet? Contact your Payrails account manager.
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [access token endpoint](#operation/getOAuthToken) endpoint.
+    BearerVaultClientToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [vault client init](#operation/vaultClientInit) endpoint.

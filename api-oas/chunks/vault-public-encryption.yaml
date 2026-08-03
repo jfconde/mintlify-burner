@@ -1,0 +1,218 @@
+openapi: 3.1.0
+info:
+  version: 1.3.15
+  title: Payrails API Reference
+  contact:
+    name: Payrails
+    url: https://www.payrails.com
+    email: tech@payrails.com
+  license:
+    name: Payrails GmbH
+    url: https://www.payrails.com/
+  description: |
+    ---
+    Payrails provides a collection of APIs that enable you to process and manage payments. Our APIs accept and return JSON in the HTTP body, and return standard HTTP response codes. You can consume the APIs directly using your favorite HTTP/REST library.
+servers:
+  - url: https://api.staging.payrails.io
+    description: Payrails environment.
+security:
+  - ApiKey: []
+tags:
+  - name: Vault Public Encryption
+    description: Public endpoints related to encryption.
+paths:
+  /payment/vault/info:
+    get:
+      summary: Get a public encryption key for tokenization
+      operationId: vaultPublicInfo
+      description: |
+        Retrieve a public encryption key and a value to use as JWE kid field, to tokenize payment instruments in the vault.
+
+        The key will be valid for a limited duration indicated by the `expiresIn` field in the response.
+
+        You should renew the key on your side before it expires, at which point you will need to obtain a new one by making a new request.
+      security:
+        - BearerToken:
+            - vault:read:config
+      tags:
+        - Vault Public Encryption
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - encryptionPublicKey
+                  - encryptionKeyId
+                  - expiresIn
+                properties:
+                  encryptionPublicKey:
+                    type: string
+                    description: Encryption public key for tokenization.
+                  encryptionKeyId:
+                    type: string
+                    format: uuid
+                    description: Encryption key ID.
+                  expiresIn:
+                    type: integer
+                    format: int64
+                    description: Public encryption key expiry time in seconds. eg. public key expires in 3300 seconds.
+              examples:
+                success:
+                  value:
+                    encryptionPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0MqUlEo2bC9iJi4LEHQ6+DeeQCN4JSSesh894JWo+ikdUpxd5bYBkjNUFW1uAyeqE3DAkM8RJY+unuBHfhXhZhB4Oi9hKmDo8YAfV2uyVS7RTmPGtdRzUqel2I7Q4fw7TjGfqZAc6IOWZLKJ6IAyh5XdW/QbLFWEpPNQyN9CVGfFGhYu6Z93LSPSH5Ku/GuL5GWfHjwJ6f8PdI2O2r5MdgIaz9SRoRCb+VnHwvy7m1zwb78iwhdFBXoT5pRAtGAea0hJ0ufubuG/yvIHi1XVqNNRPy6EY8WVz93+Dxw6jmZeLWA3B/nYlRIoPpEerTvb9B3wkAHk6CehvTetVsLj+QIDAQAB
+                    encryptionKeyId: b24ff007-728c-455d-b51c-556108ccdf59
+                    expiresIn: 3300
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.unauthorized
+                    detail: The request lacks necessary credentials to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestunauthorized
+        '403':
+          description: Insufficient Scope.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: e7db22b3-914e-4975-928e-9edfb0885bea
+                    code: request.forbidden
+                    detail: The request credentials lack the required permissions to perform the specified action
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestforbidden
+        '429':
+          description: Too Many Requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - errors
+                properties:
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      description: Error struct that includes the error, cause, reason, and possible resolutions. Check the full documentation [here](https://docs.payrails.com/docs/error-codes#error-structure).
+                      required:
+                        - id
+                        - code
+                        - detail
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                          description: Unique identifier of the error. Please use this value when reporting an issue to our team, so we can help you faster.
+                        code:
+                          type: string
+                          description: Machine-friendly error code assigned to the error. Check the full list of possible values [here](https://docs.payrails.com/docs/error-codes#list-of-error-codes).
+                        detail:
+                          type: string
+                          description: Human-readable description about the error, its cause, and resolution.
+                        docUrl:
+                          type: string
+                          description: Link to the specific documentation about this particular `code`.
+                        reason:
+                          type: object
+                          additionalProperties: true
+                          description: Metadata providing more details about the reason of the error. The structure of this object varies according to the `code`.
+              example:
+                errors:
+                  - id: a24bc325-3929-4d9d-9c08-b3aa532685b7
+                    code: request.rate-limit
+                    detail: Too many requests
+                    docUrl: https://docs.payrails.com/docs/error-codes#requestrate-limit
+components:
+  securitySchemes:
+    ApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: |
+        You can use your secret API key in the `x-api-key` header of your API requests for supported endpoints: `x-api-key: <YOUR_API_KEY_HERE>`.
+        API keys are environment specific and should be securely guarded.
+
+        You don't have your API key yet? Contact your Payrails account manager.
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [access token endpoint](#operation/getOAuthToken) endpoint.
+    BearerVaultClientToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        You can use an OAuth2 JWT bearer token in the `Authorization` header of your API requests for supported endpoints: `Authorization: Bearer <YOUR_JWT_HERE>`.
+        These tokens are valid for 10 minutes and can be requested via the [vault client init](#operation/vaultClientInit) endpoint.
