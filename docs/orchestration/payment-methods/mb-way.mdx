@@ -1,0 +1,164 @@
+---
+description: "MB WAY is Portugal's most popular digital wallet payment method. When paying with MB WAY, customers initiate payments using their phone number and authenticate and approve them using their MB WAY app. You get immediate notification of whether the payment succeeded or failed.  Transaction amounts between 0.50 EUR and 5,000 EUR are supported. MB WAY users have a default daily cumulative limit of 1,000 EUR, adjustable up to 10,000 EUR in the app."
+title: "MB Way"
+---
+## Introduction
+MB WAY uses a **redirect-based payment flow**. After the customer enters their phone number at checkout, they receive a push notification in the MB WAY app to authorize the payment, then return to your website. MB WAY is a single-use payment method where customers must authenticate each payment.
+
+This guide explains the process of integrating MB WAY into your app or website using Payrails via Stripe.
+
+## Pre-requisites
+
+Before you start accepting MB WAY payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our SDKs or our API
+2. Configure a new integration account for MB WAY via **Stripe** as a Payment Service Provider.
+3. Enable MB WAY as a payment method in your Stripe integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your Stripe integration instance, and enable the **MB WAY** checkbox under Payment methods, then save the account.
+4. Enable MB WAY as a payment option in your workflow.
+5. Make sure you're sending the MB WAY-specific required meta fields in your requests (see Required meta fields below).
+
+## Ways to integrate MB WAY
+
+### Payrails SDK
+
+The simplest way to use MB WAY with Payrails is to use our drop-in in your checkout flow. With this integration type, no additional work is required to accept payments with MB WAY except for handling success/failure screens for your users.
+
+For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions here for your client-side implementation.
+
+### Server-to-server integration
+
+You can integrate MB WAY by completely managing your own client-side implementation, and using Payrails APIs with a server-to-server integration to process MB WAY payments.
+
+#### Parse MB WAY from lookup response
+
+With a server-to-server integration, you can call our lookup payment options endpoint to get available payment options. As shown in the example below, you can see `mbWay` returned as an option of the `paymentCompositionOptions`.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2026-03-26T12:00:00.000000000Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "redirect",
+        "paymentMethodCode": "mbWay",
+        "description": "MB WAY"
+      }
+    ]
+  },
+  "links": {
+    "execution": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+    "authorize": {
+      "method": "POST",
+      "href": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
+    }
+  }
+}
+```
+
+#### Pass MB WAY payment method in request to authorize payment with Payrails
+
+You can then make a request to our authorize a payment endpoint with `mbWay` as the `paymentMethodCode`. See an example below:
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "2000",
+    "currency": "EUR"
+  },
+  "paymentComposition": [
+    {
+      "integrationType": "redirect",
+      "paymentMethodCode": "mbWay",
+      "amount": {
+        "value": "2000",
+        "currency": "EUR"
+      }
+    }
+  ],
+  "meta": {
+    "order": {
+      "billingAddress": {
+        "name": "Maria",
+        "lastName": "Silva",
+        "phone": {
+          "number": "912345678",
+          "countryCode": "351"
+        },
+        "country": {
+          "code": "PT"
+        }
+      }
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+> **Note on amounts:** EUR uses 2 decimal places. Amounts should be provided in the smallest currency unit — e.g., `2000` for €20.00.
+
+\>
+
+> **Note:** After calling the authorize endpoint, the customer will receive a push notification in their MB WAY app to approve the payment. The customer must approve within the MB WAY app. Once confirmed, the customer will be redirected back to the `returnInfo.success` URL. Make sure to provide valid `returnInfo` URLs in your authorization request.
+
+#### Handle the redirect response
+
+After the customer approves or declines the MB WAY payment, they will be redirected back to your `success` or `error` URL. You should then verify the payment status by checking the workflow execution status via the Payrails API or by listening to webhook notifications.
+
+## Required meta fields
+
+MB WAY requires the following fields to be present in every authorize request:
+
+| Field                                     | Required | Notes                                                                                   |
+| ----------------------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `meta.order.billingAddress.name`          | ✅ Yes    | Customer's first name                                                                   |
+| `meta.order.billingAddress.lastName`      | ✅ Yes    | Customer's last name                                                                    |
+| `meta.order.billingAddress.phone.number`  | ✅ Yes    | Customer's phone number. Can alternatively be supplied via `meta.customer.phone.number` |
+| `meta.order.billingAddress.country.code`  | ✅ Yes    | ISO-2 country code (e.g. `PT`)                                                          |
+| `returnInfo.success` / `returnInfo.error` | ✅ Yes    | Required for all redirect APMs                                                          |
+
+## Supported currencies
+
+MB WAY via Stripe supports the following presentment currency:
+
+- EUR — Euro
+
+## Supported regions / countries
+
+### Customer regions
+
+MB WAY is available to customers based in:
+
+- Portugal 🇵🇹
+
+### Merchant regions
+
+Stripe accounts in Europe and the US can accept MB WAY payments.
+
+## Supported workflows and services
+
+| Workflow                             | Supported |
+| ------------------------------------ | --------- |
+| Available via Payrails SDK           | ✔️        |
+| Available via Payrails API           | ✔️        |
+| Delayed / Manual Capture             | ✖️        |
+| Instant Capture                      | ✔️        |
+| Cancel / Void                        | ✖️        |
+| Refund / Reverse                     | ✔️        |
+| Save Instruments                     | ✖️        |
+| Merchant Initiated Transaction (MIT) | ✖️        |
+
+## Test your integration
+
+Test your MB WAY integration using the following test phone numbers:
+
+| Phone number    | Scenario          |
+| --------------- | ----------------- |
+| `+351911111112` | Payment succeeds  |
+| `+351911111114` | Payment fails     |
+| `+351911111115` | Payment times out |

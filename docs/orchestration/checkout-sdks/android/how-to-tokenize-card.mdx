@@ -1,0 +1,205 @@
+---
+title: How to Tokenize a Card Without Charging It
+description: Save a card to the Payrails vault for future use without initiating a payment.
+---
+
+## Prerequisites
+
+- An active Payrails session (see [Quick Start](/docs/android-sdk-1))
+- A session init payload with `vaultConfiguration` and a `saveInstrument` link (provided by the Payrails backend — contact Payrails to enable vault configuration for your merchant account)
+- Kotlin + Jetpack Compose for rendering the card form
+
+## Steps
+
+### 1. Initialize a session
+
+```kotlin
+val configuration = Configuration(
+    initData = InitData(version = payload.version, data = payload.data),
+    option = Options()
+)
+val session = Payrails.createSession(configuration)
+```
+
+### 2. Create a card form (no payment button required)
+
+```kotlin
+val cardForm = Payrails.createCardForm(
+    config = CardFormConfig(showCardHolderName = true)
+)
+```
+
+A `CardPaymentButton` is not needed for tokenization. The card form collects and validates card fields independently.
+
+### 3. Render the card form and a save button
+
+```kotlin
+@Composable
+fun TokenizeScreen(scope: CoroutineScope) {
+    val cardForm = remember {
+        Payrails.createCardForm(
+            config = CardFormConfig(showCardHolderName = true)
+        )
+    }
+    var instrumentId by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        cardForm.Render()
+
+        Button(onClick = {
+            scope.launch {
+                try {
+                    val response = session.tokenize(
+                        TokenizationRequest.Card(cardForm),
+                        TokenizeOptions(
+                            storeInstrument = true,
+                            futureUsage = FutureUsage.CardOnFile
+                        )
+                    )
+                    instrumentId = response.id
+                    error = null
+                } catch (e: PayrailsError) {
+                    error = e.message
+                }
+            }
+        }) {
+            Text("Save Card")
+        }
+
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        instrumentId?.let { Text("Saved: $it") }
+    }
+}
+```
+
+`session.tokenize(...)` is the primary tokenization API (mirroring the iOS SDK). `TokenizationRequest.Card(cardForm)` selects the card currently entered in the form.
+
+#### Callback variant (without coroutines)
+
+If you are not calling from a coroutine, use the callback overload. Exactly one of the three callbacks fires once, on the main thread:
+
+```kotlin
+session.tokenize(
+    request = TokenizationRequest.Card(cardForm),
+    options = TokenizeOptions(storeInstrument = true),
+    onSuccess = { response -> instrumentId = response.id },
+    onFailed = { e -> error = e.message },
+    onCancelled = { /* tokenization was cancelled */ },
+)
+```
+
+`onCancelled` fires only on cancellation (coroutine/session-scope) — card validation and network failures are delivered to `onFailed`.
+
+> **Shortcut:** `cardForm.tokenize(options)` is a convenience wrapper equivalent to `session.tokenize(TokenizationRequest.Card(cardForm), options)`. Use whichever reads better in your code.
+
+### 4. Choose a `FutureUsage` value
+
+| Value                               | When to use                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------ |
+| `FutureUsage.CardOnFile`            | Customer-initiated purchases where the cardholder is present at checkout (default)   |
+| `FutureUsage.Subscription`          | Recurring charges on a fixed schedule authorized by the cardholder                   |
+| `FutureUsage.UnscheduledCardOnFile` | Merchant-initiated charges with no fixed schedule (e.g., top-ups, threshold billing) |
+
+### 5. Use the returned instrument ID
+
+The `response.id` is the instrument identifier. Pass it to `setStoredInstrument` for future payments, or use it with the instrument management API:
+
+```kotlin
+// Pay with the saved instrument
+payButton.setStoredInstrument(savedInstrument)
+
+// Or manage the instrument via the session
+session.deleteInstrument(response.id)
+session.updateInstrument(response.id, UpdateInstrumentBody(default = true))
+```
+
+## Tokenize with Google Pay
+
+Google Pay tokenization uses the same `session.tokenize(...)` API with a `TokenizationRequest.GooglePay` case. Because a Google Pay token can only be obtained through an Activity-result launcher that Android requires to be registered up front, you create a **presenter** in your Composable and pass it to `tokenize`:
+
+```kotlin
+@Composable
+fun SaveGooglePayScreen(session: Session, scope: CoroutineScope) {
+    val presenter = rememberGooglePayPresenter(session)   // registers the launcher up front
+
+    Button(onClick = {
+        scope.launch {
+            try {
+                val response = session.tokenize(
+                    TokenizationRequest.GooglePay(presenter),
+                    TokenizeOptions(storeInstrument = true),
+                )
+                // response.id is the saved instrument
+            } catch (e: PayrailsError) {
+                // show error
+            }
+        }
+    }) { Text("Save with Google Pay") }
+}
+```
+
+Tapping the button opens the Google Pay sheet; on authorization the SDK saves the instrument and returns a `SaveInstrumentResponse`. User dismissal cancels (the callback overload's `onCancelled`, or a `CancellationException` from the suspend variant).
+
+For a compliant, Google-branded button with no wiring, use `GooglePayTokenizeButton` instead — it renders only when Google Pay is available for the session:
+
+```kotlin
+GooglePayTokenizeButton(
+    session = session,
+    options = TokenizeOptions(storeInstrument = true),
+    onSuccess = { response -> /* response.id */ },
+    onFailed = { error -> /* show error */ },
+    onCancelled = { /* dismissed */ },
+)
+```
+
+> **Note:** Google's brand guidelines require the official Google Pay button to launch the Google Pay flow. Prefer `GooglePayTokenizeButton` (or a Google Pay–branded button) over a fully custom button.
+
+## Verify it worked
+
+Check that the response contains a valid ID and `"active"` status:
+
+```kotlin
+val response = session.tokenize(
+    TokenizationRequest.Card(cardForm),
+    TokenizeOptions(storeInstrument = true),
+)
+check(response.id.isNotBlank()) { "Tokenization returned no instrument ID" }
+check(response.status == "active") { "Unexpected status: ${response.status}" }
+```
+
+## Troubleshooting
+
+**Problem**: `PayrailsError.invalidCardData` is thrown
+**Solution**: Card form validation failed. The form automatically shows inline field errors — the user needs to correct the highlighted fields before retrying. No manual error display is needed.
+
+**Problem**: `PayrailsError.missingData("Vault configuration with providerConfigId is required...")`
+**Solution**: The session init payload does not include `vaultConfiguration`. Contact Payrails to enable vault configuration for your merchant account.
+
+**Problem**: `PayrailsError.missingData("holderReference is required...")`
+**Solution**: The session init payload does not include `holderReference`. Ensure your client-init request includes a holder reference.
+
+## Alternative: pay directly with the saved instrument
+
+Once a card is tokenized, you can charge it through the button flow shown above
+(`payButton.setStoredInstrument(...)` + `payButton.Render()`), or skip the button entirely
+and charge it from your own UI with `PayrailsPaymentLauncher`:
+
+```kotlin
+// Pay with the just-saved instrument
+val storedInstrument = session.getStoredInstruments(forType = PaymentMethod.card)
+    .first { it.id == response.id }
+launcher.authorize(storedInstrument = storedInstrument)
+```
+
+`launcher.authorize(storedInstrument = ...)` is the way to charge an _existing_ stored
+instrument from a custom layout or `ViewModel`-driven flow — and, because the launcher holds
+a presenter, it transparently handles a 3DS step-up if the issuer requires one. See
+[How to Run a Payment Without an SDK Button](/docs/how-to-execute-payment-headless).
+
+## See also
+
+- [Understanding Card Tokenization](/docs/sdk-concepts#card-tokenization) — why tokenization and payment are separate flows, and what `storeInstrument` and `FutureUsage` mean
+- [Card Tokenization API Reference](/docs/sdk-api-reference#card-tokenization) — complete reference for `TokenizeOptions`, `FutureUsage`, and `SaveInstrumentResponse`
+- [Stored Instruments](/docs/sdk-api-reference#stored-instruments) — how to retrieve and pay with saved instruments
+- [`PayrailsPaymentLauncher`](/docs/sdk-api-reference#payrailspaymentlauncher) — the public payment-execution API

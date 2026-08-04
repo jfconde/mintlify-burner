@@ -1,0 +1,240 @@
+---
+title: Troubleshooting
+description: Common issues and their solutions when integrating the Payrails Android SDK.
+---
+
+## Enabling SDK Debug Logs
+
+The SDK's Logcat output is **off by default** — it produces no Logcat messages in production. To enable debug logging:
+
+```bash
+adb shell setprop log.tag.PayrailsSDK DEBUG
+```
+
+Then filter Logcat:
+
+```bash
+adb logcat -s PayrailsSDK:D
+```
+
+This shows SDK lifecycle events, payment flow steps, and error details. The setting persists until reboot.
+
+To turn logging off again:
+
+```bash
+adb shell setprop log.tag.PayrailsSDK INFO
+```
+
+> **Note:** The SDK also maintains an in-memory log buffer (last 500 entries) that is always active, regardless of the Logcat setting. This buffer and the associated debug viewer are internal tooling used during SDK development and are not exposed as part of the public SDK surface. Logcat logging is the supported opt-in channel for merchant development and debugging.
+
+> **Security:** The SDK never logs raw card data, tokens, or PII. Log messages contain only operational information.
+
+## Build Issues
+
+### "Payrails session must be initialized"
+
+**Error:** `IllegalStateException: Payrails session must be initialized`
+
+**Cause:** You called `createCardForm()` or `createCardPaymentButton()` before `Payrails.createSession()`.
+
+**Fix:** Ensure `createSession()` completes successfully before creating any UI elements:
+
+```kotlin
+// Correct order
+val session = Payrails.createSession(configuration)      // must complete first
+val payButton = Payrails.createCardPaymentButton(...)    // now safe
+val cardForm = Payrails.createCardForm()                 // now safe
+```
+
+### Dependency Resolution Fails
+
+**Error:** `Could not find com.payrails.android:checkout:<version>`
+
+**Fixes:**
+
+- Verify the SDK is published to the repository you're using (Maven Central or Maven Local)
+- For local development, run `./gradlew publishSdkToMavenLocal` first
+- Ensure `mavenLocal()` is listed before `mavenCentral()` in your settings if using local artifacts
+- Clear stale local artifacts:
+  ```bash
+  rm -rf ~/.m2/repository/com/payrails/android/checkout
+  ./gradlew --refresh-dependencies
+  ```
+
+### Missing CSE Dependency
+
+**Error:** Runtime crash or `NoClassDefFoundError` related to card encryption
+
+**Fix:** Add both dependencies:
+
+```kotlin
+dependencies {
+    implementation("com.payrails.android:checkout:<version>")
+    implementation("com.payrails.android:cse:<version>")  // required for card payments
+}
+```
+
+## Card Form Issues
+
+### Card Form Not Validating
+
+**Symptom:** User can submit without validation, or errors don't show.
+
+**Checks:**
+
+- The `CardPaymentButton` validates the form automatically when clicked. You don't need to call `validate()` manually.
+- Validation errors appear when a field loses focus (blur validation) or when the user taps "Pay Now". For split expiry fields, the year field also validates the combined expiry date on blur — if the month/year are individually valid but the date is expired, the error appears on the year field.
+- If you're using `onChange` events, check `event.isValid` for real-time validation state.
+- Error messages only occupy vertical space when an error is present. Fields shift to fill the space when errors are cleared.
+
+### Card Network Not Detected
+
+**Symptom:** `cardNetwork` stays `UNKNOWN`, card icon doesn't update.
+
+**Checks:**
+
+- Network detection requires at least 1–2 digits. Enter a full card number to see detection.
+- Supported networks: Visa, Mastercard, Amex, Discover. Other networks show as `UNKNOWN`.
+- Ensure `showCardIcon = true` in `CardFormConfig` if you expect to see icons.
+
+### Layout Crashes at Creation
+
+**Error:** `IllegalArgumentException: CardForm layout contains unsupported fields` or similar.
+
+**Fix:** Check your `layout` configuration:
+
+- Don't mix `EXPIRATION_DATE` with `EXPIRATION_MONTH`/`EXPIRATION_YEAR`
+- Don't duplicate fields across rows
+- Supported fields: `CARDHOLDER_NAME`, `CARD_NUMBER`, `EXPIRATION_DATE`, `EXPIRATION_MONTH`, `EXPIRATION_YEAR`, `CVV`
+
+## Google Pay Issues
+
+### Google Pay Button Not Appearing
+
+**Symptom:** `GooglePayButton.Render()` is called but the button is never visible. `onGooglePayAvailable` is not called.
+
+**Explanation:** The button is hidden by default and only becomes visible after `isReadyToPay()` succeeds. This check can fail for several reasons.
+
+**Checks:**
+
+- **Emulator:** Google Pay is not available on most emulators. Test on a physical device with the Google Pay app installed and a card added.
+- **Google Pay app:** Ensure the Google Pay app is installed and set up on the device with at least one payment method.
+- **Merchant configuration:** Verify that Google Pay is enabled as a payment method in your Payrails dashboard. The SDK reads Google Pay config from `paymentCompositionOptions` — if the backend doesn't include it, `isReadyToPay()` will fail.
+- **Environment:** In `Env.TEST` mode, Google Pay uses the test environment which has different availability. Switch to a production-configured device for full testing.
+
+### Google Pay Payment Sheet Not Opening
+
+**Symptom:** User taps the Google Pay button, `onPaymentButtonClicked` fires, but the payment sheet doesn't appear.
+
+**Checks:**
+
+- Ensure the Activity is valid and not finishing when the button is tapped
+- Check that the Google Pay API version in your backend config matches what's expected (`apiVersion: 2`, `apiVersionMinor: 0`)
+- Verify `merchantInfo` is configured in production (required by Google)
+
+### Google Pay Authorization Fails Immediately
+
+**Symptom:** `onAuthorizeFailed` fires right after the user selects a payment method in the sheet.
+
+**Checks:**
+
+- Verify your Payrails dashboard has the correct gateway credentials for Google Pay
+- Check the `PayrailsError` details in the delegate callback
+- If 3DS is triggered (`onThreeDSecureChallenge`), follow the same 3DS troubleshooting as card payments below
+
+## Payment Issues
+
+### 3DS Browser Doesn't Open
+
+**Symptom:** Payment hangs after authorization, no browser opens.
+
+**Checks:**
+
+- The SDK opens 3DS challenges automatically via Chrome Custom Tabs (or the system browser as fallback)
+- Ensure `Render()` has been composed before `pay()` is called — the button creates its internal presenter during composition
+- The device must have a browser installed (Chrome Custom Tabs preferred)
+- Check that the Activity reference is still valid (not destroyed)
+
+### 3DS Succeeds But onAuthorizeSuccess Not Called
+
+**Symptom:** User completes 3DS in browser, returns to app, but delegate isn't called.
+
+**Explanation:** This is expected behavior. The SDK polls the execution status after the user returns. The delegate callback fires only when polling reaches a terminal state (success or failure).
+
+**Possible causes for delay:**
+
+- Slow backend processing — the SDK continues polling
+- Network connectivity issues — polling retries with backoff
+- If polling times out, `onAuthorizeFailed` fires instead (the SDK triggers session recovery if `onSessionExpired` is configured)
+
+### Payment Always Returns Failed
+
+**Checks:**
+
+1. Verify your init payload is correct (version and data from your backend)
+2. Check that your Payrails dashboard has the payment method configured
+3. Ensure your test card numbers are valid for your sandbox environment
+4. Check the `AuthorizationFailure` (its `code` and `message`) passed to your `onAuthorizeFailed` delegate callback for specific details (e.g., `AUTHORIZATION_ERROR`, `AUTHENTICATION_ERROR`, `UNKNOWN_ERROR`)
+
+### Stored Instrument Payment Fails
+
+**Checks:**
+
+- Ensure the stored instrument is still valid (not expired or deleted)
+- Verify the instrument was retrieved from the current session: `session.getStoredInstruments()`
+
+## Lifecycle Issues
+
+### Session Lost After Configuration Change
+
+**Symptom:** Payment fails after screen rotation or configuration change.
+
+**Explanation:** The SDK ties the session to the Activity lifecycle. When the Activity is destroyed (including for configuration changes), the session is cleaned up if `isFinishing` is true.
+
+**Fix:** For configuration changes (rotation), the standard Compose `remember` pattern preserves element references across recomposition. However, if the Activity is recreated, you'll need to re-initialize the session.
+
+Consider using a `ViewModel` to hold the session across configuration changes:
+
+```kotlin
+class PaymentViewModel : ViewModel() {
+    var session: Session? = null
+        private set
+
+    suspend fun initializeSession(configuration: Configuration) {
+        session = Payrails.createSession(configuration)
+    }
+}
+```
+
+### Memory Leak Warnings
+
+**Symptom:** LeakCanary reports a leak from `Payrails` or `BrowserPaymentPresenterImpl`.
+
+**Checks:**
+
+- The SDK holds a `WeakReference` to the Activity — this should not cause leaks
+- Ensure you're not holding strong references to `CardForm` or `CardPaymentButton` in long-lived scopes (e.g., a singleton)
+- The SDK registers `ActivityLifecycleCallbacks` once and cleans up when the bound Activity is destroyed
+
+## ProGuard / R8
+
+If you're using code shrinking, the SDK's public API should work without additional rules. If you encounter issues with serialization or reflection:
+
+```proguard
+-keep class com.payrails.sdk.** { *; }
+```
+
+This is a broad keep rule. In most cases, the SDK works without any ProGuard configuration. Only add rules if you see specific obfuscation-related crashes.
+
+## Getting Help
+
+If your issue isn't covered here:
+
+1. Check the [API Reference](/docs/sdk-api-reference#results-and-errors) for specific error types and delegate behavior
+2. Review the [SDK Concepts](/docs/sdk-concepts) to verify your integration pattern
+3. Check the [API Reference](/docs/sdk-api-reference) for correct method signatures
+4. Contact Payrails support with:
+   - SDK version
+   - Android API level
+   - The specific `PayrailsError` message (if applicable)
+   - Steps to reproduce

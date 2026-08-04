@@ -1,0 +1,261 @@
+---
+keywords:
+  [
+    "Adyen integration",
+    "Payrails Adyen integration",
+    "Adyen setup guide",
+    "Integrate Adyen with Payrails",
+    "Adyen payment provider setup",
+  ]
+---
+
+<Note>
+
+**Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as a payment orchestrator
+- Use **Adyen Payments**
+- Are approved to process **raw card data**
+
+We use a server-to-server integration with Adyen, so your account must be enabled to process raw card data. If this isn't enabled, payments won't work in production. Please contact your Adyen account manager or support team to activate it.\_
+
+</Note>
+
+<Accordion title="How to request access to raw card data processing">
+  1. Email **[support@adyen.com](mailto:support@adyen.com)** and copy
+  **[pcisupport@adyen.com](mailto:pcisupport@adyen.com)**. 2. Optionally copy
+  the Payrails Support team. 3. In your request, confirm that **Payrails will
+  act as the payment orchestrator and handle card data processing**. 4. Include:
+  * The **WS user** associated with your Adyen account * The **Payrails PCI
+  compliance document**
+</Accordion>
+
+---
+
+## Create and configure an Adyen integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **Add instance** to create a new Adyen integration configuration.
+4. Select the **Workspaces** where this integration should be available.
+
+> **About Workspaces**  
+> Workspaces determine where this integration is available. They let you isolate provider setups by region or business line, or share the same configuration across multiple Workspaces.
+
+---
+
+## Step 1: Choose the integration type
+
+- Select **Payment** and continue to the next step.
+
+<PayrailsSelectIntegrationType />
+
+---
+
+## Step 2: Choose the provider
+
+- Select **Adyen** and continue to the next step.
+
+<img
+  src="/images/docs/adyen-image-01.png"
+  alt="A screenshot showing the Adyen integration selected."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+## Step 3: Configure your Adyen integration
+
+<Tip>
+  ### What you'll need from Adyen
+
+Before you begin, make sure you have access to:
+
+- Adyen merchant account name
+- Adyen API key (Web Service User)
+- Prefix (production only)
+- Webhook HMAC key
+
+      <a href="https://authn-live.adyen.com/authn/ui/login?request=eyJBdXRoblJlcXVlc3QiOnsiYWN0aXZpdHlHcm91cCI6IkJPX0NBIiwiY3JlZHNSZWFzb24iOlsiTG9nZ2luZyBpbiB0byBhcHBsaWNhdGlvbiBjYSJdLCJmb3JjZU5ld1Nlc3Npb24iOiJmYWxzZSIsImZvcmdvdFBhc3N3b3JkVXJsIjoiaHR0cHM6XC9cL2NhLWxpdmUuYWR5ZW4uY29tXC9jYVwvbG9iYnlcL3Bhc3N3b3JkLXJlc2V0XC9mb3Jnb3QtcGFzc3dvcmQiLCJyZXF1ZXN0VGltZSI6IjIwMjYtMDItMDdUMTc6NDk6MTArMDE6MDAiLCJyZXF1ZXN0ZWRDcmVkZW50aWFscyI6W3siUmVxdWVzdGVkQ3JlZGVudGlhbCI6eyJhY2NlcHRlZEFjdGl2aXR5IjpbeyJBY2NlcHRlZEFjdGl2aXR5Ijp7ImFjdGl2aXR5R3JvdXAiOiJCT19DQSIsImFjdGl2aXR5VHlwZSI6IklNUExJQ0lUIiwibWlsbGlzZWNvbmRzQWdvIjo5MDAwMDB9fV0sInR5cGUiOiJQQVNTV09SRCJ9fSx7IlJlcXVlc3RlZENyZWRlbnRpYWwiOnsiYWNjZXB0ZWRBY3Rpdml0eSI6W3siQWNjZXB0ZWRBY3Rpdml0eSI6eyJhY3Rpdml0eUdyb3VwIjoiQk9fQ0EiLCJhY3Rpdml0eVR5cGUiOiJHUkFDRV9DT09LSUUiLCJtaWxsaXNlY29uZHNBZ28iOjB9fV0sInR5cGUiOiJUV09fRkFDVE9SIn19XSwicmVxdWVzdGluZ0FwcCI6ImNhIiwicmV0dXJuVXJsIjoiaHR0cHM6XC9cL2NhLWxpdmUuYWR5ZW4uY29tXC9jYVwvY2FcL292ZXJ2aWV3XC9kZWZhdWx0LnNodG1sIiwic2lnbmF0dXJlIjoiVjAwNFNSMVJZZklCRmNiVDdYZDFrREJHSTV5TE9nWmV5WEJcLzRTakZGMTA0WGRsZz0ifX0%3D" target="_blank" rel="noreferrer">Log in</a> to your Adyen merchant dashboard to complete this step.
+
+</Tip>
+
+---
+
+### Integration instance name
+
+<PayrailsIntegrationInstanceNameInfo />
+
+**In Payrails**
+
+- Enter an **Instance name** for your integration.
+
+<PayrailsChooseAnIntegrationInstanceName />
+
+---
+
+### Merchant account name
+
+**In Adyen**
+
+1. <a
+     href="https://authn-live.adyen.com/authn/ui/login?request=eyJBdXRoblJlcXVlc3QiOnsiYWN0aXZpdHlHcm91cCI6IkJPX0NBIiwiY3JlZHNSZWFzb24iOlsiTG9nZ2luZyBpbiB0byBhcHBsaWNhdGlvbiBjYSJdLCJmb3JjZU5ld1Nlc3Npb24iOiJmYWxzZSIsImZvcmdvdFBhc3N3b3JkVXJsIjoiaHR0cHM6XC9cL2NhLWxpdmUuYWR5ZW4uY29tXC9jYVwvbG9iYnlcL3Bhc3N3b3JkLXJlc2V0XC9mb3Jnb3QtcGFzc3dvcmQiLCJyZXF1ZXN0VGltZSI6IjIwMjYtMDItMDdUMTc6NDk6MTArMDE6MDAiLCJyZXF1ZXN0ZWRDcmVkZW50aWFscyI6W3siUmVxdWVzdGVkQ3JlZGVudGlhbCI6eyJhY2NlcHRlZEFjdGl2aXR5IjpbeyJBY2NlcHRlZEFjdGl2aXR5Ijp7ImFjdGl2aXR5R3JvdXAiOiJCT19DQSIsImFjdGl2aXR5VHlwZSI6IklNUExJQ0lUIiwibWlsbGlzZWNvbmRzQWdvIjo5MDAwMDB9fV0sInR5cGUiOiJQQVNTV09SRCJ9fSx7IlJlcXVlc3RlZENyZWRlbnRpYWwiOnsiYWNjZXB0ZWRBY3Rpdml0eSI6W3siQWNjZXB0ZWRBY3Rpdml0eSI6eyJhY3Rpdml0eUdyb3VwIjoiQk9fQ0EiLCJhY3Rpdml0eVR5cGUiOiJHUkFDRV9DT09LSUUiLCJtaWxsaXNlY29uZHNBZ28iOjB9fV0sInR5cGUiOiJUV09fRkFDVE9SIn19XSwicmVxdWVzdGluZ0FwcCI6ImNhIiwicmV0dXJuVXJsIjoiaHR0cHM6XC9cL2NhLWxpdmUuYWR5ZW4uY29tXC9jYVwvY2FcL292ZXJ2aWV3XC9kZWZhdWx0LnNodG1sIiwic2lnbmF0dXJlIjoiVjAwNFNSMVJZZklCRmNiVDdYZDFrREJHSTV5TE9nWmV5WEJcLzRTakZGMTA0WGRsZz0ifX0%3D"
+     target="_blank"
+     rel="noreferrer"
+   >
+     Log in
+   </a>
+   to your Adyen dasboard.
+2. Click the company logo or name in the top-left corner.
+3. From the list of merchant accounts, copy the **Merchant account name**  
+   (not the company account).
+
+<img
+  src="/images/docs/adyen-adyen-merchant-account-name.png"
+  alt="A screenshot showing the Adyen dashboard menu."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="350px"
+/>
+
+**In Payrails**
+
+- Paste the value into the **Merchant account name** field.
+
+---
+
+### Prefix (production only)
+
+<Note>
+  The prefix is required in **production** but not in **staging**. You can leave
+  this field blank in staging environments.
+</Note>
+
+**In Adyen**
+
+1. Go to **Developers** → **API URLs**.
+2. Copy the **Prefix** value.
+
+<img
+  src="/images/docs/adyen-adyen-prefix.png"
+  alt="A screenshot showing the Adyen API URLs."
+  className="mx-auto block rounded-lg object-cover"
+  width="80%"
+/>
+
+**In Payrails**
+
+- Paste the value into the **Prefix** field.
+
+---
+
+### API key
+
+<Tip>Use a dedicated Web Service User API key and store it securely.</Tip>
+
+**In Adyen**
+
+1. Go to **Developers** → **API credentials**.
+2. Select **Create new credential**.
+3. Choose **Web Service User**.
+4. Create the credential and copy the **API key**.
+
+<img
+  src="/images/docs/adyen-api-credentials.png"
+  alt="A screenshot showing the create a new API credential form. "
+  className="mx-auto block rounded-lg object-cover"
+  width="80%"
+/>
+
+**In Payrails**
+
+- Paste the value into the **API key** field.
+
+---
+
+### HMAC key (webhook signing key)
+
+<Tip>
+  Payrails uses Adyen webhooks to receive asynchronous payment status updates.
+</Tip>
+
+<Warning>
+  Create the webhook in the same environment (test or live) as your Payrails
+  integration.
+</Warning>
+
+**In Payrails**
+
+- Copy the **Notification URL** from the webhook section.
+
+<PayrailsChooseAnIntegrationInstanceName />
+
+**In Adyen**
+
+1. Go to **Developers** → **Webhooks**.
+2. Create a new **Standard webhook**.
+3. Select **only** the merchant account you are configuring.
+4. Paste the Payrails notification URL into the **URL** field.
+5. In **Security**, generate a new **HMAC key** and copy it.
+6. In **Events**, enable all standard events.
+7. Save the webhook configuration.
+
+<img
+  src="/images/docs/adyen-hmac.png"
+  alt="A screeshot showing the Adyen webhook HMAC field.."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="80%"
+/>
+
+**In Payrails**
+
+- Paste the HMAC key into the **HMAC key** field.
+- Return to the integration overview after your changes are saved.
+
+---
+
+### Payment methods
+
+**In Payrails**
+
+- Select the payment methods that should be enabled for this integration.
+
+<img
+  src="/images/docs/adyen-image-06.png"
+  alt="A screenshot showing the Adyen payment methods."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+## Enable the integration
+
+**In Payrails**
+
+- Select **Save account** Save the configuration to enable the integration.
+
+The **Enabled** status confirms that the Adyen integration is active.
+
+<img
+  src="/images/docs/adyen-image-07.png"
+  alt="A screenshot showing the enabled Adyen integration."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+Your Adyen integration is now ready to process payments
+
+---
+
+## Next steps
+
+1. Run a test payment using a Adyen <a href="https://docs.adyen.com/development-resources/test-cards-and-credentials/test-card-numbers" target="_blank" rel="noreferrer">test card.</a>
+2. Verify that:
+   - The payment appears in Adyen.
+   - The payment status updates correctly in Payrails.
+3. Once verified in test mode, repeat the setup in live mode.
+
+→ Continue to: [Test a payment](/docs/orchestration/payment-acceptance/test-payments)

@@ -1,0 +1,421 @@
+---
+title: Styling Guide
+description: This guide shows how to customize the appearance of Payrails SDK components to match your brand.
+---
+
+## Overview
+
+The SDK has two main styling surfaces:
+
+| Component  | Styling class          | What it controls                                                 |
+| ---------- | ---------------------- | ---------------------------------------------------------------- |
+| Card form  | `CardFormStylesConfig` | Wrapper, input fields, labels, errors, checkbox                  |
+| Pay button | `CardButtonStyle`      | Background, text, border, corner radius, loading/disabled states |
+
+Styles are set at creation time and use Compose-native types (`Color`, `Dp`, `TextStyle`, `PaddingValues`).
+
+## Card Form Styling
+
+### Style Hierarchy
+
+Card form styles cascade from general to specific:
+
+```
+CardFormStylesConfig
+├── wrapperStyle          → outer container (background, border, padding)
+├── baseStyle             → applies to all input fields as a baseline
+├── allInputFieldStyles   → field states (base, focus, completed, invalid)
+├── inputFieldStyles      → per-field overrides (keyed by CardFieldType)
+├── labelStyles           → per-field label overrides
+├── errorTextStyle        → error message appearance
+├── storeInstrumentCheckboxStyle      → checkbox wrapper
+└── storeInstrumentCheckboxLabelStyle → checkbox label text
+```
+
+### Basic Example
+
+```kotlin
+val cardForm = Payrails.createCardForm(
+    config = CardFormConfig(
+        showCardHolderName = true,
+        showSingleExpiryDateField = true,
+        styles = CardFormStylesConfig(
+            wrapperStyle = CardWrapperStyle(
+                backgroundColor = Color(0xFFF5F5F5),
+                cornerRadius = 12.dp,
+                padding = PaddingValues(16.dp)
+            ),
+            allInputFieldStyles = CardFieldSpecificStyles(
+                base = CardStyle(
+                    borderColor = Color(0xFFE0E0E0),
+                    borderWidth = 1.dp,
+                    cornerRadius = 8.dp,
+                    textColor = Color(0xFF212121)
+                ),
+                focus = CardStyle(
+                    borderColor = Color(0xFF1976D2),
+                    cursorColor = Color(0xFF1976D2)
+                ),
+                invalid = CardStyle(
+                    borderColor = Color(0xFFD32F2F)
+                )
+            ),
+            errorTextStyle = CardStyle(
+                textColor = Color(0xFFD32F2F)
+            )
+        )
+    )
+)
+```
+
+### Per-Field Styling
+
+Override styles for specific fields:
+
+```kotlin
+styles = CardFormStylesConfig(
+    allInputFieldStyles = CardFieldSpecificStyles(
+        base = CardStyle(borderColor = Color.Gray, cornerRadius = 8.dp)
+    ),
+    inputFieldStyles = mapOf(
+        CardFieldType.CARD_NUMBER to CardFieldSpecificStyles(
+            base = CardStyle(borderColor = Color.Black, borderWidth = 2.dp)
+        )
+    ),
+    labelStyles = mapOf(
+        CardFieldType.CVV to CardStyle(textColor = Color.DarkGray)
+    )
+)
+```
+
+### Default Values
+
+The SDK applies these defaults if you don't provide styles:
+
+| Property                         | Default                                     |
+| -------------------------------- | ------------------------------------------- |
+| Field border color               | Inherited from theme (no explicit default)  |
+| Field border width               | `1.dp`                                      |
+| Field corner radius              | `2.dp`                                      |
+| Field text color                 | Inherited from theme (no explicit default)  |
+| Focus border color               | `#D63D00` (Payrails orange)                 |
+| Focus cursor color               | `#D63D00`                                   |
+| Completed border color           | `Color.Green`                               |
+| Invalid border color             | `Color.Red`                                 |
+| Error text color                 | `Color.Red`                                 |
+| `fieldContentPadding` (OUTLINED) | `start = 16.dp`, other sides from Material3 |
+| `fieldContentPadding` (FILLED)   | `start = 0.dp`, other sides from Material3  |
+
+Use `CardFormStylesConfig.defaultConfig` as a baseline and override only what you need. Custom styles are merged over defaults — you only need to specify properties you want to change.
+
+### Spacing Tokens
+
+Control form-level spacing with tokens on `CardFormStylesConfig`:
+
+```kotlin
+styles = CardFormStylesConfig(
+    rowSpacing = 16.dp,       // vertical gap between form rows (default: 12.dp)
+    fieldSpacing = 8.dp,      // horizontal gap between fields in a row (default: 12.dp)
+    errorSpacing = 2.dp,      // gap between field and error text, only when error is shown (default: 4.dp)
+    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),  // outer padding (default: 16.dp all)
+    fieldHeight = 48.dp,      // explicit height for text fields (default: wrap content)
+    fieldContentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)  // inner padding of each text field (see below)
+)
+```
+
+All spacing tokens are nullable. When `null`, the hardcoded default is used. These tokens are merged the same way as other style properties — a non-null value wins, null falls through to the fallback. Error spacing is only applied when a field has an active error — fields without errors have no reserved space below them.
+
+### Field Content Padding
+
+`fieldContentPadding` controls the inner padding of every text field — the distance between the field border and the text cursor. When not set, the SDK applies variant-specific defaults:
+
+| Variant    | Default `start` | Other sides        |
+| ---------- | --------------- | ------------------ |
+| `OUTLINED` | `16.dp`         | Material3 defaults |
+| `FILLED`   | `0.dp`          | Material3 defaults |
+
+The `OUTLINED` default (`16.dp`) matches Material3's standard inset so text sits visibly away from the border. The `FILLED` default (`0.dp`) lets text align flush with any decoration you've applied to the wrapper.
+
+To override for both variants at once:
+
+```kotlin
+styles = CardFormStylesConfig(
+    fieldContentPadding = PaddingValues(start = 12.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)
+)
+```
+
+To use variant-specific padding, create two separate `CardFormStylesConfig` instances and pass the appropriate one based on your chosen `FieldVariant`.
+
+### Label Placement
+
+Choose where field labels appear:
+
+```kotlin
+config = CardFormConfig(
+    labelPlacement = LabelPlacement.ABOVE,   // labels above field (default: FLOATING)
+    labelSpacing = 6.dp                      // gap between label and field (default: 4.dp)
+)
+```
+
+- `LabelPlacement.FLOATING` (default) — labels render as Material3 floating labels inside the text field.
+- `LabelPlacement.ABOVE` — labels render as separate `Text` composables above each field, with a configurable gap.
+
+When using `LabelPlacement.ABOVE`, use `fieldContentPadding` on `CardFormStylesConfig` to control the inner padding of the text field (the distance from the field edges to the text cursor). The SDK default is `start = 16.dp` for `OUTLINED` and `start = 0.dp` for `FILLED`; all other sides fall through to Material3 defaults. See [Field Content Padding](#field-content-padding) for details.
+
+### Field Variant
+
+Choose the Material3 text field style:
+
+```kotlin
+config = CardFormConfig(
+    fieldVariant = FieldVariant.FILLED   // (default: OUTLINED)
+)
+```
+
+- `FieldVariant.OUTLINED` (default) — `OutlinedTextField` with a full border.
+- `FieldVariant.FILLED` — `TextField` with a background fill and bottom indicator.
+
+### CardStyle Properties
+
+`CardStyle` (alias of `Style`) supports these properties:
+
+| Property           | Type             | Description                            |
+| ------------------ | ---------------- | -------------------------------------- |
+| `textColor`        | `Color?`         | Text color                             |
+| `backgroundColor`  | `Color?`         | Background fill                        |
+| `borderColor`      | `Color?`         | Border color                           |
+| `borderWidth`      | `Dp?`            | Border width                           |
+| `cornerRadius`     | `Dp?`            | Corner radius                          |
+| `font`             | `TextStyle?`     | Font/text style (size, weight, family) |
+| `padding`          | `PaddingValues?` | Content padding                        |
+| `width`            | `Dp?`            | Fixed width                            |
+| `height`           | `Dp?`            | Fixed height                           |
+| `minWidth`         | `Dp?`            | Minimum width                          |
+| `maxWidth`         | `Dp?`            | Maximum width                          |
+| `minHeight`        | `Dp?`            | Minimum height                         |
+| `maxHeight`        | `Dp?`            | Maximum height                         |
+| `placeholderColor` | `Color?`         | Placeholder text color                 |
+| `cursorColor`      | `Color?`         | Input cursor color                     |
+
+## Pay Button Styling
+
+Button styling is configured on `CardPaymentButton`, not on the card form.
+
+### Basic Example
+
+```kotlin
+val payButton = Payrails.createCardPaymentButton(
+    translations = CardPaymenButtonTranslations(label = "Pay Now"),
+    buttonStyle = CardButtonStyle(
+        backgroundColor = Color(0xFF1976D2),
+        textColor = Color.White,
+        cornerRadius = 8.dp,
+        height = 48.dp,
+        fillMaxWidth = true
+    )
+)
+```
+
+### Button States
+
+The button supports three visual states. Configure each independently:
+
+```kotlin
+val payButton = Payrails.createCardPaymentButton(
+    translations = CardPaymenButtonTranslations(label = "Pay Now"),
+    buttonStyle = CardButtonStyle(
+        // Default (enabled) state
+        backgroundColor = Color(0xFF1976D2),
+        textColor = Color.White,
+        cornerRadius = 8.dp,
+
+        // Disabled state (shown when disabledByDefault=true and form is invalid)
+        disabledStyle = CardButtonStyle(
+            backgroundColor = Color(0xFFE0E0E0),
+            textColor = Color(0xFF9E9E9E),
+            borderColor = Color(0xFFBDBDBD),
+            borderWidth = 1.dp
+        ),
+
+        // Loading state (shown during payment processing)
+        loadingStyle = CardButtonStyle(
+            backgroundColor = Color(0xFF1565C0)
+        ),
+        loadingIndicatorColor = Color.White
+    )
+)
+```
+
+State styles are merged over the base style — you only need to specify properties that differ from the enabled state.
+
+### CardButtonStyle Properties
+
+| Property                      | Type               | Default           | Description                 |
+| ----------------------------- | ------------------ | ----------------- | --------------------------- |
+| `backgroundColor`             | `Color?`           | `#1976D2` (blue)  | Button background           |
+| `textColor`                   | `Color?`           | `Color.White`     | Button label color          |
+| `font`                        | `TextStyle?`       | System default    | Label text style            |
+| `cornerRadius`                | `Dp?`              | `8.dp`            | Corner radius               |
+| `borderWidth`                 | `Dp?`              | None              | Border width                |
+| `borderColor`                 | `Color?`           | None              | Border color                |
+| `contentPadding`              | `PaddingValues?`   | Material default  | Content padding             |
+| `height`                      | `Dp?`              | Wrap content      | Fixed height                |
+| `fillMaxWidth`                | `Boolean`          | `true`            | Stretch to fill width       |
+| `disabledStyle`               | `CardButtonStyle?` | Gray (#E0E0E0)    | Override for disabled state |
+| `loadingStyle`                | `CardButtonStyle?` | None              | Override for loading state  |
+| `loadingIndicatorColor`       | `Color?`           | `Color.White`     | Spinner color               |
+| `loadingIndicatorSize`        | `Dp?`              | `20.dp`           | Spinner diameter            |
+| `loadingIndicatorStrokeWidth` | `Dp?`              | `2.dp`            | Spinner stroke width        |
+| `elevation`                   | `Dp?`              | Material3 default | Button shadow depth         |
+| `opacity`                     | `Float?`           | `1.0f`            | Button opacity (0.0–1.0)    |
+| `minHeight`                   | `Dp?`              | Material3 default | Minimum button height       |
+
+All new tokens participate in state-variant merging — set them on `disabledStyle` or `loadingStyle` to vary by state.
+
+### Disable-Until-Valid Pattern
+
+To keep the button disabled until the card form is valid:
+
+```kotlin
+val payButton = Payrails.createCardPaymentButton(
+    translations = CardPaymenButtonTranslations(label = "Pay Now"),
+    disabledByDefault = true,
+    buttonStyle = CardButtonStyle(
+        backgroundColor = Color(0xFF1976D2),
+        textColor = Color.White,
+        disabledStyle = CardButtonStyle(
+            backgroundColor = Color(0xFFE0E0E0),
+            textColor = Color(0xFF9E9E9E)
+        )
+    )
+)
+```
+
+The button automatically enables when the card form becomes valid (all fields pass validation).
+
+## Card Form Layout
+
+Customize which fields appear and how they're arranged:
+
+```kotlin
+val cardForm = Payrails.createCardForm(
+    config = CardFormConfig(
+        showCardHolderName = true,
+        showSingleExpiryDateField = true,
+        layout = listOf(
+            listOf(CardFieldType.CARDHOLDER_NAME),           // Row 1: full width
+            listOf(CardFieldType.CARD_NUMBER),               // Row 2: full width
+            listOf(CardFieldType.EXPIRATION_DATE, CardFieldType.CVV)  // Row 3: side by side
+        )
+    )
+)
+```
+
+### Layout Rules
+
+- Each inner list is a row; fields in the same row share space equally
+- `EXPIRATION_DATE` is a combined MM/YY field (use with `showSingleExpiryDateField = true`)
+- `EXPIRATION_MONTH` + `EXPIRATION_YEAR` are separate fields (use without `showSingleExpiryDateField`)
+- Cannot mix `EXPIRATION_DATE` with `EXPIRATION_MONTH`/`EXPIRATION_YEAR`
+- No duplicate fields allowed
+
+### Card Network Icons
+
+Show detected card network icons in the card number field:
+
+```kotlin
+val cardForm = Payrails.createCardForm(
+    config = CardFormConfig(
+        showCardIcon = true,
+        cardIconAlignment = CardIconAlignment.right  // or .left
+    )
+)
+```
+
+Icons update automatically as the user types and the SDK detects the card network (Visa, Mastercard, Amex, Discover).
+
+## Translations
+
+Customize all user-facing text:
+
+```kotlin
+val cardForm = Payrails.createCardForm(
+    config = CardFormConfig(
+        translations = CardTranslations(
+            placeholders = CardTranslations.Placeholders(mutableMapOf(
+                CardFieldType.CARDHOLDER_NAME to "Name on card",
+                CardFieldType.CARD_NUMBER to "1234 5678 9012 3456",
+                CardFieldType.EXPIRATION_DATE to "MM/YY",
+                CardFieldType.CVV to "123"
+            )),
+            labels = CardTranslations.Labels(
+                values = mutableMapOf(
+                    CardFieldType.CARDHOLDER_NAME to "Name",
+                    CardFieldType.CARD_NUMBER to "Card number",
+                    CardFieldType.EXPIRATION_DATE to "Expiry",
+                    CardFieldType.CVV to "Security code"
+                ),
+                storeInstrument = "Save this card"
+            ),
+            error = CardTranslations.ErrorMessages(mutableMapOf(
+                CardFieldType.CARD_NUMBER to "Invalid card number"
+            ))
+        )
+    )
+)
+```
+
+### Save Instrument Label Priority
+
+The checkbox label resolves in this order:
+
+1. `labels.storeInstrument` (if set)
+2. `labels.saveInstrument` (if set)
+3. `labels.saveCreditCard` (if set)
+4. `"Save instrument"` (default)
+
+## Stored Instruments
+
+The SDK does not provide a pre-built stored-instruments UI. Retrieve saved cards with `session.getStoredInstruments()` (called on the `Session` returned by `Payrails.createSession(...)`) and build your own picker using standard Compose components. When the user selects an instrument, call `cardPaymentButton.setStoredInstrument(instrument)` to pay with it.
+
+## Card Brand Selector
+
+For [co-branded cards](/docs/sdk-concepts#co-branded-cards), the Card Brand selector renders automatically inside the card form. Style it via `CardFormStylesConfig.cardBrandSelector`; localize the title/subtitle via `CardTranslations`.
+
+```kotlin
+CardFormStylesConfig(
+    cardBrandSelector = CardBrandSelectorStyle(
+        titleColor = Color.Black.toArgb(),
+        subtitleColor = 0xFF6B7280.toInt(),
+        tileBackgroundColor = Color.White.toArgb(),
+        tileBorderColor = 0xFFD0D5DD.toInt(),
+        tileTitleColor = Color.Black.toArgb(),
+        selectedTileBorderColor = 0xFF0F63BD.toInt(),
+        selectedCheckColor = 0xFF0F63BD.toInt(),
+        tileCornerRadius = 12, // dp
+    )
+)
+```
+
+### CardBrandSelectorStyle Properties
+
+All fields are optional. Color fields are `@ColorInt` (ARGB); an unset color falls back to the current `MaterialTheme.colorScheme`, so the selector adapts to light/dark themes automatically.
+
+| Property                  | Type   | Effect (unset → theme default)                        |
+| ------------------------- | ------ | ----------------------------------------------------- |
+| `titleColor`              | `Int?` | Selector title color (→ `onSurface`)                  |
+| `subtitleColor`           | `Int?` | Subtitle color (→ `onSurfaceVariant`)                 |
+| `tileTitleColor`          | `Int?` | Brand-name color on a tile (→ `onSurface`)            |
+| `tileBackgroundColor`     | `Int?` | Tile background (→ `surface`)                         |
+| `tileBorderColor`         | `Int?` | Unselected tile border + indicator ring (→ `outline`) |
+| `selectedTileBorderColor` | `Int?` | Selected tile border + check badge (→ `primary`)      |
+| `selectedCheckColor`      | `Int?` | Check-badge color (→ selected border color)           |
+| `tileCornerRadius`        | `Int?` | Tile corner radius, in dp                             |
+
+Tiles are styled uniformly (no per-scheme styling) per the EU IFR 2015/751 visual-balance requirement — the only per-tile difference is the selected check mark.
+
+## Further Reading
+
+- **[Quick Start](/docs/android-sdk-1)** — Get a basic integration working first
+- **[API Reference](/docs/sdk-api-reference)** — Full property reference for all style classes
+- **[SDK Concepts](/docs/sdk-concepts)** — Understand element composition and button modes

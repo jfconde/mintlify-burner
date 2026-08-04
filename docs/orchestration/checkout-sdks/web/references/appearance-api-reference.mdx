@@ -1,0 +1,310 @@
+---
+title: Appearance API reference
+---
+
+Reference for the `appearance` option of `@payrails/web-sdk`: the option types,
+rule semantics, and the class-name contract — which CSS classes and state
+modifiers the SDK guarantees on the DOM.&#x20;
+
+```js
+payrails.cardForm({
+  appearance: {
+    rules: {
+      ".payrails-input": { border: "1px solid #eae8ee" },
+      ".payrails-input--invalid": { borderColor: "#dc2626" },
+      "@media (max-width: 480px)": {
+        ".payrails-container": { gap: "8px" },
+      },
+    },
+  },
+});
+```
+
+## Types
+
+All types are exported from `@payrails/web-sdk`.
+
+### `Appearance`
+
+```ts
+interface Appearance {
+  rules?: AppearanceRules;
+}
+```
+
+The base shape accepted by every element that draws its own UI.
+
+### `AppearanceRules`
+
+```ts
+interface AppearanceRules {
+  [selectorOrAtRule: string]: AppearanceDeclarations | AppearanceRules;
+}
+
+type AppearanceDeclarations = Record<string, string | number>;
+```
+
+Keys are CSS selectors or at-rules; values are declaration maps. Under an
+at-rule key (`@media …`, `@supports …`) the value is a nested `AppearanceRules`
+map.
+
+### `CardFormAppearance`
+
+```ts
+interface CardFormAppearance extends Appearance {
+  installments?: Appearance;
+  address?: Appearance;
+  brandSelector?: Appearance;
+}
+```
+
+The card form's nested widgets each take their own `Appearance` under a named
+key. The card payment button is a sibling of the card form, not a child — it has
+no slot here.
+
+### `DropinAppearance`
+
+```ts
+interface DropinAppearance extends Appearance {
+  cardForm?: CardFormAppearance;
+  cardPaymentButton?: Appearance;
+  loadingScreen?: Appearance;
+  authSuccess?: Appearance;
+  authFailed?: Appearance;
+}
+```
+
+Root `rules` apply across the drop-in; each building block listed above takes
+its own appearance under a matching key. The exported interface also declares
+reserved keys (`leanButton`, `orderSummary`, `billingAddressForm`,
+`termsAndConditions`, the wallet buttons) and an open index signature — keys not
+listed above are accepted by the compiler but currently have no effect. The
+provider-drawn wallet buttons (Google Pay, Apple Pay, PayPal) are not stylable
+through `appearance` — their chrome is configured via
+`paymentMethodsConfiguration.<method>.styles`&#x20;
+
+### Where each shape is accepted
+
+| Factory                          | Option field | Shape                |
+| -------------------------------- | ------------ | -------------------- |
+| `payrails.cardForm`              | `appearance` | `CardFormAppearance` |
+| `payrails.dropin`                | `appearance` | `DropinAppearance`   |
+| `payrails.paymentButton`         | `appearance` | `Appearance`         |
+| `payrails.cardList`              | `appearance` | `Appearance`         |
+| `payrails.dynamicElement`        | `appearance` | `Appearance`         |
+| `payrails.genericRedirectButton` | `appearance` | `Appearance`         |
+| `payrails.leanButton`            | `appearance` | `Appearance`         |
+| `container.createCollectElement` | `appearance` | `Appearance`         |
+
+## Rule semantics
+
+**Selectors.** Any selector the browser supports is valid: class selectors,
+state modifiers, comma lists, descendant combinators, pseudo-classes (`:hover`,
+`:focus`, `:focus-visible`, `:disabled`, `:autofill`), pseudo-elements
+(`::placeholder`, `::selection`), and nested `@media` / `@supports` at-rules.
+
+**Properties.** Any CSS property is valid. Write property names in camelCase
+(`boxShadow`) or kebab-case (`box-shadow`) — camelCase is converted on emission.
+Custom properties (`--my-var`) pass through unchanged. Values are strings or
+numbers.
+
+**No validation.** The SDK emits your rules verbatim as CSS and does not
+currently validate selectors or declarations; anything the browser cannot parse
+is silently ignored by the browser, not reported by the SDK.
+
+**Scoping.** Each element's rules apply only within that element's own DOM
+subtree. A rule passed to one card form does not affect another card form or any
+other widget. Write selectors flat (`.payrails-input`, not a
+descendant-of-the-widget path) — the SDK scopes them for you. Known limitation
+in 6.0.0-RC: on the host page, scoped rules match descendants of the widget but
+not the widget's own root node — for widgets that render a single node (the pay
+buttons), host-page rules currently have no effect. Rules applied inside the
+secure iframes (card form, collect elements) are not affected.
+
+**Cascade.** SDK default styles live in the CSS layer `payrails-defaults`; your
+rules are emitted into the layer `payrails-appearance`, which is declared after
+it — your rules always beat the SDK defaults regardless of selector specificity.
+Rules in your own external stylesheets are unlayered and beat both. In browsers
+without CSS layer support (Safari before 15.4), the SDK's default styles are not
+applied; your rules still are.
+
+**Composition.** When a container and one of its children both style the same
+node, the child's rules win; the container's rules fill in whatever the child
+did not set.
+
+**Secure fields.** Card data inputs render inside Payrails-hosted iframes. The
+root `rules` of a card form or collect element are forwarded into the iframe and
+applied there in addition to the host page; nested child keys (`installments`,
+`address`, `brandSelector`) apply outside the iframe only.
+
+## The class-name contract
+
+The SDK stamps two kinds of class names:
+
+- **Generic classes** (`.payrails-input`, `.payrails-button`, …) mark the UI
+  primitives and are listed below. They are the public styling surface, stable
+  within a major version.
+- **Widget-specific classes** (for example `.payrails-card-form`) are internal.
+  They can change in any release and are not part of this contract.
+
+### Generic classes
+
+| Class                 | Marks                                                   |
+| --------------------- | ------------------------------------------------------- |
+| `.payrails-container` | The root wrapper of a widget (form, list, screen).      |
+| `.payrails-row`       | A horizontal group (form row, summary line, tile row).  |
+| `.payrails-cell`      | One slot inside a row.                                  |
+| `.payrails-field`     | A labeled input group (label + input + error).          |
+| `.payrails-input`     | A text input, including the secure card fields.         |
+| `.payrails-dropdown`  | A select input.                                         |
+| `.payrails-label`     | A text label.                                           |
+| `.payrails-text`      | Body text (amounts, terms, subtitles).                  |
+| `.payrails-error`     | A validation error message.                             |
+| `.payrails-button`    | A pay button drawn by the SDK.                          |
+| `.payrails-checkbox`  | The save-instrument checkbox.                           |
+| `.payrails-tile`      | A selectable tile (card brand, saved card, tab option). |
+| `.payrails-icon`      | An icon or logo image.                                  |
+
+### State modifiers
+
+State is expressed as BEM modifiers on the generic classes:
+
+| Modifier                      | Applies when                              |
+| ----------------------------- | ----------------------------------------- |
+| `.payrails-input--invalid`    | The input holds invalid input.            |
+| `.payrails-input--valid`      | The input holds valid input.              |
+| `.payrails-input--empty`      | The input is empty.                       |
+| `.payrails-input--dirty`      | The input has been edited at least once.  |
+| `.payrails-field--focused`    | A field inside a secure iframe has focus. |
+| `.payrails-field--invalid`    | The field's input is invalid.             |
+| `.payrails-dropdown--invalid` | The select holds an invalid selection.    |
+| `.payrails-button--loading`   | A payment is in flight.                   |
+| `.payrails-button--disabled`  | The button is disabled.                   |
+| `.payrails-checkbox--checked` | The checkbox is checked.                  |
+| `.payrails-tile--selected`    | The tile is selected.                     |
+
+On secure card fields, `--invalid` and `--valid` are removed while the field has
+focus, so a shopper correcting a value does not see the error state; they are
+re-evaluated on blur. A selector like `.payrails-input--invalid:focus` therefore
+never matches a secure field. For a persistent invalid look on touched fields,
+combine with `--dirty`:
+
+```js
+rules: {
+  '.payrails-input--dirty:not(:focus).payrails-input--invalid': {
+    borderColor: '#dc2626',
+  },
+}
+```
+
+`--empty` and `--dirty` exist on secure card fields only. Inputs in
+schema-driven forms (`dynamicElement`, the billing address form) keep
+`--invalid` / `--valid` while focused.
+
+## Per-element contract
+
+The tables below list which generic classes and modifiers appear in each
+element's DOM. Native pseudo-classes apply everywhere they are valid.
+
+### Card form — `cardForm({ appearance })`
+
+| Part                | Classes                                 | Modifiers                                    |
+| ------------------- | --------------------------------------- | -------------------------------------------- |
+| Form root           | `.payrails-container`                   | —                                            |
+| Field row / cell    | `.payrails-row` / `.payrails-cell`      | —                                            |
+| Field group         | `.payrails-field`                       | `--focused`, `--invalid`                     |
+| Card input          | `.payrails-input`                       | `--invalid`, `--valid`, `--empty`, `--dirty` |
+| Field label         | `.payrails-label`                       | —                                            |
+| Card-brand icon     | `.payrails-icon`                        | —                                            |
+| Error text          | `.payrails-error`                       | —                                            |
+| Save-instrument row | `.payrails-cell` / `.payrails-checkbox` | `--checked` (on the checkbox)                |
+
+Nested widget slots on `CardFormAppearance`:
+
+| Slot            | Part                    | Classes                                                                      | Modifiers    |
+| --------------- | ----------------------- | ---------------------------------------------------------------------------- | ------------ |
+| `installments`  | Dropdown                | `.payrails-cell`, `.payrails-dropdown`                                       | —            |
+| `address`       | Country / postal fields | `.payrails-cell`, `.payrails-label`, `.payrails-dropdown`, `.payrails-input` | `--invalid`  |
+| `brandSelector` | Title / subtitle        | `.payrails-label` / `.payrails-text`                                         | —            |
+|                 | Tile row                | `.payrails-row`                                                              | —            |
+|                 | Brand tile              | `.payrails-tile` (logo `.payrails-icon`, name `.payrails-label`)             | `--selected` |
+
+### Collect element (secure field) — `createCollectElement({ appearance })`
+
+Rules apply inside the field's iframe.
+
+| Part        | Classes           | Modifiers                                    |
+| ----------- | ----------------- | -------------------------------------------- |
+| Field group | `.payrails-field` | `--focused`, `--invalid`                     |
+| Input       | `.payrails-input` | `--invalid`, `--valid`, `--empty`, `--dirty` |
+| Label       | `.payrails-label` | —                                            |
+| Icon        | `.payrails-icon`  | —                                            |
+| Error text  | `.payrails-error` | —                                            |
+
+### Card payment button — `paymentButton({ appearance })`
+
+| Part   | Classes            | Modifiers                 |
+| ------ | ------------------ | ------------------------- |
+| Button | `.payrails-button` | `--loading`, `--disabled` |
+
+### Generic redirect button — `genericRedirectButton({ appearance })`
+
+| Part   | Classes                                        | Modifiers                 |
+| ------ | ---------------------------------------------- | ------------------------- |
+| Button | `.payrails-generic-button`, `.payrails-button` | `--loading`, `--disabled` |
+
+For Revolut Pay the button renders Revolut's own artwork configured via
+`revolutOptions`; `appearance` does not reach that artwork.
+
+### Lean button — `leanButton({ appearance })`
+
+| Part   | Classes            | Modifiers   |
+| ------ | ------------------ | ----------- |
+| Button | `.payrails-button` | `--loading` |
+
+The Lean button does not use `--disabled`. The Lean-hosted bank dialog is themed
+via `dialogCustomization`, not `appearance`.
+
+### Card list — `cardList({ appearance })`
+
+| Part       | Classes               | Modifiers |
+| ---------- | --------------------- | --------- |
+| List root  | `.payrails-container` | —         |
+| Card entry | `.payrails-tile`      | —         |
+| Card label | `.payrails-label`     | —         |
+| Brand icon | `.payrails-icon`      | —         |
+
+### Dynamic form — `dynamicElement({ appearance })`
+
+Also the shape of the drop-in's billing address form.
+
+| Part        | Classes               | Modifiers              |
+| ----------- | --------------------- | ---------------------- |
+| Form root   | `.payrails-container` | —                      |
+| Field group | `.payrails-field`     | `--invalid`            |
+| Input       | `.payrails-input`     | `--invalid`, `--valid` |
+| Select      | `.payrails-dropdown`  | `--invalid`            |
+| Label       | `.payrails-label`     | —                      |
+| Error text  | `.payrails-error`     | —                      |
+| Tab row     | `.payrails-row`       | —                      |
+| Tab option  | `.payrails-tile`      | `--selected`           |
+
+### Drop-in — `dropin({ appearance })`
+
+Root `rules` apply across the drop-in's blocks — for example `.payrails-button`
+under root `rules` reaches every pay button the drop-in renders, and
+`.payrails-container` reaches each block's wrapper. Each slot scopes its rules
+to that block:
+
+| Slot                | Parts and classes                                                  |
+| ------------------- | ------------------------------------------------------------------ |
+| `cardForm`          | Full `CardFormAppearance` shape (see card form above).             |
+| `cardPaymentButton` | `.payrails-button` with `--loading` / `--disabled`.                |
+| `loadingScreen`     | `.payrails-container` with a `.payrails-icon` spinner.             |
+| `authSuccess`       | `.payrails-container` with `.payrails-icon` and `.payrails-label`. |
+| `authFailed`        | `.payrails-container` with `.payrails-icon` and `.payrails-label`. |
+
+`authSuccess` also styles the payment-pending screen, which reuses the success
+screen's markup. The other keys declared on `DropinAppearance` (`leanButton`,
+`orderSummary`, `billingAddressForm`, `termsAndConditions`, the wallet buttons)
+are reserved and currently have no effect.

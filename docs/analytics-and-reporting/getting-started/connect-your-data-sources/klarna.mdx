@@ -1,0 +1,29 @@
+---
+title: Klarna
+---
+This guide will help you obtain API credentials and connect Klarna as a data source in Payrails to ingest settlement and payout data. With the self-serve flow you configure the integration yourself in the Payrails portal.
+
+## Prerequisites
+
+- A Klarna account
+
+## Step-by-step instructions
+
+### Step 1: Create API keys
+
+1. To create a set of API keys, simply navigate to **Settings > Klarna API Keys** in the Klarna portal and then click **Generate new Klarna API key**.
+2. Download the API credentials as `.txt`and store securely.
+
+### Step 2: Add the Klarna integration in the Payrails portal (self-serve)
+
+1. Log in to the Payrails dashboard and open **Settings → Integrations → Data**.
+2. Click **Add instance** (top-right).
+3. In New instance, select provider: **Klarna** and click **Continue**.
+4. On the **Configure account** screen, fill in:
+   - **Integration instance name** — a unique label.
+   - **Start Date** — the date of today or tomorrow (currently we can not backfill over the self-serve capability. In the need of backfilling, please reach out to your Payrails account manager).
+   - **API credentials** — the username/password from the Klarna API key generated in Step 1.
+   - _(Optional)_ **Additional data**.
+5. Click **Save account**. The instance appears in the Data integrations list and Payrails begins ingesting data.
+
+

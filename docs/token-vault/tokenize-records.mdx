@@ -1,0 +1,111 @@
+---
+title: Records, Aliases and Instruments
+description: Learn about the concept of records, aliases and fields.
+---
+## Introduction
+
+**Alias** and **Record** are both non-sensitive information to refer to the sensitive values stored in the Vault.
+
+* An **Alias** is the non-sensitive value that corresponds to a single field stored in the vault. We store each field separately in our Vault so that you can also refer to them specifically when needed, by using an alias.
+* A **Record**, on the other hand, is an entity linking multiple related fields together. It ensures the accuracy, consistency, and integrity of fields stored in the vault.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/tokenize-records-1.png"
+  width="80%"
+/>
+
+## Records
+
+### Record Types
+
+Each Record represents a specific type of data and groups relevant fields under a single identifier. For example, a Card Record consists of fields that are card number, security code, expiry date, and cardholder name, while a Network Token Record consists of fields that are network token, cryptogram, and expiry date.
+
+You can immediately start storing available record types in Payrails Vault, such as Card and Network Token. If you would like to create a customized record for your business, you can request to add new record types to store records according to your custom record schema.
+
+### Usage of Records
+
+Each record has its unique identifier (**recordId**), which you can refer to all fields as a group and manage their lifecycle more efficiently. For example, if a user wants to delete their card from your vault, instead of deleting the fields such as card number, expiry date one by one, you can [delete the record by record id](/reference/deleterecord#/) or [delete the record by alias of one of its fields](/reference/deleterecordbyalias#/), which saves you from doing multiple operations. You can refer to our API reference on how to use the record id to [get all the fields associated](/reference/getrecordbyalias#/) with it.
+
+> 📘 Why are records important?
+>
+> **Maintains Data Integrity:** Ensures all tokenized fields related to the same entity (e.g., a card or network token) remain linked.
+>
+> **Enhances Accuracy and Validity of Stored Values:** Reduces the risk of mismatched or orphaned tokenized values by keeping all relevant fields connected.
+
+## Aliases
+
+While combining all related fields by Record, we store each field separately in our Vault so that you can also refer to them specifically when you need. Each field stored in the vault is represented by an entity called **alias**, which is non-sensitive information used outside of the Vault to refer to the sensitive values stored in the Vault.
+
+Each field has a `type`, a unique `alias`, a parent `recordId`, a `recordType`, and a `displayableValue` that the merchant decides while configuring the tokenization flow. You can fetch field information by using an alias of a field or multiple aliases. An example of fetching field details by multiple aliases can look like below.
+
+```Text JSON
+{
+	[
+    {
+      "recordId": "ba465782-f5a3-465b-9609-27a876b259de",
+      "recordType": "card",
+      "alias": "73dead56-8b69-4277-9a1b-a6994d22924b",
+      "fieldType": "cardNumber",
+      "displayableValue": "4111****1111"
+    },
+    {
+      "recordId": "ba465782-f5a3-465b-9609-27a876b259de",
+      "recordType": "card",
+      "alias": "a927050e-75c6-4244-bfd8-ff6449a05781",
+      "fieldType": "expiryYear",
+      "displayableValue": "35"
+    },
+    {
+      "recordId": "ba465782-f5a3-465b-9609-27a876b259de",
+      "recordType": "card",
+      "alias": "bee75a24-c588-4fda-a800-c921e2c0b04c",
+      "fieldType": "expiryMonth",
+      "displayableValue": "01"
+    }
+  ]
+}
+```
+
+The field values stored in the Vault can be collected via our SDKs to collect information directly from the user or Proxy Connections, which enables tokenization flows between the merchant and third parties. To see how Records and Fields received via Proxy Connections are configured, visit our Proxy Connections guide.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/tokenize-records-2.png"
+  width="600px"
+/>
+
+## Instruments
+
+**Payment Instruments**, such as saved credit cards or alternative payment methods like ApplePay or PayPal, simplify the payment process for customers by allowing them to reuse their preferred payment methods.
+
+A Payment Instrument is an entity that combines tokens that represent the same card in different systems, such as a payment provider, Payrails Vault, or a card network.  It is typically used as part of payment orchestration flows, where Payrails orchestrates the payments with the optimal token type based on the specifics of each payment as part of automated workflows. However, an instrument is also related to Payrails Vault, even if it's used as a standalone vault service. It combines the records with the type card and network token under a single entity. It is used typically in the flows, where the alias-level or record-level granularity is not necessary, such as tokenizing cards via the SDK.
+
+You can read more about payment instruments [here](/docs/resources/manage-instruments#/).
+
+## Retention Policies
+
+When you tokenize an instrument, you can create it for one-time use ('Transient') or store it for future use. When you store an instrument, a record, or an alias in Vault, they are typically stored until a particular request to delete them is received. However, for the card security code field, there are particular requirements to ensure.
+
+### Retention of Card Security Code
+
+Under PCI DSS Requirement 3.3.1, merchants must ensure that the security code (also known as CVV or CVC) is not stored after authorization is completed. The CVV is highly sensitive authentication data and must be deleted immediately once it has served its purpose in the payment process. Retaining CVV for longer than necessary -whether seconds or minutes- constitutes a PCI compliance violation.
+
+For integrations where the merchant interacts directly with the Payrails Vault Proxy, Payrails does not have visibility into whether an upstream response (e.g., HTTP 200 from the PSP) represents the final authorization result. Only the merchant knows the exact moment when authorization has successfully completed. Therefore, merchants using the vault proxy directly must delete the CVV themselves as soon as the authorization is completed. In orchestration flows, Payrails knows exactly when authorisation is completed and automatically deletes the CVV at that moment.
+
+Security code is a 'field' in the Vault, which is represented by an 'alias', that belongs to a 'record'. Merchants using the vault proxy can call one of the deletion endpoints based on the preference of using the alias or the record as a parameter:
+
+1. <a href="/reference/deletefieldbyalias#/" target="_blank">Delete a field by its alias</a>
+2. <a href="/reference/deletefieldbyrecordidandtype#/" target="_blank">Delete a field by its record and type</a>
+
+Note that, if you tokenize 'instruments' and do not have the alias or the recordId as part of your tokenization payloads, you can always <a href="/reference/recordsforinstrument" target="_blank">get aliases and records of an instrument</a> by the API.
+
+<Warning>
+  Make sure to immediately delete the security code after receiving a final authorization confirmation from the downstream provider, in every flow where CVV is passed through the vault proxy. This ensures CVV is not stored beyond the permitted timeframe under PCI DSS Requirement 3.3.1.
+</Warning>
+
+***
+
+If you need to store the CVV because your use case requires keeping the security code after first authorization (such as a card issuing case or partial captures in hospitality), please contact your support team to help you configure the necessary settings upon compliance confirmation.
+
+

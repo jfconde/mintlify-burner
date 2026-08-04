@@ -1,0 +1,193 @@
+---
+title: Android SDK - Quick Start
+description: This tutorial walks you through integrating the Payrails Android SDK from scratch. By the end, you'll have a working card payment form in a Compose screen.
+---
+
+**Time:** ~15 minutes<br />
+**Prerequisites:** Android project with Jetpack Compose, JDK 17, `minSdk` 21, `compileSdk` 35
+
+## Step 1: Add Dependencies
+
+The SDK is distributed via [Maven Central](https://central.sonatype.com/).
+In your app-level `build.gradle.kts`:
+
+```kotlin
+dependencies {
+    implementation("com.payrails.android:checkout:<version>")
+    implementation("com.payrails.android:cse:<version>")
+}
+```
+
+If Maven Central is not already in your project's repository list, add it to `settings.gradle.kts`:
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        google()
+    }
+}
+```
+
+Sync your project.
+
+## Step 2: Fetch an Init Payload From Your Backend
+
+The SDK requires an initialization payload from the Payrails API. Your backend should call the Payrails client-init endpoint and return the `version` and `data` fields.
+
+**Kotlin**
+
+```kotlin
+data class InitPayload(val version: String, val data: String)
+
+suspend fun fetchInitPayloadFromBackend(): InitPayload {
+    // Call your backend → Payrails client-init endpoint
+    TODO("Implement your backend call")
+}
+```
+
+**Java**
+
+```java
+public class InitPayload {
+    public final String version;
+    public final String data;
+
+    public InitPayload(String version, String data) {
+        this.version = version;
+        this.data = data;
+    }
+}
+```
+
+## Step 3: Initialize the SDK Session
+
+Create a session before rendering any payment UI. This is typically done in your Activity or ViewModel.
+
+**Kotlin**
+
+```kotlin
+import com.payrails.sdk.Configuration
+import com.payrails.sdk.InitData
+import com.payrails.sdk.Options
+import com.payrails.sdk.Payrails
+
+suspend fun initializePayrails(): Session {
+    val payload = fetchInitPayloadFromBackend()
+    val configuration = Configuration(
+        initData = InitData(version = payload.version, data = payload.data),
+        option = Options()
+    )
+    return Payrails.createSession(configuration)
+}
+```
+
+**Java**
+
+```java
+import com.payrails.sdk.Configuration;
+import com.payrails.sdk.InitData;
+import com.payrails.sdk.Options;
+import com.payrails.sdk.Payrails;
+
+// Java — use the callback API instead of suspend
+void initializePayrails(InitPayload payload) {
+    InitData initData = new InitData(payload.version, payload.data);
+    Configuration configuration = new Configuration(initData, new Options());
+
+    Payrails.createSession(configuration, result -> {
+        if (result.isSuccess()) {
+            Session session = result.getOrNull();
+            // Session ready — store and use it
+        } else {
+            // Initialization failed
+        }
+        return kotlin.Unit.INSTANCE;
+    });
+}
+```
+
+## Step 4: Build the Card Payment Screen
+
+> **Kotlin/Compose only.** The payment UI elements use Jetpack Compose and require Kotlin. There is no Java equivalent for this step. Session initialization (Step 3) and delegate callbacks are Java-compatible.
+
+Create a Composable that renders a card form and a pay button:
+
+```kotlin
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.dp
+import com.payrails.sdk.*
+
+@Composable
+fun CardPaymentScreen() {
+    // 1. Create the card form
+    val cardForm = remember {
+        Payrails.createCardForm(
+            config = CardFormConfig(
+                showCardHolderName = true,
+                showSingleExpiryDateField = true
+            )
+        )
+    }
+
+    // 2. Create the pay button
+    val payButton = remember {
+        Payrails.createCardPaymentButton(
+            translations = CardPaymenButtonTranslations(label = "Pay Now")
+        )
+    }
+
+    // 3. Set up payment callbacks
+    payButton.delegate = object : PayrailsCardPaymentButtonDelegate {
+        override fun onPaymentButtonClicked(button: CardPaymentButton) {
+            // Payment started
+        }
+        override fun onAuthorizeSuccess(button: CardPaymentButton) {
+            // Payment succeeded — show confirmation
+        }
+        override fun onThreeDSecureChallenge(button: CardPaymentButton) {
+            // 3DS challenge opened in browser — handled automatically
+        }
+        override fun onAuthorizeFailed(button: CardPaymentButton) {
+            // Payment failed — show error
+        }
+    }
+
+    // 4. Render the UI
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        cardForm.Render()
+        payButton.Render()
+    }
+}
+```
+
+## Step 5: Handle Payment Results
+
+The delegate callbacks tell you what happened:
+
+| Callback                  | Meaning               | What to do                                                  |
+| ------------------------- | --------------------- | ----------------------------------------------------------- |
+| `onPaymentButtonClicked`  | User tapped "Pay Now" | Show loading state (SDK handles button state automatically) |
+| `onAuthorizeSuccess`      | Payment authorized    | Navigate to confirmation screen, verify on your backend     |
+| `onThreeDSecureChallenge` | 3DS challenge started | Browser opens automatically — no action needed              |
+| `onAuthorizeFailed`       | Payment failed        | Show error message, allow retry                             |
+
+## Step 6: Test It
+
+Use your Payrails sandbox environment and test card numbers to verify the integration. The card form validates input automatically — you'll see inline error messages for invalid card numbers, expiry dates, and CVV codes.
+
+## What's Next?
+
+Now that you have a basic card payment working:
+
+- **[How to Tokenize a Card](/docs/how-to-tokenize-card)** — Save a card to vault without charging it (for wallets, subscriptions, and save-for-later flows)
+- **[How to Let Shoppers Choose a Card Network](/docs/how-to-co-branded-cards)** — Co-branded (co-badged) cards: surface the brand selector and submit the preferred scheme
+- **[How to Build a Custom Pay Button (Your Own UI)](/docs/how-to-custom-pay-button)** — Use your own button and method selector while the SDK runs the payment flow
+- **[How to Run a Payment Without an SDK Button (Headless)](/docs/how-to-execute-payment-headless)** — Drive checkout from your own UI / `ViewModel` with `PayrailsPaymentLauncher`
+- **[Styling Guide](/docs/styling-guide)** — Customize colors, fonts, and layout to match your brand
+- **[Troubleshooting](/docs/troubleshooting)** — Diagnose integration and runtime issues
+- **[SDK Concepts](/docs/sdk-concepts)** — Understand the architecture and mental model
+- **[API Reference](/docs/sdk-api-reference)** — Complete reference for all public APIs

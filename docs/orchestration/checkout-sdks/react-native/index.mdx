@@ -1,0 +1,64 @@
+---
+title: React Native SDK
+description: >-
+  The Payrails React Native SDK provides pre-built payment components for
+  accepting payments in mobile apps.
+---
+
+# Getting started with the SDK
+
+## Including the SDK
+
+You can install the SDK with your favorite package manager (e.g.,`npm`, `yarn`):
+
+```typescript React Native
+npm install @payrails/react-native-sdk
+or
+yarn add @payrails/react-native-sdk
+```
+
+## Initializing the SDK
+
+Initialize a Payrails client as shown below, with configuration:
+
+```typescript React Native
+import { PayrailsProvider } from "@payrails/react-native-sdk";
+
+const App = () => {
+  const config = useFetch("https://give.me.sdk-config.com");
+
+  return (
+    <PayrailsProvider config={config}>
+      // Other elements goes here.
+    </PayrailsProvider>
+  );
+};
+```
+
+Your backend should call the [Initialize a client SDK](ref:clientinit) endpoint, then forward the response to the SDK.
+
+### Optional: custom return URLs for redirect payments
+
+If your integration uses redirect-based payment methods such as Lean or Generic Redirect, you can also pass `returnInfo` to `PayrailsProvider`.
+
+```typescript React Native
+<PayrailsProvider
+  config={config}
+  returnInfo={{ // Deep links or universal links of your app
+    success: 'myapp://payment/success',
+    cancel: 'myapp://payment/cancel',
+    error: 'myapp://payment/error',
+    pending: 'myapp://payment/pending',
+  }}
+>
+  {/* Other elements go here. */}
+</PayrailsProvider>
+```
+
+- If `returnInfo` is omitted, the SDK uses its default hosted return URLs instead.
+
+- The base return URLs must also be configured in the Payrails Admin Portal. Contact the Payrails team for that setup.
+
+- `returnInfo` defines where the payment provider redirects the user. Redirection does not emit terminal SDK callbacks such as `onAuthorizeSuccess`, `onAuthorizeFailure`, or `onAuthorizeCancel`.
+
+<br />

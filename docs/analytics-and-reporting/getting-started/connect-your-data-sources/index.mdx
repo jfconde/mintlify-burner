@@ -1,0 +1,180 @@
+---
+title: Connect your data sources
+---
+<Note>
+  To power Analytics & Reporting in Payrails (specifically as standalone product and for fee monitoring), connect your payment providers as **data sources**. With **self-serve data integrations**, you create and configure each integration yourself in the Payrails portal - no manual setup or intervention from Payrails teams is required. You can add a data source in the Payrails Portal by following the setup guides below.
+</Note>
+
+Each setup guide walks you through how to connect a provider as a data source in Payrails. It includes:
+
+- Required prerequisites
+- Provider-side steps to generate API credentials or gather SFTP details
+- How to add and configure the integration in the Payrails portal (self-serve)
+
+Use these guides when adding a new data source or reviewing an existing setup.
+
+***
+
+## How the self-serve flow works
+
+After gathering the required credentials from your provider (see each provider guide), connect the data source in Payrails:
+
+1. Log in to the **Payrails portal**.
+2. Open **Settings → Integrations → Data**.
+3. Click **Add instance** in the top-right corner of the Data integrations list.
+4. On the **Select provider** screen, choose your provider and click **Continue**.
+5. On the **Configure account** screen, enter the **Integration instance name**, the provider's **settings and credentials**, and _(optionally)_ **Additional data**.
+6. Click **Save account**.
+
+The new instance appears in the **Data integrations** list with its status, and Payrails begins ingesting data automatically.
+
+***
+
+## Edit or disable an integration instance
+
+You can manage an existing integration at any time from **Settings → Integrations → Data**:
+
+- **Edit:** open the instance from the Data integrations list to update its name, settings, or credentials, then click **Save account**. Use this to rotate an API key, add a merchant account, or adjust the start date.
+- **Disable / enable:** change the instance's status. Disabling stops Payrails from pulling new data for that instance without deleting its configuration — you can re-enable it again later.
+
+## What to expect after enabling
+
+- **First run:** once you save and enable an instance, it is picked up on the next scheduled pipeline run.
+- **Freshness:** the pipeline pulls from each provider on a **daily** basis. Data is expected to be available in Payrails within **\~3 hours** of the pipeline run completing.
+- **Where data lands:** ingested data feeds **Analytics & Reporting** — it appears in the reports and dashboards (Unified Analytics) for the configured workspace.
+
+## Backfilling historical data
+
+<Warning>
+  Self-serve backfilling is **not available yet**. If you need historical data ingested (for a period before your start date), reach out to your **Payrails account manager** to arrange it. Self-serve backfilling is in progress and will be enabled over self-serve in a future release.
+</Warning>
+
+***
+
+## Data integration setup guides
+
+<Tip>
+  These providers are configured exclusively through the self-serve flow, with new providers added regularly.
+</Tip>
+
+<CardGroup cols="1">
+  <Card href="/docs/adyen-1">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/adyen.svg" alt="Adyen logo" height="28" style="display: block;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Adyen</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+  <Card href="/docs/amex-1">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/amex.jpeg" alt="Amex logo" height="28" style="display: block;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Amex</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+   <Card href="/docs/braintree-1">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/braintree.svg" alt="Braintree logo" height="28" style="display: block;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Braintree</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+  <Card href="/docs/checkout-1">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/checkout-com.svg" alt="Checkout.com logo" height="28" style="display: block;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Checkout.com</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+<Card href="/docs/dlocal-1">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/dlocal.png" alt="dLocal logo" height="28" style="display: block;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">dLocal</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+  <Card href="/docs/jp-morgan">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/jp-morgan.png" alt="JPMorgan logo" height="28" style="display: block; object-fit: contain;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">J.P.Morgan</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+  <Card href="/docs/klarna-1">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/klarna.svg" alt="Klarna logo" height="28" style="display: block;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Klarna</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+  <Card href="/docs/stripe-1">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/stripe.svg" alt="Stripe logo" height="28" style="display: block;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Stripe</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+  <Card href="/docs/tap-1">
+    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
+      <div style="width: 44px; display: flex;">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/tap.png" alt="TAP logo" height="28" style="display: block;" />
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">TAP</div>
+        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      </div>
+      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    </div>
+  </Card>
+
+</text>
+
+

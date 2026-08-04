@@ -1,0 +1,109 @@
+---
+title: Automatic Lifecycle Updates
+description: Learn the details of lifecycle update events and how they are automatically managed in Payrails Vault.
+---
+When a cardholder or Issuer of the card makes a change in the card that has a network token in our system, we will update the network token and its relevant data so that the network token will be kept valid for subsequent payments.
+
+In such cases, Payrails will be notified by the networks and will update the network token in the vault accordingly. No additional action will be required by the merchant; however, you can choose to be notified of the updates through our notifications.
+
+### Cases for Card and Token Updates
+
+Cardholders can interact multiple ways with their card issuers that result in life cycle events to the ecosystem. In such cases, with our integration to the networks, Payrails receives a notification including the context of the change, and initiates the necessary update on the token or the data of the token with the new status and other parameters that may have changed.
+
+Each case has a different requirement to update, concerning what needs to be updated. See cases below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        User Case
+      </th>
+
+      <th>
+        Change in funding PAN
+      </th>
+
+      <th>
+        Change in network token
+      </th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        User terminates the contract with the issuer, rendering all cards and related tokens invalid.
+      </td>
+
+      <td>
+        PAN is deleted.
+        Status changes.
+      </td>
+
+      <td>
+        Network token is deleted.
+        Status changes.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        User reports card lost, stolen, or damaged.
+      </td>
+
+      <td>
+        PAN changes.
+        PAN suffix changes.
+      </td>
+
+      <td>
+        Network token stays intact.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        User's funding card expires.
+      </td>
+
+      <td>
+        PAN changes.
+
+        PAN suffix changes.
+
+        PAN expiry date changes.
+      </td>
+
+      <td>
+        Network token stays intact.
+
+        Network token expiry date changes.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        The user triggers token status life cycle management actions from the issuer side (e.g. issuer mobile banking application).
+      </td>
+
+      <td>
+        PAN may change.
+      </td>
+
+      <td>
+        Card metadata may change.
+      </td>
+    </tr>
+  </tbody>
+</Table>
+
+In addition to the cases that the user initiates, there are cases in which issuers may initiate an account update within the account range or across another account range based on the following events, which may result in network token changes:
+
+| Issuer Case                                                                                     | Change in funding PAN      | Change in network token              |
+| :---------------------------------------------------------------------------------------------- | :------------------------- | :----------------------------------- |
+| FPAN is replaced within the same account range.                                                 | PAN changes.               | Network token changes.               |
+| FPAN is replaced in a different account range.                                                  | PAN changes.               | Network token changes.               |
+| Card issuing maintenance tasks by networks are triggered. (e.g., moving from 6 to 8-digit BIN.) | PAN may or may not change. | Network token may or may not change. |
+| Network token expiry date is extended.                                                          | PAN may or may not change. | Network token expiry date changes.   |
+
+

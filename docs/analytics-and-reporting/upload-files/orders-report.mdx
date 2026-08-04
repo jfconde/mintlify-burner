@@ -1,0 +1,54 @@
+---
+title: Orders Report
+---
+## File Format
+
+* **Format:** Only **CSV** files are currently supported.
+
+## Required Fields
+
+| Field Name         | Type   | Description                                            | Example                |
+| ------------------ | ------ | ------------------------------------------------------ | ---------------------- |
+| provider           | string | Payment provider name (must be supported)              | `stripe`               |
+| provider_account   | string | Provider account identifier                            | `acct_12345`           |
+| provider_reference | string | Provider reference for the transaction                 | `ref_67890`            |
+| acquirer           | string | Acquirer name                                          | `acquirerX`            |
+| type               | string | Transaction type: `capture`, `refund`, or `chargeback` | `capture`              |
+| currency           | string | 3-letter ISO 4217 currency code                        | `USD`                  |
+| amount             | float  | Transaction amount (must be > 0)                       | `100.50`               |
+| created_at         | string | RFC3339 timestamp                                      | `2025-12-03T10:15:30Z` |
+| order_reference    | string | Merchant order reference                               | `order_001`            |
+
+## Optional Fields
+
+| Field Name            | Type   | Description                         | Example                   |
+| --------------------- | ------ | ----------------------------------- | ------------------------- |
+| timezone              | string | IANA timezone name                  | `Europe/Berlin`           |
+| transaction_reference | string | Merchant transaction reference      | `txn_002`                 |
+| holder_reference      | string | Merchant holder reference           | `holder_003`              |
+| auth_code             | string | 6-digit authorization code          | `123456`                  |
+| arn                   | string | 23-digit Acquirer Reference Number  | `12345678901234567890123` |
+| rrn                   | string | 12-digit Retrieval Reference Number | `123456789012`            |
+
+## Value References
+
+**`type` allowed values:** `capture`, `refund`, `chargeback`
+
+## Validation Rules
+
+* All required fields must be present and non-empty.
+* `currency` must be a valid 3-letter ISO 4217 code.
+* `amount` must be a positive number.
+* `created_at` must be a valid RFC3339 timestamp.
+* `auth_code`, `arn`, and `rrn` must match their respective digit lengths if provided.
+* `timezone` must be a valid IANA timezone name if provided.
+
+## Example CSV
+
+```
+provider,provider_account,acquirer,provider_reference,type,created_at,timezone,currency,amount,order_reference,transaction_reference,holder_reference,auth_code,arn,rrn
+stripe,acct_123,stripe,pi_123,capture,2024-09-12T10:15:30Z,Europe/London,USD,123.45,order-001,txn-001,holder-001,123456,12345678901234567890123,123456789012
+adyen,acct_456,adyen,psp_456,refund,2024-10-01T08:00:00Z,,EUR,10.00,order-002,,,,,
+```
+
+

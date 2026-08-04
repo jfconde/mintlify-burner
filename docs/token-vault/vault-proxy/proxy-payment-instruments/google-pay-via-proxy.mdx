@@ -1,0 +1,222 @@
+---
+title: Google Pay via Proxy
+description: Learn your options to tokenize Google Pay instruments and how to use them in different flows.
+---
+**This feature is in beta mode right now, and soon will be available.**
+
+Payrails allows the use of tokenized Google Pay instruments via the Instant Proxy integration. This allows merchants to forward sensitive Google Pay data to supported payment providers without decrypting or storing the Google Pay token on their end.
+
+## Ways to tokenize Google Pay instruments
+
+Before a Google Pay token can be used in Instant proxy, we need to tokenize it and create an Instrument for it. Check our <a href="/docs/orchestration/payment-methods/google-pay" target="_blank">Google Pay</a> guide for detailed information on how to set up a new integration.
+
+Payrails offers multiple ways to tokenize the card information, depending on the PCI DSS scope you are willing to own, the requirements about the level of control you need on your checkout page, and ease of implementation.
+
+Here's a table comparing your options from a high-level perspective:
+
+| Tokenization Type                                                                                                                                                                                                    | Integration Effort | PCI Scope |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------- | :-------- |
+| <a href="/docs/orchestration/payment-methods/apple-pay#decrypt-apple-pay-tokens-on-the-merchant-side" target="_blank">Server-to-Server (Merchant decryption)</a> | High               | High      |
+| <a href="/docs/orchestration/payment-methods/google-pay#server-to-server-integration" target="_blank">Server-to-Server (Payrails decryption)</a>                 | Medium             | Medium    |
+| [Elements](/docs/orchestration/payment-methods/google-pay#payrails-sdk)                                                                                                                                                   | Low                | Low       |
+
+### Server-to-Server (Merchant decryption)
+
+This integration method allows merchant to maintain control over their Google Pay integration. Merchants implement the Google Pay SDK integration and decryption of the Google Pay token and directly provide the decrypted token to Payrails.
+
+### Server-to-Server (Payrails decryption)
+
+In this integration method, the merchant maintains control over their Google Pay integration, but they do not maintain the keys needed to decrypt the Google Pay tokens. This provides increased PCI compliance on the merchant side while still allowing merchants to customize the SDK integration as they see fit.
+
+### Elements SDK
+
+Payrails Elements are payment UI components you can assemble together to build a payment form, giving better flexibility than Drop-in with the ability to manage each element separately. Check our <a href="/docs/orchestration/checkout-sdks/web/elements" target="_blank">Elements</a> guide for more detailed information.
+
+Elements provides merchants with easy integration to Google Pay tokenization without having the need to set up any integration with the Google Pay SDK directly. Payrails manages all the keys needed for completing the Google Pay session and detokenization, reducing all merchant overhead. Check out the [Google Pay Button Element](/docs/orchestration/checkout-sdks/web/elements#google-pay-element) for a detailed guide
+
+#### Setting up the Google Pay button element for tokenization
+
+##### Perform Client init with Intent "tokenization"
+
+* Perform a [Client init](/reference/clientinit) with intent "tokenization`
+
+```json
+{
+    "type": "tokenization",
+    "amount": {
+        "value": "0.00",
+        "currency": "EUR"
+    }
+}
+```
+
+* Provide the amount in `amount`
+
+##### Render the Google Pay button
+
+```javascript
+import { Payrails } from '@payrails/web-sdk';
+// Call the backend to get the init response
+const initResponse = giveMeInitResponseFromBackend();
+// Initialize client
+const Payrails = Payrails.init(initResponse);
+
+const element = payrails.googlePayButton({
+  showStoreInstrumentCheckbox?: boolean,
+  events: {
+    onSuccess: (type: 'TOKENIZE', instrument?: any) => {
+      console.log('yay!');
+    },
+    onFailed: (type: 'TOKENIZE', error?: any) => {
+      console.log('nah :(');
+    },
+    onButtonClicked: async () => {
+      console.log('button clicked');
+      // If resolved to false, process will STOP before googlePay session creation
+      return Promise.resolve(true);
+    },
+    onRequestStart: async () => {
+      console.log('Requesting...');
+      // If resolved to false, process will STOP before instrument creation
+    },
+    onGooglePayAvailable() {
+      console.log('Google Pay ready');
+      // event will fire when Google Pay Button is initialized 
+    }
+  }
+});
+
+element.mount('#google-pay-button-container');
+```
+
+* Listen to the `onSuccess` callback for an event of type `tokenize`  to get the details for the newly created Google Pay Instrument
+
+Once the instrument has been created, it can be used in the instant proxy in your merchant service.
+
+## Using Google Pay instrument in Instant Proxy
+
+With the instrument created you can now forward it your payment providers via Instant Proxy. Checkout out the [Instant Proxy](proxy-payment-instruments) a detail guide.
+
+### Figuring out if the instrument contains a Card or Network token
+
+Google Pay payment tokens can provide either a FPAN (real card) or DPAN (network token) information when decrypted. Most payment providers require a subtle difference in the request based on what type of card information was provided by the payment token.
+
+You can find out what type of card information was present in the payment token by looking at the type of instrument token created for it. Fetch the instrument details using the [Get Instrument](/reference/getinstrument) with `include_tokens` true.
+
+```curl
+curl --request GET \
+     --url 'https://payrails-api.staging.payrails.io/payment/instruments/d5454c2f-ae5e-44f3-8edf-f6dad64f005f?includeTokens=true&includeHolderReference=false' \
+     --header 'accept: application/json'
+```
+
+```json
+{
+   // other instrument fields
+	"tokens": {
+		"id": "9c143664-501c-41a0-a16b-8da6cf5f0564",
+		"createdAt": "2025-10-21T08:36:11.281919Z",
+		"updatedAt": "2025-10-21T08:36:11.281919Z",
+		"instrumentId": "0c70c7ba-4714-4a3e-b833-04163e5c9418",
+		"status": "created",
+		"type": "vault",
+		"providerId": "94b8e044-ddce-446e-9e17-825954ccf5fd",
+		"providerConfigId": "b24ff007-728c-455d-b51c-556108ccdf59",
+		"reference": "1809371c-2e34-4c86-bb92-04204ebab3fe",
+		"meta": {
+			"fingerprint": "cb2f7a58-d002-4d51-9f8d-1a8df56c697d",
+			"securityCodeExpireAt": "2025-10-21T09:31:11.283268Z",
+			"holderReference": "ti_8fc485a7-fbc5-4f5d-94a7-cb2e632dac8c"
+		}
+	}
+}
+```
+
+1. If type is `vault` it means the payment token contains a Card FPAN
+2. If type is `networkToken` it means the payment token contains a Network Token DPAN
+
+### Prepare the request body you want to pass to the payment provider based on the provider's API contract.
+
+This request will include fields that are non-sensitive (i.e. amount), as well as the card information that is PCI sensitive. You will put `{{key}}` in the place of the sensitive fields, while forwarding the rest of the payload as it is. Read in the next section what the key variables you will use are in more detail.
+
+This is the `body` object you will see under [Vault Proxy API.](/reference/vaultproxy)
+
+### Prepare the request headers that are needed to be passed to the payment provider.
+
+The payment providers typically require certain headers to securely receive a request from the senders, such as authentication or authorization keys. In order for us to send a request to the payment provider, we need to provide those headers when forwarding your request to the provider. You will provide all required header information defined by the provider's API contract.
+
+This is the `headers` object in [Vault Proxy API](/reference/vaultproxy).
+
+### Prepare the URL of the provider that you want Payrails to forward the request.
+
+You have to define a destination URL path for every proxy request that you want to send. This is the URL of the API endpoint of the payment provider. You will pass it to Payrails, so that we can send your request body and headers you prepared in the previous steps to the designated URL.
+
+This is `url` object in [Vault Proxy API](/reference/vaultproxy).
+
+Below you can find some examples of some well-known providers and how you should map the card data using our instruments.
+
+```json Checkout
+{
+  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url":"https://api.sandbox.checkout.com/payments",
+  "headers":{
+    "x-API-key":"YOUR_API_KEY",
+    "Content-Type":"application/json"
+  },
+  "body":{
+    "amount":1000,
+    "currency":"USD",
+    "reference":"some_reference",
+    "source":{
+      "type":"network_token",
+      "token_type": "googlepay",
+      "token":"{{networkTokenNumber}}",
+      "expiry_month":"{{networkTokenExpiryMonth}}",
+      "expiry_year":"{{networkTokenExpiryYear}}",
+      "cryptogram":"{{networkTokenCryptogram}}",
+      "name":"{{cardHolderName}}"
+    },
+    "payment_type":"Regular",
+    "authorization_type":"Final",
+    "capture":true,
+    "processing_channel_id":"pc_xxxxxxxxxxx",
+    "risk":{
+      "enabled":false
+    },
+    "merchant_initiated":true
+  }
+}
+```
+```json Stripe
+{
+  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url":"https://api.stripe.com/v1/payment_methods",
+  "headers":{
+    "Authorization":"***",
+    "Content-Type":"application/x-www-form-urlencoded"
+  },
+  "body":"type=card&network_token[exp_month]={{networkTokenExpiryMonth}}&network_token[exp_year]={{networkTokenExpiryYear}}&network_token[number]={{networkTokenNumber}}&network_token[cryptogram]={{networkTokenCryptogram}}"
+}
+```
+
+You can use the below `{{key}}`s for **cards** and **network tokens**, when sending payment authorization requests to payment providers.
+
+#### Cards
+
+* For card number, use`{{cardNumber}}`
+* For cardholder name, use`{{cardHolderName}}`
+* For card security code (or CVV, CVC, etc), use `{{cardSecurityCode}}`
+* For the card expiry month, use`{{cardExpiryMonth}}` or `{{MM}}`
+* For the card expiry year, if:
+  * 4-digit card expiry year, use `{{cardExpiryYear}}` or `{{YYYY}}`
+  * 2-digit card expiry year, use`{{cardExpiryYear2Digits}}` or `{{YY}}`.
+
+#### Network tokens
+
+* For network token number, use `{{networkTokenNumber}}`
+* For cryptogram, use`{{networkTokenCryptogram}}`
+* For the expiry month of the network token, use`{{networkTokenExpiryMonth}}`
+* For the expiry year of the network token, if:
+  * 4-digit expiry year of the network token, use`{{networkTokenExpiryYear}}`
+  * 2-digit expiry year of the network token, use `{{networkTokenExpiryYear2Digits}}`
+
+

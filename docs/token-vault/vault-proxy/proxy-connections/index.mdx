@@ -1,0 +1,91 @@
+---
+title: Configurable Proxy
+description: Highly configurable proxy to work with any inbound and outbound connection to any third party.
+---
+As introduced in the previous page, Payrails offers 2 types of Vault Proxy,  **1. Configurable Proxy** and **2. Instant Proxy**. In this page, we will look into the Configurable Proxy, where we explain the use cases and the concept of Connections, which is the fundamental entity to use to achieve those use cases.
+
+# Introduction to Proxy Connections
+
+In online businesses, various processes require collecting and handling users' sensitive data. While the most common case is gathering customers' card information on a checkout page, some flows involve sharing data between software systems via HTTP-based APIs. Regardless of the method, dealing with sensitive information comes with critical compliance and security challenges—this is where Payrails Vault helps merchants with proxy connections.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/vault-proxy/proxy-connections/index-1.png"
+  width="80%"
+/>
+
+A **Connection** represents a secure route between the merchant, an upstream or downstream third party, and Payrails. It configures the data transfer to be safe and compliant throughout the flow by ensuring sensitive data will never reach the merchant's system.
+
+A connection can be created to receive an inbound request initiated from a third party to the merchant's system or to send an outbound request to a third party initiated by the merchant's system. It is possible to configure a connection to tokenize or detokenize sensitive data both in a request or a response of an HTTP communication, enabling various use cases for merchants operating in travel, hospitality, marketplace, e-commerce industries, and many more.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/vault-proxy/proxy-connections/index-2.png"
+  width="80%"
+/>
+
+Let's have a look at how inbound and outbound connections are used.
+
+## Inbound Connections
+
+An **Inbound Connection** is used when a third party initiates a data transfer flow to the merchant. Typical use cases are:
+
+1. **Tokenize data received in an inbound connection:**
+
+You can configure a connection in order for a third party to initiate an HTTP request to **send sensitive data** to your merchant URL. Since sensitive data is received in the request to the merchant, Payrails works as a proxy before the merchant, tokenizes sensitive records, and forwards the request with aliases substituting the sensitive data with non-sensitive values. In the next sections, you will read how to manage those configure according to your specific tokenization flows.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/vault-proxy/proxy-connections/index-3.png"
+  width="80%"
+/>
+
+<Tip>
+  A typical example use case for this flow is merchants in travel industry receiving reservations and payment data from OTAs (online travel agencies).
+</Tip>
+
+2. **Detokenize data in the response to an inbound connection:**
+
+You can configure a connection for a third party to initiate an HTTP request, where in the response, they ask to **receive sensitive data** from the merchant. For this case, Payrails will replace the aliases that the merchants aims to send to the third party in the response, with the actual values.
+
+Please note that the destination must comply with PCI DSS in this case. Payrails will need their Attestation of Compliance (AOC) to approve the connection before it goes live.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/vault-proxy/proxy-connections/index-4.png"
+  width="80%"
+/>
+
+## Outbound Connections
+
+An **Outbound Connection** is used when your system (the merchant) initiates a data transfer flow to a third party. Typical use cases are:
+
+1. **Detokenize data requested in an outbound connection:**
+
+You can configure a connection in which the merchant initiates an HTTP request to **send sensitive data** to a third party. The merchant sends the request that has to be forwarded to the destination with aliases to Payrails, who then substitutes aliases with the actual data and forwards the request to the destination URL.
+
+Please note that the destination must comply with PCI DSS in this case. Payrails will need their Attestation of Compliance (AOC) to approve the connection before it goes live.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/vault-proxy/proxy-connections/index-5.png"
+  width="80%"
+/>
+
+<Tip>
+  A typical example use case for this flow is merchants sending a payment authorization request to a PSP (payment service provider).
+</Tip>
+
+2. **Tokenize data received in an outbound connection:**
+
+You can configure a connection in which the merchant initiates an HTTP request to **receive sensitive data** from a third party. The merchant, via Payrails Proxy, makes a request in which sensitive data will be included in the response. Payrails will substitute the sensitive data with token aliases before forwarding the response to the merchant. The aliases created via the proxy connection can be chosen to be stored in the vault to be used later for detokenization in different flows/connections. In the next sections, you will read how to manage those configure according to your specific tokenization flows.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/vault-proxy/proxy-connections/index-6.png"
+  width="80%"
+/>
+
+In the next pages, you will learn about how to configure those connections, and how to invoke those connections to start proxying sensitive data via Payrails Proxy.
+
+

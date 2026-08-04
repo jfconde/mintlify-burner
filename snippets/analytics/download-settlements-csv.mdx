@@ -1,0 +1,26 @@
+export const DownloadSettlementsCSV = ({ filename = "sample-settlements-report.csv" }) => {
+  const handleDownload = () => {
+    const data = `workspace_id,merchant_id,provider_name,acquirer,rovider_merchant_account,provider_payment_reference,created_at,settled_at,disbursed_at,timezone,provider_transaction_reference,other_transaction_references,transaction_type,fee_type,fee_details,decline_reason,transaction_currency,transaction_amount,settlement_currency,settlement_amount,fx_rate,transaction_amount_eur,settlement_amount_eur,reporting_currency,transaction_amount_reporting_currency,settlement_amount_reporting_currency,provider_customer_reference,payment_method,card_type,card_network,card_bin,card_issuer,card_issuer_country,card_issuer_region,provider_payout_reference,is_payrails,payrails_payment_id,payrails_execution_id,META
+485e-a6835-407ec794a3as75-345645b,MERCHANT,checkout,checkout,Payrails Demo Inc.,ppr_000000000000,2025-07-27,2025-07-30,2025-08-04,UTC,ac993068-4773-4d1c-9eab-694f5c65fe3d,,capture,,,,USD,26.92360687,USD,26.92360687,1.023278952,24.76971832,24.76971832,EUR,24.76971832,24.76971832,a9afecf5-a54e-4650-9f36-bc0b1dacb832,card,credit,visa,478319,OTHER,Italy,Europe,ef18589e-0232-4caa-8b42-7a27dca9873d,FALSE,,,null
+485e-a6835-407ec794a3as75-345645b,MERCHANT,checkout,checkout,Payrails Demo Inc.,ppr_000000000016,2025-08-21,2025-08-24,2025-08-27,UTC,b4f1c4c9-8ee7-476d-9104-a9866a66dd72,,capture,,,,USD,7.681506203,USD,7.681506203,1.185519683,7.066985706,7.066985706,EUR,7.066985706,7.066985706,60a83264-41ac-4eb6-945a-7309e2265193,card,debit,visa,175701,OTHER,OTHER,unknown,4613f97d-0a0c-4a18-ae9e-778b08e049f5,TRUE,pay_94d5d082638743e999ba39a1d517f0a6,exe_f1ec69e2f61b488eb96c49b5b0b74667,null
+485e-a6835-407ec794a3as75-345645b,MERCHANT,checkout,checkout,Payrails Demo Inc.,ppr_000000000064,2026-01-31,2026-02-02,2026-02-12,Europe/Berlin,db4df67b-5530-4f5c-96f0-e0ae0de85d6e,,fee,acquiring,acquiring markup,,EUR,-0.01037655265,EUR,-0.01037655265,0.9903028507,-0.01037655265,-0.01037655265,EUR,-0.01037655265,-0.01037655265,78aee1fc-0bc4-43c0-bad1-4967e576659c,card,credit,visa,102919,OTHER,United Kingdom of Great Britain and Northern Ireland,UK,22c50e51-92a0-47b5-8007-c9780577e513,TRUE,pay_6f9c055fe2f645709c4f9eed3382e15e,exe_146b6546537f46719fdb0780c125a1dc,null
+485e-a6835-407ec794a3as75-345645b,MERCHANT,checkout,checkout,Payrails Demo Inc.,ppr_000000000024,2025-10-04,2025-10-06,2025-10-12,UTC,5a0c7a7e-cf04-41f5-98ee-0c50559f810e,,fee,acquiring,scheme fee,,USD,-0.03468217234,USD,-0.03468217234,1.121862747,-0.03190759855,-0.03190759855,EUR,-0.03190759855,-0.03190759855,13f58911-aae8-4106-b512-2871499b1c43,card,debit,mastercard,398037,OTHER,OTHER,unknown,7027ed3e-d2f9-44e5-bf8e-89256aa50f3f,TRUE,pay_6b127efe0f274b1fa9be23da39a117e7,exe_73944d89e26c42a397b645778db8a232,null`;
+
+    const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+return (
+  <span
+    onClick={handleDownload}
+    style={{ cursor: "pointer", color: "#0066cc", textDecoration: "underline" }}
+  >
+    Download sample report
+  </span>
+);
+};

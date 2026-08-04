@@ -1,0 +1,114 @@
+---
+title: Accept payments via API
+---
+
+Use our APIs and build your own payment experience if you want full control over the look and feel of your checkout page.
+
+<Callout icon="📘" theme="info">
+  Building your own payment experience requires significantly more effort for
+  handling all alternative flows, while Payrails provides built-in components
+  that you can customize. So if you'd rather not build your own payment
+  experience, check our [Drop-in](doc:drop-in) solution.
+</Callout>
+
+With our API-only solution, you have two options for accepting card payments:
+
+- Use our [Secure fields](doc:secure-fields) card tokenization to collect the card details. This helps you ensure PCI compliance, as you're only required to submit [SAQ A](https://listings.pcisecuritystandards.org/documents/SAQ_A_v3.pdf).
+- Collect and pass raw card data. This requires you to assess your PCI compliance according to [SAQ D](https://listings.pcisecuritystandards.org/documents/PCI-DSS-v3_2_1-SAQ-D_Merchant.pdf), the most extensive form of self-certification.
+
+On this page, we describe server-side integration and the client-side implementation that you have to build. Please note this is just an example of what Payrails can offer so that you picture the process better. If you have specific requirements on how you would prefer to accept payments, let us know and we'll guide you throw our API reference.
+
+<Callout icon="📘" theme="info">
+  To get started, make sure you have an API key and are able to [Request an
+  access token](ref:getoauthtoken).
+</Callout>
+
+# Fetch the payment options & initialize your checkout
+
+![](https://files.readme.io/c803a64-clientInit.svg)
+
+To initialize your payment form with Payrails, you need to achieve 3 operations:
+
+1. [Create a workflow execution](doc:create-a-workflow-execution). The execution is the equivalent of a customer payment session, so you want to save the `executionId` as a reference to perform the next steps.
+2. [Lookup payment options](doc:lookup-payment-options) available for the customer in this context. Eventually, you want to bundle this operation with the workflow creation as an `initialAction` to save an API call (like in the example above).
+3. [Initialize a client SDK](ref:clientinit) to collect card information on the client side. Eventually, you want to perform this call in parallel to optimize your latency (like in the example above).
+
+<Callout icon="📘" theme="info">
+  Beware that every time the payment data changes (e.g. applying a discount),
+  you want to [Lookup payment options](ref:lookupaction) again because the
+  payment methods and instruments could be different!
+</Callout>
+
+# (Optional) Tokenize a new card
+
+This step happens when the customer selects a new card as a payment instrument to authorize with. It is described in detail in the [Payrails SDK](doc:sdk) guide.
+
+![](https://files.readme.io/1c45d67-addCard.svg)
+
+Make sure to save the tokenized card output provided by the SDK, you will need it for the next step.
+
+# Authorize a payment
+
+![](https://files.readme.io/f4cc962-authorizePayment.svg)
+
+When the customer chooses a payment method and an instrument and then clicks the "Pay" button of your checkout form, it is time to [Authorize a payment](doc:authorize-a-payment)!
+
+This process is asynchronous, after your server-side application sent the authorization request, it will immediately receive an HTTP `202 ACCEPTED` acknowledgment from Payrails.
+
+It doesn't mean that your request was successful, but that it is in progress and Payrails will notify you about the success (or failure) later.
+
+Meanwhile, you can decide to [Receive notifications](doc:receive-notifications) or long poll the execution to fetch the status with the [Get an execution by ID](ref:getexecution) endpoint.
+
+For understanding the possible results of payment authorization, you should check the [Result Codes](doc:result-codes) page.
+
+# Handle redirects for 3-D Secure
+
+An authorization with cards may require a [3D Secure](https://www.emvco.com/emv-technologies/3-d-secure/) challenge to be resolved before the payment can complete. Since the challenge happens in a WebView (mobile) or a webpage (web), the user journey will leave your domain.
+
+To handle this, redirect the customer to the `links.consumerWait` URL returned in the [authorize response](/docs/orchestration/payment-acceptance/authorize-a-payment#3-receive-the-response-to-the-authorization-request). Payrails takes care of the rest:
+
+- If the authorization requires 3DS, the customer is taken through the challenge and returned to your `returnInfo.success` URL when complete.
+- If no challenge is required, the customer is redirected straight to `returnInfo.success`.
+- The same URL handles other authentication step-ups your PSP may require, so your integration doesn't need to change as you add payment methods.
+
+Make sure your authorization request specifies a `returnInfo.success` URL - this is where Payrails returns the customer once the session is complete.
+
+When the customer reaches your `returnInfo.success` URL, the authorization may still be in progress. Payrails will notify you of the final success or failure via webhook (similar to an authorization without 3DS).
+
+<Callout icon="📘" theme="info">
+  **Want to handle the 3DS redirect yourself?** Some merchants prefer to detect
+  the 3DS step manually and redirect the customer to the challenge URL directly,
+  avoiding a Payrails-hosted intermediate page on non-3DS payments. See [3D
+  Secure](/docs/orchestration/payment-acceptance/3d-secure) for that integration
+  pattern.
+</Callout>
+
+# (Optional) Handle redirects for Alternative Payment Methods (APMs) with Hosted Payment Pages (HPP)
+
+<Image
+  align="center"
+  src="https://files.readme.io/dbe9309-apm_redirect_flow.png"
+/>
+
+The APM redirect flow is similar to the 3-D Secure flow since both require a redirection.
+
+Since the APM authorization happens in a WebView (mobile) or a webpage (web), the user journey will leave your domain. Therefore, you wanna make sure your authorization request specifies in the `returnInfo` which return URL the user shall be redirected to after the APM authorization is complete.
+
+After the authorization request is placed, you will be informed by a notification or long poll of the execution to fetch the status if a APM redirect was requested.
+
+```json
+"actionRequired": "redirect",
+"links": {
+  "redirect": "https://api.payrails.io/public/redirect/merchant/..."
+}
+```
+
+After fetching the redirect URL, your client will open a WebView (mobile) or redirect the user to a webpage (web) where the challenge will take place.
+
+When the challenge is resolved, Payrails will take your client back to the address you specified in the `returnInfo`. It doesn't mean that your authorization was successful, but that it is in progress and Payrails will notify you about the success (or failure) later.
+
+# (Optional) Apple Pay and Google Pay
+
+For [Apple Pay](https://developer.apple.com/documentation/passkit/apple_pay/) and [Google Pay](https://developers.google.com/pay/api/android/overview), you will have to install their vendor SDK and fetch their payment token directly on the Client.
+
+Then you pass the payment token with your [Authorize a payment](doc:authorize-a-payment) endpoint call.

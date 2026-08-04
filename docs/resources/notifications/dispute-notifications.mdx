@@ -1,0 +1,179 @@
+---
+title: Dispute notifications
+description: Understand dispute notification payloads and when each event is sent.
+---
+
+The important fields in the dispute notification include:
+
+- event is`executionActionCompleted`
+- action is`dispute`
+- there's a `dispute` block in the `paymentComposition`object
+  - `dispute.amount` shows the disputed amount
+  - both `dispute.id` and `dispute.providerReference` show the dispute reference given by the PSP
+  - `dispute.paymentId` shows the original ID of the payment to which the dispute has been filed
+  - `dispute.reason` is a reason of the dispute coming from the PSP
+  - `dispute.status` is a Payrails dispute status, mapped from the PSP status.
+
+`dispute.status` in the Dispute notification can be one of the following:
+
+| dispute.status        | Description                                                                          |
+| :-------------------- | :----------------------------------------------------------------------------------- |
+| `FraudAlert`          | Just a flag, no actions required.                                                    |
+| `RetrievalOpened`     | Claim motion filed on the issuer side, action is required before this is chargeback. |
+| `RetrievalChallenged` | Merchant filed defense to the claim.                                                 |
+| `RetrievalExpired`    | Merchant took no action in the grace period.                                         |
+| `DisputeNotified`     | Chargeback is about to be issued.                                                    |
+| `DisputeOpened`       | Chargeback took place already.                                                       |
+| `DisputeChallenged`   | Merchant defended their position on the chargeback.                                  |
+| `DisputeWon`          | Issuer accepted Merchant defense.                                                    |
+| `DisputeLost`         | Issuer rejected Merchant defense.                                                    |
+| `DisputeExpired`      | Merchant took no action in the grace period.                                         |
+| `DisputeAccepted`     | Merchant accepted the user's dispute and decided not to challenge.                   |
+| `DisputeCancelled`    | User cancelled their dispute.                                                        |
+| `ArbitrationOpened`   | (available only in selected schemes) Merchant requested 2nd arbitration.             |
+| `ArbitrationWon`      | Merchant won the arbitration.                                                        |
+| `ArbitrationLost`     | Merchant lost the arbitration                                                        |
+
+Currently supported PSPs are: Adyen, Stripe, checkout.com, dLocal.
+
+**A notification example:**
+
+Some of the details of the objects that are not relevant to the Dispute are omitted in this example (like `customer`, `order`, or `risk`).
+
+```json Dispute notification
+{
+  "action": "dispute",
+  "actionId": "11111111-2e6e-5499-9bba-8795e382da46",
+  "amount": {
+    "currency": "USD",
+    "value": "10.00"
+  },
+  "execution": {
+    "holderId": "",
+    "holderReference": "",
+    "id": "",
+    "merchantReference": "",
+    "meta": {
+      "clientContext": {},
+      "customer": {},
+
+      "order": {},
+      "risk": {},
+      "vendor": {}
+    },
+
+    "providerReference": "ref_111122223333",
+    "workflowCode": "payment-acceptance"
+  },
+  "paymentComposition": [
+    {
+      "acquirerMID": "112233", // if sent by provider
+      "authorizationCode": "445566", // if sent by provider
+      "acquirerAccountCode": "value", // if sent by provider
+      "acquirerReference": "1122334455", // if sent by provider
+
+      "amount": {
+        "currency": "USD",
+        "value": "10.00"
+      },
+      "dispute": {
+        "amount": {
+          "currency": "USD",
+          "value": "10.00"
+        },
+        "createdAt": "2025-11-18T17:48:31Z",
+        "id": "dispute_ref_111122223333",
+        "network": "",
+        "paymentId": "payment_111122223333",
+        "providerReference": "dispute_ref_111122223333",
+        "reason": "unauthorized_use_of_card",
+        "status": "FraudAlert"
+      },
+
+      "integrationType": "api",
+
+      "operationProviderReference": "dispute_ref_111122223333",
+
+      "operationResult": "Success",
+
+      "operationType": "ChargebackNotification",
+
+      "paymentId": "payment_111122223333",
+
+      "paymentInstrument": {
+        "createdAt": "2025-10-10T10:56:16.342222Z",
+        "data": {
+          "bin": "411111",
+          "binLookup": {
+            "bin": "411111",
+            "issuer": "BANK OF AMERICA",
+            "issuerCountry": {
+              "code": "US",
+              "iso3": "USA",
+              "name": "UNITED STATES"
+            },
+            "network": "visa",
+            "segment": "classic",
+            "type": "DEBIT"
+          },
+          "expiryMonth": "03",
+          "expiryYear": "2027",
+          "network": "visa",
+          "networkDisplayName": "Visa",
+          "suffix": "1111"
+        },
+        "default": false,
+        "description": "Payment instrument for user",
+        "displayName": "Visa **** 1111",
+        "fingerprint": "",
+        "holderId": "",
+        "id": "",
+        "merchantReference": "",
+        "paymentMethod": "card",
+        "status": "transient",
+        "updatedAt": ""
+      },
+
+      "paymentInstrumentId": "",
+
+      "paymentInstrumentToken": {
+        "meta": {
+          "holderReference": ""
+        },
+        "reference": "",
+        "type": "vault"
+      },
+
+      "paymentInstrumentTokenId": "",
+      "paymentMethodCode": "card",
+      "provider": {
+        "configSchema": "",
+        "createdAt": "",
+        "displayName": "Stripe",
+        "id": "",
+        "name": "stripe",
+        "notificationURLTemplate": "",
+        "status": "active",
+        "type": "Payment",
+        "updatedAt": ""
+      },
+      "providerConfigId": "",
+      "providerId": "",
+      "providerReference": "ref_111122223333",
+      "retries": {},
+      "storeInstrument": false,
+      "success": true,
+      "threeDS": {
+        "authenticationType": "",
+        "authenticationValue": "",
+        "dsTransId": "",
+        "eci": "",
+        "transStatus": "",
+        "transStatusReason": "",
+        "version": "2.2.0"
+      }
+    }
+  ],
+  "success": true
+}
+```

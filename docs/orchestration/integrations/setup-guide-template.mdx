@@ -1,0 +1,172 @@
+---
+title: Setup guide template
+description: "New provider setup guides must start from this template"
+---
+
+<Note>
+  
+**Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as a payment orchestrator
+- Use **PROVIDER_NAME** for payments
+- Meet all provider-specific prerequisites (for example PCI compliance, redirects, or wallet support)
+
+_If these requirements are not met, payments may fail in production._
+
+</Note>
+
+<Accordion title="How to complete required prerequisites">
+  * Steps required to enable features or approvals with PROVIDER\_NAME * Sample
+  support message or documentation links (optional)
+</Accordion>
+
+---
+
+## Create a PROVIDER_NAME integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **Add instance** to create a new integration configuration.
+4. Select the **workspaces** where this integration should be available.
+
+> **About workspaces**  
+> Workspaces determine where this integration is available. They let you isolate provider setups by region or business line, or share the same configuration across multiple workspaces.
+
+---
+
+## Step 1: Choose the integration type
+
+- Select the integration type (for example **Payments**, **Payouts**, or **Refunds**).
+- Continue to the next step.
+
+---
+
+## Step 2: Choose the provider
+
+- Select **PROVIDER_NAME**.
+- Continue to the next step.
+
+---
+
+## Step 3: Configure your PROVIDER_NAME integration
+
+<Tip>
+  ### What you'll need from PROVIDER_NAME
+
+Before you begin, make sure you have access to:
+
+- Provider account ID
+- API credentials (keys, certificates, or secrets)
+- Webhook or notification signing secret (if applicable)
+
+Log in to the PROVIDER_NAME dashboard to complete this step.
+
+</Tip>
+
+---
+
+### Integration instance name
+
+> An integration instance is a specific payment provider setup in Payrails. You can create multiple instances for different regions, currencies, or business needs. Choose a clear, consistent name, as it is used in routing.
+
+**In Payrails**
+
+- Enter an **Instance name** for your integration.
+
+<img
+  src="/images/docs/dlocal-basic-information.png"
+  alt=""
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+### Provider account details
+
+Explain how to locate and copy required account identifiers from the PROVIDER_NAME dashboard.
+
+**In PROVIDER_NAME**
+
+- Navigate to the relevant settings section.
+- Copy the required account ID.
+
+**In Payrails**
+
+- Paste the value into the corresponding field.
+
+---
+
+### API credentials
+
+<Tip>
+  Use restricted or scoped credentials where possible to limit access and reduce
+  risk.
+</Tip>
+
+**In PROVIDER_NAME**
+
+- Create or retrieve the required API credentials.
+- Apply the minimum required permissions or scopes.
+
+**In Payrails**
+
+- Paste the credentials into the corresponding fields.
+
+---
+
+### Webhooks or notifications
+
+<Tip>
+  Payrails uses provider webhooks or notifications to receive asynchronous
+  payment status updates.
+</Tip>
+
+<Warning>
+  Create webhooks in the same mode (test or live) as your Payrails integration.
+</Warning>
+
+**In PROVIDER_NAME**
+
+- Create a webhook or notification endpoint.
+- Enable only the required events.
+- Copy the signing secret or verification key.
+
+**In Payrails**
+
+- Copy the notification URL.
+- Paste it into the provider dashboard.
+- Paste the signing secret or verification key into Payrails.
+
+---
+
+### Payment methods
+
+**In Payrails**
+
+- Select the payment methods that should be enabled for this integration.
+
+---
+
+## Enable the integration
+
+**In Payrails**
+
+- Save the configuration to enable the integration.
+- Confirm the integration shows as **Enabled**.
+
+Your PROVIDER_NAME integration is now ready to process payments in test mode.
+
+---
+
+## Next steps
+
+1. Run a test payment using a Stripe test card.
+2. Verify that:
+   - The payment appears in Stripe.
+   - The payment status updates correctly in Payrails.
+3. Once verified in test mode, repeat the setup in live mode.
+
+→ Continue to: [Test a payment](/docs/orchestration/payment-acceptance/test-payments)

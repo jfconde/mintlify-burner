@@ -1,0 +1,1559 @@
+---
+title: SDK API Reference
+description: This document describes the public API surface of the Payrails Android SDK, including payment methods, configuration, styling, translations, and event delegates. For setup and dependencies, see the [Quick Start](/docs/android-sdk-1).
+---
+
+> **Looking for guides?** [Quick Start](/docs/android-sdk-1) | [Styling Guide](/docs/styling-guide) | [Troubleshooting](/docs/troubleshooting) | [SDK Concepts](/docs/sdk-concepts)
+
+## Table of Contents
+
+- Getting Started
+- Custom UI Payment Launcher
+- Core Concepts
+- Logging
+- Card Payments
+- Card Tokenization
+- Co-Branded Cards
+- Google Pay
+- Redirect Payments
+- Stored Instruments
+- Results and Errors
+
+## Compatibility Requirements
+
+- JDK 17
+- Android `minSdk` 21
+- Android `compileSdk` 35
+
+## Public Artifact
+
+- Distributed via [Maven Central](https://central.sonatype.com/)
+- Maven coordinate: `com.payrails.android:checkout:<version>`
+- Additional dependency: `com.payrails.android:cse:<version>`
+
+## Getting Started
+
+### Create a Session
+
+Use a `Configuration` built from `InitData` plus optional `Options`.
+
+**Kotlin**
+
+```kotlin
+val initData = InitData(version = "...", data = "...")
+val configuration = Configuration(initData = initData, option = Options())
+
+// Suspend API
+val session = Payrails.createSession(configuration)
+
+// Callback API
+Payrails.createSession(configuration) { result ->
+    result.onSuccess { /* session ready */ }
+    result.onFailure { /* initialization failed */ }
+}
+```
+
+**Java**
+
+```java
+// Java — use the callback API (suspend functions are not callable from Java)
+InitData initData = new InitData("...", "...");
+Configuration configuration = new Configuration(initData, new Options());
+
+Payrails.createSession(configuration, result -> {
+    if (result.isSuccess()) {
+        Session session = result.getOrNull();
+        // session ready
+    } else {
+        // initialization failed
+    }
+    return kotlin.Unit.INSTANCE;
+});
+```
+
+To enable automatic SDK-managed recovery when a redirect flow is abandoned or remains non-terminal, pass `onSessionExpired` in `Options.redirectSessionLifecycle`:
+
+```kotlin
+val configuration = Configuration(
+    initData = initData,
+    option = Options(
+        redirectSessionLifecycle = RedirectSessionLifecycle(
+            onSessionExpired = {
+                // Merchant callback: run your client-init call and return fresh init payload
+                val refreshed = fetchInitPayloadFromBackend()
+                InitData(version = refreshed.version, data = refreshed.data)
+            }
+        )
+    )
+)
+```
+
+### Session-Scoped Helpers
+
+`Session` is the merchant's handle to all runtime SDK operations. Keep the reference returned by `createSession(...)` and call query/update/instrument/payment methods on it directly.
+
+```kotlin
+val session = Payrails.createSession(configuration)
+val instruments = session.getStoredInstruments()
+val cardInstruments = session.getStoredInstruments(forType = PaymentMethod.card)
+```
+
+Breaking change: `Payrails.getCurrentSession()` is not part of the public API. Hold the `Session` returned by `createSession(...)` — methods like `query`, `update`, `getStoredInstruments`, `deleteInstrument`, `updateInstrument`, and `getPaymentMethodConfig` now live on `Session`. (Payment execution is not on `Session`; use [`PayrailsPaymentLauncher`](#payrailspaymentlauncher).)
+
+## Querying Session Data
+
+Use `Session.query()` to read data from the active session.
+
+### `Session.query(key)`
+
+```kotlin
+fun <T> query(key: PayrailsQuery<T>): T
+```
+
+Returns the value for `key` from the session, or `null` if the requested data is not present. Never throws.
+
+| Parameter | Type               | Description                                              |
+| --------- | ------------------ | -------------------------------------------------------- |
+| `key`     | `PayrailsQuery<T>` | A typed query key from the `PayrailsQuery` sealed class. |
+
+**Example**
+
+```kotlin
+val executionId: String? = session.query(PayrailsQuery.ExecutionId)
+val amount: PayrailsAmount? = session.query(PayrailsQuery.Amount)
+val cardConfig: PayrailsPaymentMethodConfig? =
+    session.query(PayrailsQuery.PaymentMethodConfig("card"))
+```
+
+---
+
+### `PayrailsQuery<T>`
+
+Sealed class of typed query keys for [`Session.query()`](#sessionquerykey), in package
+`com.payrails.sdk`.
+
+| Key                                            | Return type                    | Description                                           |
+| ---------------------------------------------- | ------------------------------ | ----------------------------------------------------- |
+| `PayrailsQuery.ExecutionId`                    | `String?`                      | ID of the active payment execution.                   |
+| `PayrailsQuery.HolderReference`                | `String?`                      | Holder reference for the active session.              |
+| `PayrailsQuery.Amount`                         | `PayrailsAmount?`              | Current checkout amount.                              |
+| `PayrailsQuery.BinLookup`                      | `PayrailsLink?`                | BIN lookup action link.                               |
+| `PayrailsQuery.InstrumentDelete`               | `PayrailsLink?`                | Stored instrument delete action link.                 |
+| `PayrailsQuery.InstrumentUpdate`               | `PayrailsLink?`                | Stored instrument update action link.                 |
+| `PayrailsQuery.PaymentMethodConfig(code)`      | `PayrailsPaymentMethodConfig?` | Config for the given payment method code.             |
+| `PayrailsQuery.PaymentMethodInstruments(code)` | `List<StoredInstrument>?`      | Stored instruments for the given payment method code. |
+
+> **Removed:** `PayrailsQuery.AvailableRedirectMethods`. Use
+> [`Session.getPaymentMethodConfig(PaymentMethodFilter.Redirect)`](#sessiongetpaymentmethodconfigfilter)
+> instead.
+
+---
+
+### `PayrailsAmount`
+
+```kotlin
+data class PayrailsAmount(
+    val value: String,
+    val currency: String
+)
+```
+
+Represents the current checkout amount. `value` is the amount in wire format (e.g.
+`"54.99"`), consistent with `AmountUpdate.value`. `currency` is the ISO 4217 code
+(e.g. `"EUR"`).
+
+---
+
+### `PayrailsLink`
+
+```kotlin
+data class PayrailsLink(
+    val href: String?,
+    val method: String?
+)
+```
+
+A backend action link. `href` is the URL to call; `method` is the HTTP method (e.g.
+`"POST"`, `"DELETE"`). Either field may be `null` if not provided by the backend.
+
+---
+
+### `PayrailsPaymentMethodConfig`
+
+```kotlin
+data class PayrailsPaymentMethodConfig(
+    val paymentMethodCode: String,
+    val description: String?,
+    val displayName: String?,
+    val flow: String?,
+    val supportsSaveInstrument: Boolean?,
+    val supportsBillingInfo: Boolean?
+)
+```
+
+Configuration for a payment method from the active session. All fields except
+`paymentMethodCode` are optional and sourced from the session payload.
+
+---
+
+## Updating Session State
+
+Use `Session.update()` to change the checkout amount after `createSession()` has
+completed, without reinitialising the session.
+
+### `Session.update(changes)`
+
+```kotlin
+fun update(changes: PayrailsUpdate)
+```
+
+Updates in-memory session state. No network request is made. The updated values take
+effect on the next `pay()` call.
+
+| Parameter | Type             | Description                                                      |
+| --------- | ---------------- | ---------------------------------------------------------------- |
+| `changes` | `PayrailsUpdate` | Container of optional updates. Fields set to `null` are ignored. |
+
+**Throws**
+
+| Exception                  | When                                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------------------- |
+| `IllegalStateException`    | Called after the session is destroyed.                                                       |
+| `IllegalArgumentException` | `changes.amount` is non-null and `AmountUpdate.value` is not a valid positive number string. |
+
+**Example**
+
+```kotlin
+session.update(
+    PayrailsUpdate(
+        amount = AmountUpdate(value = "54.98", currency = "EUR")
+    )
+)
+cardPaymentButton.pay() // uses the updated amount
+```
+
+---
+
+### `PayrailsUpdate`
+
+```kotlin
+data class PayrailsUpdate(
+    val amount: AmountUpdate? = null
+)
+```
+
+Container for session updates passed to `Session.update()`, in package
+`com.payrails.sdk`. Each field is optional —
+`null` means "leave unchanged". Additional fields may be added in future SDK versions
+without breaking existing call sites.
+
+| Field    | Type            | Description                                        |
+| -------- | --------------- | -------------------------------------------------- |
+| `amount` | `AmountUpdate?` | New checkout amount, or `null` to leave unchanged. |
+
+---
+
+## Session Payment APIs
+
+`Session` exposes a Google Pay capability check. Payment **execution** is not on `Session` —
+it is public only via [`PayrailsPaymentLauncher`](#payrailspaymentlauncher).
+
+### `Session.isGooglePayAvailable(context)`
+
+```kotlin
+suspend fun isGooglePayAvailable(context: Context): Boolean
+```
+
+Returns `true` when Google Pay is configured for the session and the device reports
+`isReadyToPay() == true`. Does not require a `GooglePayButton` to be rendered.
+
+### Executing a payment
+
+`Session` exposes **no public payment trigger**. Payment execution is a public API only
+through [`PayrailsPaymentLauncher.authorize(...)`](#payrailspaymentlauncher), which owns the
+`Activity`, the Google Pay sheet, and the 3DS / redirect Custom Tab, and handles frictionless
+and step-up (3DS) outcomes uniformly. The SDK button components and the launcher delegate into
+`Session`'s `internal` networking; merchants do not call it directly.
+
+The terminal outcome of any `authorize(...)` is the public [`ActionResult`](#actionresult) type.
+
+#### `ActionResult`
+
+```kotlin
+sealed class ActionResult {
+    data object Success : ActionResult()
+    data class Failed(val failure: AuthorizationFailure) : ActionResult()
+}
+```
+
+| Case      | Meaning                                                                |
+| --------- | ---------------------------------------------------------------------- |
+| `Success` | Payment authorized successfully.                                       |
+| `Failed`  | The payment did not authorize; inspect `failure` for the coded reason. |
+
+#### `AuthorizationFailure`
+
+```kotlin
+data class AuthorizationFailure(
+    val code: AuthorizationFailureReason,
+    val message: String,
+    val rawError: Throwable? = null,
+)
+
+enum class AuthorizationFailureReason(val code: String) {
+    AUTHORIZATION_ERROR, AUTHENTICATION_ERROR, USER_CANCELLED, UNKNOWN_ERROR
+}
+```
+
+| Code                   | Meaning                                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `AUTHORIZATION_ERROR`  | Rejected by the backend (issuer decline, 3DS, fraud); `message` carries the backend detail.                            |
+| `AUTHENTICATION_ERROR` | Session token rejected (HTTP 401 / 403); re-initialise the session.                                                    |
+| `USER_CANCELLED`       | The user closed the redirect Custom Tab / web view.                                                                    |
+| `UNKNOWN_ERROR`        | Network, decode, polling timeout, or other unexpected error; `rawError` carries the underlying throwable when present. |
+
+### `Session.getPaymentMethodConfig(filter)`
+
+```kotlin
+fun getPaymentMethodConfig(
+    filter: PaymentMethodFilter = PaymentMethodFilter.All
+): List<PayrailsPaymentOption>
+```
+
+Returns the payment method options configured for the active session, filtered by the
+supplied `PaymentMethodFilter`. Returns an empty list when no options match (never
+`null`).
+
+#### `PaymentMethodFilter`
+
+```kotlin
+sealed class PaymentMethodFilter {
+    object All : PaymentMethodFilter()
+    object Redirect : PaymentMethodFilter()
+    data class Specific(val paymentMethodCode: String) : PaymentMethodFilter()
+}
+```
+
+| Filter                               | Effect                                                                                                                          |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `PaymentMethodFilter.All`            | All configured payment options (default)                                                                                        |
+| `PaymentMethodFilter.Redirect`       | Only redirect-capable options (iDEAL, Bancontact, Sofort, etc.). Replaces the removed `PayrailsQuery.AvailableRedirectMethods`. |
+| `PaymentMethodFilter.Specific(code)` | Options matching the given payment method code (e.g., `"card"`, `"googlePay"`)                                                  |
+
+**Example**
+
+```kotlin
+val redirects = session.getPaymentMethodConfig(PaymentMethodFilter.Redirect)
+redirects.forEach { option ->
+    // option.paymentMethodCode, option.displayName
+}
+```
+
+---
+
+### `AmountUpdate`
+
+```kotlin
+data class AmountUpdate(
+    val value: String,
+    val currency: String
+)
+```
+
+Represents a new checkout amount. Both fields are required when updating the amount.
+
+| Field      | Type     | Description                                                                                                                                             |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `value`    | `String` | New amount as a numeric string (e.g. `"49.99"`). Must be a valid positive number.                                                                       |
+| `currency` | `String` | ISO 4217 currency code (e.g. `"EUR"`, `"USD"`). Passed to the backend without format validation — invalid codes cause payment errors at execution time. |
+
+> **Note on `value` format:** The SDK validates that `value` is parseable as a positive
+> number but does not reformat it. Pass the string in the exact format expected by your
+> backend (e.g. `"49.99"`, not `"4999"`).
+
+---
+
+## Custom UI Payment Launcher
+
+`PayrailsPaymentLauncher` lets you run a complete payment flow from your **own** button
+while the SDK owns the post-tap work — opening the Google Pay sheet, the 3DS / PayPal /
+redirect Custom Tab, and the polling. It is the public "bring-your-own-button" entry point —
+and the only public way to execute a payment.
+
+### `PayrailsPaymentLauncher`
+
+```kotlin
+class PayrailsPaymentLauncher {
+    fun authorize(
+        type: PaymentMethod,
+        paymentMethodCode: String? = null,
+        saveInstrument: Boolean = false
+    )
+
+    fun authorize(storedInstrument: StoredInstrument)
+
+    fun authorize(
+        encryptedCardData: String,
+        saveInstrument: Boolean = false
+    )
+}
+```
+
+Construct it with one of the factory functions below — never directly. Each `pay(...)`
+call resolves to exactly one terminal [`ActionResult`](#actionresult), delivered to the
+`onResult` callback supplied at construction (user dismissal of the sheet or Custom Tab is
+reported as `Failed` with `code == USER_CANCELLED`).
+
+| Method                                           | Behaviour                                                                                                                                                                                        |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pay(type, paymentMethodCode?, saveInstrument?)` | Runs the method's full flow. `googlePay` opens the Google Pay sheet; `payPal` / `genericRedirect` open a Custom Tab.                                                                             |
+| `pay(storedInstrument)`                          | Charges a saved instrument; opens the 3DS Custom Tab if the instrument requires a challenge.                                                                                                     |
+| `pay(encryptedCardData, saveInstrument?)`        | Submits an **already-encrypted** card payload and presents 3DS in a Custom Tab when required. No raw-card or encryption API — producing the encrypted string is the integrator's responsibility. |
+
+### `rememberPayrailsPaymentLauncher(session, onResult)`
+
+```kotlin
+@Composable
+fun rememberPayrailsPaymentLauncher(
+    session: Session,
+    onResult: (ActionResult) -> Unit
+): PayrailsPaymentLauncher
+```
+
+Compose factory. Returns a launcher that is stable across recompositions and registers the
+Google Pay Activity Result contract for the current activity. Call it during composition
+(e.g. at the top of your checkout composable).
+
+### `Payrails.createPaymentLauncher(activity, session, onResult)`
+
+```kotlin
+fun Payrails.createPaymentLauncher(
+    activity: ComponentActivity,
+    session: Session,
+    onResult: (ActionResult) -> Unit
+): PayrailsPaymentLauncher
+```
+
+View / Activity factory. **Must be called from `Activity.onCreate`** — it registers a
+Google Pay Activity Result contract, and the Android Activity Result API forbids
+registration after the activity is `STARTED` (calling it later throws).
+
+| Parameter  | Type                     | Description                                                             |
+| ---------- | ------------------------ | ----------------------------------------------------------------------- |
+| `activity` | `ComponentActivity`      | The host activity; its result registry and lifecycle bind the launcher. |
+| `session`  | `Session`                | The active session the launcher delegates networking into.              |
+| `onResult` | `(ActionResult) -> Unit` | Invoked once per `pay(...)` with the terminal outcome.                  |
+
+**Example (Compose)**
+
+```kotlin
+@Composable
+fun CheckoutScreen(session: Session) {
+    var status by remember { mutableStateOf<ActionResult?>(null) }
+    val launcher = rememberPayrailsPaymentLauncher(session) { status = it }
+
+    Button(onClick = { launcher.authorize(PaymentMethod.googlePay) }) { Text("Pay with Google Pay") }
+}
+```
+
+See [How to Build a Custom Pay Button](/docs/how-to-custom-pay-button) for a full
+dropdown-plus-single-button walkthrough.
+
+---
+
+## Core Concepts
+
+### Payment Methods
+
+`PaymentMethod` supports:
+
+- `PaymentMethod.card`
+- `PaymentMethod.googlePay`
+- `PaymentMethod.payPal`
+- `PaymentMethod.genericRedirect`
+
+Card, Google Pay, and generic redirect flows are creatable via `Payrails` factories.
+
+### Options
+
+`Options` configures SDK behavior:
+
+- `env: Env` — `Env.PRODUCTION` (default) or `Env.TEST`
+- `collectMetadata: Boolean` — whether the SDK collects client context metadata (default `true`)
+- `redirectSessionLifecycle: RedirectSessionLifecycle` — configures automatic session recovery
+
+### Redirect Session Lifecycle (`onSessionExpired`)
+
+`onSessionExpired` is configured once through `Options.redirectSessionLifecycle` and is shared for redirect-capable flows (3DS now, other redirect methods in future). The callback should run the merchant client-init call and return fresh `InitData`.
+
+Behavior:
+
+- Triggered when redirect reconciliation is classified as abandoned or stuck non-terminal.
+- If callback is configured and succeeds, SDK refreshes active session/execution state automatically.
+- If callback is missing/fails/returns invalid data, SDK does not continue the stale execution.
+- Current payment attempt still resolves through standard failure handling (the `Failed` path).
+
+### Client Context Metadata
+
+The SDK collects client context and attaches it to authorize requests under `meta.clientContext` by default.
+
+Collected fields:
+
+- `osType` (android)
+- `userAgent`
+- `acceptHeader`
+- `language`
+- `screenHeight`
+- `screenWidth`
+- `colorDepth`
+- `timeZoneOffset`
+- `javaEnabled`
+- `javaScriptEnabled`
+
+Opt-out:
+
+```kotlin
+val configuration = Configuration(
+    initData = initData,
+    option = Options(collectMetadata = false)
+)
+```
+
+### Request Headers
+
+The SDK attaches the following headers to every API request:
+
+| Header              | Value                      | Description                                                       |
+| ------------------- | -------------------------- | ----------------------------------------------------------------- |
+| `x-client-version`  | SDK version (e.g. `2.1.0`) | Automatically set from the version defined in `gradle.properties` |
+| `x-client-type`     | `android-sdk`              | Identifies the SDK platform                                       |
+| `x-idempotency-key` | UUID                       | Unique per request, prevents duplicate processing                 |
+| `Authorization`     | `Bearer <token>`           | Session token from init data                                      |
+
+The `x-client-version` value is generated at build time from `gradle.properties` (`sdk.version`) and compiled into the SDK as an internal constant. Merchants do not need to configure it.
+
+## Logging
+
+The SDK uses an internal logging system with two output channels:
+
+- **In-memory log store** — Always active. The SDK maintains an in-memory buffer of the last 500 log entries (with timestamps). This is used by the built-in debug viewer (`DebugManager`).
+- **Logcat** — Suppressed by default. Logcat output under the tag `PayrailsSDK` is gated behind `Log.isLoggable()`, so it produces no Logcat output unless explicitly enabled.
+
+### Enabling Logcat Output
+
+To enable SDK debug logs in Logcat, run:
+
+```bash
+adb shell setprop log.tag.PayrailsSDK DEBUG
+```
+
+This persists until the device reboots. After enabling, filter Logcat by the `PayrailsSDK` tag:
+
+```bash
+adb logcat -s PayrailsSDK:D
+```
+
+To disable again:
+
+```bash
+adb shell setprop log.tag.PayrailsSDK INFO
+```
+
+### Default State
+
+| Channel                    | Default       | When active                                                         |
+| -------------------------- | ------------- | ------------------------------------------------------------------- |
+| In-memory (`LogStore`)     | **Always on** | Used by debug viewer; last 500 entries                              |
+| Logcat (`PayrailsSDK` tag) | **Off**       | Only when `Log.isLoggable("PayrailsSDK", Log.DEBUG)` returns `true` |
+
+### Security
+
+The SDK never logs raw card data, tokens, or PII through its logging system. Log messages contain only operational information (e.g., payment flow steps, error descriptions).
+
+## Card Payments
+
+### CardForm + CardPaymentButton
+
+Create a `CardForm`, then a `CardPaymentButton`. Elements are decoupled and composed explicitly.
+
+> **Kotlin/Compose only.** Element creation and `Render()` calls require Kotlin and Jetpack Compose. The delegate callbacks below are Java-compatible.
+
+**Kotlin**
+
+```kotlin
+val cardForm = Payrails.createCardForm(
+    config = CardFormConfig(
+        showCardHolderName = true,
+        showStoreInstrumentCheckbox = true
+    )
+)
+
+val payButton = Payrails.createCardPaymentButton(
+    translations = CardPaymenButtonTranslations(label = "Pay Now")
+)
+
+payButton.delegate = object : PayrailsCardPaymentButtonDelegate {
+    override fun onPaymentButtonClicked(button: CardPaymentButton) {}
+    override fun onAuthorizeSuccess(button: CardPaymentButton) {}
+    override fun onThreeDSecureChallenge(button: CardPaymentButton) {}
+    override fun onAuthorizeFailed(button: CardPaymentButton) {}
+}
+
+// In Compose
+cardForm.Render()
+payButton.Render()
+```
+
+**Java** — setting the delegate
+
+```java
+payButton.setDelegate(new PayrailsCardPaymentButtonDelegate() {
+    @Override
+    public void onPaymentButtonClicked(CardPaymentButton button) {}
+    @Override
+    public void onAuthorizeSuccess(CardPaymentButton button) {}
+    @Override
+    public void onThreeDSecureChallenge(CardPaymentButton button) {}
+    @Override
+    public void onAuthorizeFailed(CardPaymentButton button) {}
+});
+```
+
+Order does not matter. If `CardPaymentButton` is created before `CardForm`, creating `CardForm` later will auto-attach it to the current button (web-sdk-aligned behavior).
+
+Behavior model (aligned with web-sdk):
+
+- Form mode: if no stored instrument is selected, the button validates/collects card form data, then authorizes.
+- Stored-instrument mode: if a stored instrument is selected, the button authorizes with that instrument and bypasses card form collection/validation.
+- Form interaction reset: if the user focuses/edits card fields, the selected stored instrument is cleared and button behavior returns to form mode.
+- Guardrail: if no stored instrument is selected and no card form is attached, payment does not proceed and the button emits authorization failure.
+
+3DS redirect behavior:
+
+- The SDK opens 3DS URLs in a Custom Tab when available, falling back to the system browser.
+- On app return, the SDK polls execution status until terminal success/failure or expiry classification.
+- If status remains non-terminal through reconciliation window, SDK emits authorization failure and runs `onSessionExpired` callback (if configured).
+- On terminal success/failure, SDK performs best-effort Custom Tab close/return-to-app handling.
+- Avoid using WebView for 3DS challenge pages (issuer/ACS compatibility issues, reduced isolation, unreliable deep-link returns).
+
+#### CardForm Configuration
+
+`CardFormConfig` controls visibility and behavior:
+
+- `showCardHolderName: Boolean`
+- `showStoreInstrumentCheckbox: Boolean`
+- `showSingleExpiryDateField: Boolean`
+- `layout: List<List<CardFieldType>>?`
+- `alwaysStoreInstrument: Boolean`
+- `defaultStoreInstrumentState: DefaultStoreInstrumentState` (`checked` | `unchecked`)
+- `events: CardFormEvents?` (`onFocus`, `onChange`, `onReady`, `onSaveInstrumentCheckboxChanged`)
+- `showCardIcon: Boolean` (renders built-in Payrails network icons and default field icons)
+- `cardIconAlignment: CardIconAlignment` (`left` or `right`)
+- `cardFieldIcons: CardFieldIcons?` (custom icon URLs per field; overrides defaults when provided)
+- `styles: CardFormStylesConfig?`
+- `translations: CardTranslations?`
+
+Use `CardFormConfig.defaultConfig` as a baseline.
+`Payrails.createCardForm(...)` reads save-instrument visibility only from `CardFormConfig.showStoreInstrumentCheckbox`; there is no separate standalone visibility argument on `createCardForm(...)`.
+
+Migration rules:
+
+- `defaultStoreInstrumentState` defaults to `unchecked`. Visibility no longer implies a checked state.
+- `alwaysStoreInstrument = true` forces submission behavior to store the instrument regardless of toggle state.
+
+#### Card Form Layout Options
+
+`CardFormConfig` also supports label placement and field variant:
+
+- `labelPlacement: LabelPlacement` — `FLOATING` (default) or `ABOVE`. When `ABOVE`, labels render as separate `Text` composables above each field instead of floating inside the text field.
+- `labelSpacing: Dp?` — spacing between label and field when `labelPlacement = ABOVE`. Default: `4.dp`.
+- `fieldVariant: FieldVariant` — `OUTLINED` (default) or `FILLED`. `OUTLINED` uses `OutlinedTextField` (full border); `FILLED` uses `TextField` (background fill with bottom indicator).
+
+#### Card Form Styles
+
+`CardFormStylesConfig` lets you style the wrapper, fields, labels, and errors. Key types:
+
+- `CardWrapperStyle`
+- `CardFieldSpecificStyles`
+- `CardStyle` (alias of `Style`)
+
+#### Card Form Spacing Tokens
+
+`CardFormStylesConfig` exposes spacing tokens that replace previously hardcoded layout values:
+
+| Property         | Type             | Default                | Description                                                                            |
+| ---------------- | ---------------- | ---------------------- | -------------------------------------------------------------------------------------- |
+| `rowSpacing`     | `Dp?`            | `12.dp`                | Vertical spacing between form rows                                                     |
+| `fieldSpacing`   | `Dp?`            | `12.dp`                | Horizontal spacing between fields in a row                                             |
+| `errorSpacing`   | `Dp?`            | `4.dp`                 | Spacing between a field and its error message (only rendered when an error is present) |
+| `contentPadding` | `PaddingValues?` | `PaddingValues(16.dp)` | Outer padding of the card form                                                         |
+| `fieldHeight`    | `Dp?`            | wrap content           | Explicit height for text fields                                                        |
+
+All tokens are nullable. When `null`, the hardcoded default is used.
+
+#### Card Translations
+
+`CardTranslations` provides:
+
+- `placeholders: CardTranslations.Placeholders`
+- `labels: CardTranslations.Labels`
+- `error: CardTranslations.ErrorMessages`
+
+Each map is keyed by `CardFieldType` (alias of `ElementType`).
+
+#### Network-Aware State
+
+The card form exposes network-aware metadata derived from the card number:
+
+- `cardNetwork: CardNetwork` (visa, mastercard, amex, discover, unknown)
+- `bin: String` (policy-driven: first 6 or 8 digits based on card network and PAN length; empty until sufficient digits are entered)
+- `cvvMaxLength: Int`
+
+Field accessory behavior:
+
+- **Card number**: when `showCardIcon` is enabled, the SDK shows the detected network icon (e.g., Visa, Mastercard). When no network is detected, a default card icon is shown (`ic-card.png`). Card number does not switch to the clear affordance.
+- **CVV**: when `showCardIcon` is enabled, the field shows a default CVV icon (`ic-cvv.png`) while empty. When populated, it shows a clear affordance regardless of `showCardIcon`.
+- **Expiry date**: when `showCardIcon` is enabled, the field shows a default expiration icon (`ic-expiration.png`) while empty. When populated, it shows a clear affordance regardless of `showCardIcon`.
+- **Split expiry month/year**: when `showCardIcon` is enabled, both fields show the default expiration icon while empty. When populated, each field switches to a clear affordance independently regardless of `showCardIcon`.
+- **Cardholder name**: has no default empty-state icon, but still shows a clear affordance while populated regardless of `showCardIcon`. Merchants can add a custom empty-state icon via `cardFieldIcons.cardholderName` when `showCardIcon` is enabled.
+
+All default icons are loaded from the Payrails assets CDN. Merchants can override any default icon — or add a cardholder name icon — by providing custom URLs via `cardFieldIcons`:
+
+```kotlin
+CardFormConfig(
+    showCardIcon = true,
+    cardFieldIcons = CardFieldIcons(
+        cardholderName = "https://example.com/my-name.png",  // adds a custom cardholder icon (no default)
+        cardNumber = "https://example.com/my-card.png",      // replaces default card icon (network icons still show when detected)
+        cvv = "https://example.com/my-cvv.png",              // replaces default CVV icon
+        expiryDate = "https://example.com/my-expiry.png"     // replaces default expiry icon
+    )
+)
+```
+
+`CardFieldIcons` fields:
+
+- `cardholderName: String?` — custom icon URL for the empty cardholder name field when `showCardIcon` is enabled. No default icon exists; when populated, the field shows the clear affordance instead.
+- `cardNumber: String?` — custom icon URL for the card number field when no network is detected. Once a network is detected, the network icon takes precedence.
+- `cvv: String?` — custom empty-state icon URL for the CVV field when `showCardIcon` is enabled.
+- `expiryDate: String?` — custom empty-state icon URL for the expiration date field(s), including split expiry month/year fields, when `showCardIcon` is enabled.
+
+Icon placement follows `cardIconAlignment` (`left` or `right`).
+
+BIN length policy (PCI SSC FAQ 1091 aligned):
+
+- 15-digit PANs (Amex): 6-digit BIN
+- 16-digit PANs (Visa/Mastercard/Discover): 8-digit BIN
+- 17–19 digit PANs or unknown networks: 6-digit BIN
+
+Migration note: if your integration assumes a fixed 8-digit BIN, update routing/lookup logic to accept 6-digit BINs when provided. Do not infer or pad BIN length; rely on the SDK's `bin` value.
+
+#### Card Payment Button Translations
+
+`CardPaymenButtonTranslations(label: String?)` sets the pay button text.
+
+#### Card Payment Button Styling
+
+Button appearance is configured on the button component (for example via `createCardPaymentButton(buttonStyle = ...)`). `CardFormStylesConfig` no longer includes button styling.
+
+Migration note: If you previously set `CardFormStylesConfig.buttonStyle`, move that styling to the button API (`createCardPaymentButton(buttonStyle = ...)`).
+Migration note: `CardPaymentButton` no longer exposes instrument-specific style/translation buckets. Keep one button settings surface and configure stored-instrument list/item UI in `StoredInstrumentsStyle` / `StoredInstrumentsTranslations`.
+
+`CardButtonStyle` is applied in `CardPaymentButton.Render` for:
+
+- `backgroundColor`, `textColor`
+- `cornerRadius`
+- `borderWidth`, `borderColor`
+- `contentPadding`
+- `font`
+- `height`, `fillMaxWidth`
+- `disabledStyle`, `loadingStyle` (state-variant styles)
+- `loadingIndicatorColor`
+
+Additional design tokens:
+
+| Property                      | Type     | Default                     | Description                                      |
+| ----------------------------- | -------- | --------------------------- | ------------------------------------------------ |
+| `loadingIndicatorSize`        | `Dp?`    | `20.dp`                     | Diameter of the loading spinner                  |
+| `loadingIndicatorStrokeWidth` | `Dp?`    | `2.dp`                      | Stroke width of the loading spinner              |
+| `elevation`                   | `Dp?`    | Material3 default           | Button elevation (shadow depth)                  |
+| `opacity`                     | `Float?` | `1.0f`                      | Button opacity (0.0 = transparent, 1.0 = opaque) |
+| `minHeight`                   | `Dp?`    | Material3 default (`40.dp`) | Minimum button height                            |
+
+These tokens participate in state-variant merging (`disabledStyle`, `loadingStyle`).
+
+### Stored Instrument Card Button
+
+Single instrument mapping:
+
+```kotlin
+val cardForm = Payrails.createCardForm()
+val button = Payrails.createCardPaymentButton(
+    translations = CardPaymenButtonTranslations("Pay")
+)
+button.setStoredInstrument(instrument)
+```
+
+### Coupled Wrappers (Breaking Change)
+
+- `CardPaymentForm` has been removed from the element API.
+- `StoredInstrumentPaymentButton` has been removed. Use `CardPaymentButton` + `setStoredInstrument(...)`.
+- The `createCardPaymentButton(storedInstrument = ...)` overload has been removed. Create the button first, then call `setStoredInstrument(...)`.
+- `createStoredInstruments()` and `createStoredInstrumentView()` have been removed. Use `session.getStoredInstruments()` to retrieve instruments and `CardPaymentButton.setStoredInstrument(...)` to pay with them.
+- Migrate to explicit composition with `CardForm` + `CardPaymentButton`.
+
+## Card Tokenization
+
+Save a card to the Payrails vault without initiating a payment. The tokenize flow encrypts card data using CSE, POSTs it to the vault endpoint from `vaultConfiguration.links.saveInstrument`, and returns a `SaveInstrumentResponse` containing an instrument ID for future use.
+
+> **Requires vault configuration.** The session init payload must include `vaultConfiguration` with a `saveInstrument` link. Contact Payrails to enable this for your merchant account.
+
+### `Session.tokenize(request, options?)` — suspend
+
+Saves a reusable payment instrument from a payment method without running a payment. Mirrors the iOS SDK's `session.tokenize(...)`.
+
+```kotlin
+suspend fun Session.tokenize(
+    request: TokenizationRequest,
+    options: TokenizeOptions = TokenizeOptions(),
+): SaveInstrumentResponse
+```
+
+**Parameters**
+
+| Name      | Type                  | Required | Default             | Description                                                                   |
+| --------- | --------------------- | -------- | ------------------- | ----------------------------------------------------------------------------- |
+| `request` | `TokenizationRequest` | Yes      | —                   | Selects what to tokenize (e.g. `TokenizationRequest.Card(cardForm)`)          |
+| `options` | `TokenizeOptions`     | No       | `TokenizeOptions()` | Controls storage behavior and signals intended future use to the card network |
+
+**Returns**: `SaveInstrumentResponse` — the saved instrument record including `id`, `status`, and card metadata.
+
+**Throws**
+
+- `PayrailsError.invalidCardData` — card form validation failed; field errors are shown automatically on the form
+- `PayrailsError.missingData("Vault configuration with providerConfigId is required...")` — session init payload is missing `vaultConfiguration`
+- `PayrailsError.missingData("holderReference is required...")` — session init payload is missing `holderReference`
+
+> Defined as a `Session` extension in the `checkout` (UI) module. Import it from `com.payrails.sdk`; the call site is `session.tokenize(...)`.
+
+**Example**
+
+```kotlin
+val response = session.tokenize(
+    TokenizationRequest.Card(cardForm),
+    TokenizeOptions(storeInstrument = true, futureUsage = FutureUsage.CardOnFile),
+)
+val instrumentId = response.id
+```
+
+---
+
+### `Session.tokenize(request, options?, onSuccess, onFailed, onCancelled)` — callback
+
+Callback variant for callers not using coroutines (and Java callers). Exactly one of the three callbacks is invoked, exactly once, on the main thread.
+
+```kotlin
+fun Session.tokenize(
+    request: TokenizationRequest,
+    options: TokenizeOptions = TokenizeOptions(),
+    onSuccess: (SaveInstrumentResponse) -> Unit,
+    onFailed: (PayrailsError) -> Unit,
+    onCancelled: () -> Unit,
+)
+```
+
+**Callbacks**
+
+| Name                                | Invoked when                                                                                                                                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `onSuccess(SaveInstrumentResponse)` | The instrument was saved                                                                                                                                                                               |
+| `onFailed(PayrailsError)`           | Tokenization failed; receives a `PayrailsError` (non-`PayrailsError` causes are wrapped in `PayrailsError.unknown`)                                                                                    |
+| `onCancelled()`                     | The operation was cancelled (coroutine/session-scope cancellation). The card path has no user-cancellable UI step, so `onCancelled` fires only on cancellation — not on validation or network failures |
+
+**Example**
+
+```kotlin
+session.tokenize(
+    request = TokenizationRequest.Card(cardForm),
+    onSuccess = { instrument -> /* instrument.id */ },
+    onFailed = { error -> /* show error */ },
+    onCancelled = { /* cancelled */ },
+)
+```
+
+---
+
+### `TokenizationRequest`
+
+Sealed type selecting what to tokenize. Card and Google Pay are supported (mirroring the iOS SDK's `card` / `applePay` cases).
+
+```kotlin
+sealed interface TokenizationRequest {
+    data class Card(val cardForm: CardForm) : TokenizationRequest
+    data class GooglePay(val presenter: GooglePayPresenter) : TokenizationRequest
+}
+```
+
+| Case                   | Description                                                                                 |
+| ---------------------- | ------------------------------------------------------------------------------------------- |
+| `Card(cardForm)`       | Tokenize the card currently entered in `cardForm`                                           |
+| `GooglePay(presenter)` | Tokenize via Google Pay. `presenter` is obtained from `rememberGooglePayPresenter(session)` |
+
+---
+
+### `GooglePayPresenter` / `rememberGooglePayPresenter(session)`
+
+`GooglePayPresenter` is an opaque handle that drives the Google Pay sheet for `tokenize(TokenizationRequest.GooglePay(...))`. It is obtained inside a Composable, which registers the Google Pay Activity-result launcher before the host reaches STARTED (Android requires this — a Google Pay token cannot be acquired from a plain suspend call).
+
+```kotlin
+interface GooglePayPresenter
+
+@Composable
+fun rememberGooglePayPresenter(session: Session): GooglePayPresenter
+```
+
+**Returns**: a `GooglePayPresenter` bound to the current composition.
+
+**Example**
+
+```kotlin
+val presenter = rememberGooglePayPresenter(session)
+// later, from a coroutine:
+val response = session.tokenize(
+    TokenizationRequest.GooglePay(presenter),
+    TokenizeOptions(storeInstrument = true),
+)
+```
+
+---
+
+### `GooglePayTokenizeButton(...)`
+
+A compliant, Google-branded button that tokenizes via Google Pay (save, no charge). Wraps `rememberGooglePayPresenter` + `Session.tokenize`. Renders **only when Google Pay is available** for the session (config present and `isReadyToPay` succeeds). Exactly one of `onSuccess`/`onFailed`/`onCancelled` fires per tap, on the main thread.
+
+```kotlin
+@Composable
+fun GooglePayTokenizeButton(
+    session: Session,
+    options: TokenizeOptions = TokenizeOptions(),
+    style: GooglePayButtonStyle = GooglePayButtonStyle(),
+    modifier: Modifier = Modifier,
+    onSuccess: (SaveInstrumentResponse) -> Unit,
+    onFailed: (PayrailsError) -> Unit,
+    onCancelled: () -> Unit,
+)
+```
+
+| Parameter     | Type                               | Required | Default                  | Description                            |
+| ------------- | ---------------------------------- | -------- | ------------------------ | -------------------------------------- |
+| `session`     | `Session`                          | Yes      | —                        | Active session                         |
+| `options`     | `TokenizeOptions`                  | No       | `TokenizeOptions()`      | Storage behavior + future-usage signal |
+| `style`       | `GooglePayButtonStyle`             | No       | `GooglePayButtonStyle()` | Button theme/type/corner styling       |
+| `modifier`    | `Modifier`                         | No       | `Modifier`               | Compose modifier                       |
+| `onSuccess`   | `(SaveInstrumentResponse) -> Unit` | Yes      | —                        | Instrument saved                       |
+| `onFailed`    | `(PayrailsError) -> Unit`          | Yes      | —                        | Tokenization failed                    |
+| `onCancelled` | `() -> Unit`                       | Yes      | —                        | User dismissed the sheet / cancelled   |
+
+**Example**
+
+```kotlin
+GooglePayTokenizeButton(
+    session = session,
+    options = TokenizeOptions(storeInstrument = true),
+    onSuccess = { instrument -> /* instrument.id */ },
+    onFailed = { error -> /* show error */ },
+    onCancelled = { /* dismissed */ },
+)
+```
+
+---
+
+### `CardForm.tokenize(options?)`
+
+Convenience wrapper that tokenizes this form via `Session.tokenize`. Equivalent to `session.tokenize(TokenizationRequest.Card(cardForm), options)`.
+
+```kotlin
+suspend fun tokenize(options: TokenizeOptions = TokenizeOptions()): SaveInstrumentResponse
+```
+
+**Parameters**
+
+| Name      | Type              | Required | Default             | Description                                                                   |
+| --------- | ----------------- | -------- | ------------------- | ----------------------------------------------------------------------------- |
+| `options` | `TokenizeOptions` | No       | `TokenizeOptions()` | Controls storage behavior and signals intended future use to the card network |
+
+**Returns**: `SaveInstrumentResponse` — the saved instrument record including `id`, `status`, and card metadata.
+
+**Throws**
+
+- `PayrailsError.invalidCardData` — card form validation failed; field errors are shown automatically on the form
+- `PayrailsError.missingData("Session is required for tokenization.")` — `CardForm` was created without an active session
+- `PayrailsError.missingData("Vault configuration with providerConfigId is required...")` — session init payload is missing `vaultConfiguration`
+- `PayrailsError.missingData("holderReference is required...")` — session init payload is missing `holderReference`
+
+**Example**
+
+```kotlin
+val response = cardForm.tokenize(
+    options = TokenizeOptions(
+        storeInstrument = true,
+        futureUsage = FutureUsage.CardOnFile
+    )
+)
+val instrumentId = response.id
+```
+
+---
+
+### `TokenizeOptions`
+
+Options controlling card vault behavior during tokenization.
+
+```kotlin
+data class TokenizeOptions(
+    val storeInstrument: Boolean = false,
+    val futureUsage: FutureUsage = FutureUsage.CardOnFile
+)
+```
+
+| Property          | Type          | Default                  | Description                                                                  |
+| ----------------- | ------------- | ------------------------ | ---------------------------------------------------------------------------- |
+| `storeInstrument` | `Boolean`     | `false`                  | Whether to persist the instrument for repeated future use after tokenization |
+| `futureUsage`     | `FutureUsage` | `FutureUsage.CardOnFile` | Signals the intended future use of this card to the card network             |
+
+---
+
+### `FutureUsage`
+
+Enum signaling intended future card use to the card network. Sent as part of the vault request.
+
+```kotlin
+enum class FutureUsage(val value: String) {
+    CardOnFile("CardOnFile"),
+    Subscription("Subscription"),
+    UnscheduledCardOnFile("UnscheduledCardOnFile")
+}
+```
+
+| Value                   | Description                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `CardOnFile`            | Customer-initiated payments where the cardholder is present at checkout              |
+| `Subscription`          | Recurring charges on a fixed schedule authorized by the cardholder                   |
+| `UnscheduledCardOnFile` | Merchant-initiated charges with no fixed schedule (e.g., top-ups, threshold billing) |
+
+---
+
+### `SaveInstrumentResponse`
+
+Response returned by `tokenize()`. Represents the saved instrument record from the vault.
+
+```kotlin
+@Serializable
+data class SaveInstrumentResponse(
+    val id: String,
+    val createdAt: String,
+    val holderId: String,
+    val paymentMethod: String,
+    val status: String,
+    val data: InstrumentResponseData,
+    val fingerprint: String? = null,
+    val futureUsage: String? = null
+)
+```
+
+| Property        | Type                     | Nullable | Description                                                              |
+| --------------- | ------------------------ | -------- | ------------------------------------------------------------------------ |
+| `id`            | `String`                 | No       | Instrument identifier; use for future payments and instrument management |
+| `createdAt`     | `String`                 | No       | ISO 8601 timestamp of instrument creation                                |
+| `holderId`      | `String`                 | No       | Payrails holder ID associated with this instrument                       |
+| `paymentMethod` | `String`                 | No       | Always `"card"` for card tokenization                                    |
+| `status`        | `String`                 | No       | Instrument lifecycle status (e.g., `"active"`)                           |
+| `data`          | `InstrumentResponseData` | No       | Card presentation data (BIN, suffix, network, etc.)                      |
+| `fingerprint`   | `String?`                | Yes      | Card fingerprint for deduplication across instruments                    |
+| `futureUsage`   | `String?`                | Yes      | Future use value as recorded by the vault                                |
+
+#### `SaveInstrumentResponse.InstrumentResponseData`
+
+| Property      | Type         | Nullable | Description                                                                        |
+| ------------- | ------------ | -------- | ---------------------------------------------------------------------------------- |
+| `bin`         | `String?`    | Yes      | Card BIN (first digits, per PCI SSC BIN length policy)                             |
+| `binLookup`   | `BinLookup?` | Yes      | Enriched BIN metadata including network, issuer, and issuer country when available |
+| `suffix`      | `String?`    | Yes      | Card last digits                                                                   |
+| `network`     | `String?`    | Yes      | Card network identifier (e.g., `"visa"`, `"mastercard"`)                           |
+| `holderName`  | `String?`    | Yes      | Cardholder name as entered in the card form                                        |
+| `expiryMonth` | `String?`    | Yes      | Two-digit expiry month                                                             |
+| `expiryYear`  | `String?`    | Yes      | Two or four-digit expiry year                                                      |
+
+---
+
+### `InstrumentAPIResponse.Save`
+
+The `Save` variant of the `InstrumentAPIResponse` sealed class, returned when using lower-level instrument API calls. `CardForm.tokenize()` returns `SaveInstrumentResponse` directly rather than wrapping it.
+
+```kotlin
+sealed class InstrumentAPIResponse {
+    data class Delete(val response: DeleteInstrumentResponse) : InstrumentAPIResponse()
+    data class Update(val response: UpdateInstrumentResponse) : InstrumentAPIResponse()
+    data class Save(val response: SaveInstrumentResponse) : InstrumentAPIResponse()
+}
+```
+
+---
+
+## Google Pay
+
+### GooglePayButton
+
+Create a `GooglePayButton` after initializing a session. The button handles Google Pay availability checks, payment sheet presentation, and authorization automatically.
+
+> **Kotlin/Compose only.** Element creation and `Render()` require Kotlin and Jetpack Compose. The delegate callbacks below are Java-compatible.
+
+**Kotlin**
+
+```kotlin
+val googlePayButton = Payrails.createGooglePayButton(
+    style = GooglePayButtonStyle(),
+    translations = GooglePayButtonTranslations(),
+    showStoreInstrumentCheckbox = false
+)
+
+googlePayButton.delegate = object : PayrailsGooglePayButtonDelegate {
+    override fun onGooglePayAvailable(button: GooglePayButton) {
+        // Google Pay is supported on this device
+    }
+    override fun onPaymentButtonClicked(button: GooglePayButton) {
+        // User tapped the Google Pay button
+    }
+    override fun onAuthorizeSuccess(button: GooglePayButton) {
+        // Payment succeeded
+    }
+    override fun onThreeDSecureChallenge(button: GooglePayButton) {
+        // 3DS challenge started
+    }
+    override fun onAuthorizeFailed(button: GooglePayButton) {
+        // Payment failed
+    }
+}
+
+// In Compose
+googlePayButton.Render()
+```
+
+**Java** — setting the delegate
+
+```java
+googlePayButton.setDelegate(new PayrailsGooglePayButtonDelegate() {
+    @Override
+    public void onGooglePayAvailable(GooglePayButton button) {}
+    @Override
+    public void onPaymentButtonClicked(GooglePayButton button) {}
+    @Override
+    public void onAuthorizeSuccess(GooglePayButton button) {}
+    @Override
+    public void onThreeDSecureChallenge(GooglePayButton button) {}
+    @Override
+    public void onAuthorizeFailed(GooglePayButton button) {}
+});
+```
+
+The button is hidden by default and becomes visible only after `isReadyToPay()` succeeds. The `onGooglePayAvailable` callback fires when the button becomes visible.
+
+#### Google Pay Configuration
+
+Google Pay configuration is provided by the Payrails backend through `paymentCompositionOptions`. The SDK reads `clientConfig.additionalConfig` for the Google Pay payment option, which contains:
+
+- `apiVersion` / `apiVersionMinor` — Google Pay API version (defaults to `2` / `0`)
+- `allowedPaymentMethods` — Payment methods array including `tokenizationSpecification` (gateway configuration)
+- `merchantInfo` — Merchant identifier and name (required in production)
+- `emailRequired` — Whether to request the payer's email
+- `shippingAddressRequired` / `shippingAddressParameters` — Shipping address collection
+
+The `countryCode` for `transactionInfo` is extracted from `meta.order.billingAddress.country.code` in the execution metadata.
+
+No client-side configuration of gateway credentials is needed. The `PAYMENT_GATEWAY`, `gateway`, and `gatewayMerchantId` values are provided by the backend.
+
+#### GooglePayButtonStyle
+
+`GooglePayButtonStyle` controls the button appearance:
+
+| Property                   | Type             | Default  | Description                                                                           |
+| -------------------------- | ---------------- | -------- | ------------------------------------------------------------------------------------- |
+| `buttonTheme`              | `ButtonTheme`    | `Dark`   | Google Pay button theme (`Dark` or `Light`)                                           |
+| `buttonType`               | `ButtonType`     | `Pay`    | Button label type (`Buy`, `Pay`, `Checkout`, `Donate`, `Order`, `Plain`, `Subscribe`) |
+| `cornerRadius`             | `Dp`             | `100.dp` | Button corner radius                                                                  |
+| `containerPadding`         | `PaddingValues?` | `null`   | Padding around the button container                                                   |
+| `containerBackgroundColor` | `Color?`         | `null`   | Background color behind the button                                                    |
+
+#### GooglePayButtonTranslations
+
+`GooglePayButtonTranslations` provides:
+
+- `storeInstrument: String?` — Checkbox label text when `showStoreInstrumentCheckbox` is enabled. Defaults to `"Save this payment method"`.
+
+#### PayrailsGooglePayButtonDelegate
+
+| Callback                             | When it fires                                                                      |
+| ------------------------------------ | ---------------------------------------------------------------------------------- |
+| `onGooglePayAvailable(button)`       | `isReadyToPay()` succeeded; button is now visible                                  |
+| `onPaymentButtonClicked(button)`     | User tapped the button; payment sheet is about to open                             |
+| `onAuthorizeSuccess(button)`         | Payment authorized successfully                                                    |
+| `onThreeDSecureChallenge(button)`    | 3DS challenge started (Custom Tab opened)                                          |
+| `onAuthorizeFailed(button, failure)` | Payment failed or was rejected                                                     |
+| `onStateChanged(button, state)`      | Button state changed (`ENABLED`, `DISABLED`, `LOADING`). Optional — default no-op. |
+
+#### Store Instrument Checkbox
+
+Pass `showStoreInstrumentCheckbox = true` to `createGooglePayButton(...)` to render a checkbox below the Google Pay button. When checked, the payment token is stored as an instrument for future use.
+
+```kotlin
+val googlePayButton = Payrails.createGooglePayButton(
+    showStoreInstrumentCheckbox = true,
+    translations = GooglePayButtonTranslations(storeInstrument = "Save for next time")
+)
+```
+
+#### 3DS for Google Pay
+
+If the authorize response requires 3DS verification, the SDK opens the challenge URL in a Custom Tab and polls for the terminal result, following the same 3DS flow used for card payments. The `onThreeDSecureChallenge` delegate callback fires when this happens.
+
+## PayPal
+
+### PayPalButton
+
+Create a `PayPalButton` after initializing a session. The button handles PayPal redirect presentation, polling for results, and authorization automatically.
+
+> **Kotlin/Compose only.** Element creation and `Render()` require Kotlin and Jetpack Compose. The delegate callbacks below are Java-compatible.
+
+**Kotlin**
+
+```kotlin
+val payPalButton = Payrails.createPayPalButton(
+    style = PayPalButtonStyle(height = 45.dp, width = 200.dp),
+    translations = PayPalButtonTranslations()
+)
+
+payPalButton.delegate = object : PayrailsPayPalButtonDelegate {
+    override fun onPaymentButtonClicked(button: PayPalButton) {
+        // User tapped the PayPal button
+    }
+    override fun onAuthorizeSuccess(button: PayPalButton) {
+        // Payment succeeded
+    }
+    override fun onAuthorizeFailed(button: PayPalButton) {
+        // Payment failed or was rejected
+    }
+    override fun onPaymentSessionExpired(button: PayPalButton) {
+        // Session is no longer usable — fetch a new init payload and call Payrails.createSession()
+    }
+}
+
+// In Compose
+payPalButton.Render()
+```
+
+#### PayPalButtonStyle
+
+| Property | Type  | Default | Description                                                                                                                   |
+| -------- | ----- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `height` | `Dp`  | `45.dp` | Button height. Clamped to the PayPal-sanctioned range of 30–55 dp.                                                            |
+| `width`  | `Dp?` | `null`  | Fixed button width. When `null`, width is controlled by the `modifier` passed to `Render()` (e.g. `Modifier.fillMaxWidth()`). |
+
+#### PayPalButtonTranslations
+
+| Property             | Type      | Default    | Description                                                         |
+| -------------------- | --------- | ---------- | ------------------------------------------------------------------- |
+| `contentDescription` | `String?` | `"PayPal"` | Accessibility content description for the button, read by TalkBack. |
+
+#### PayrailsPayPalButtonDelegate
+
+| Callback                             | Required | When it fires                                                                                                                                                                                           |
+| ------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onPaymentButtonClicked(button)`     | No       | User tapped the button; payment flow is starting. Default no-op.                                                                                                                                        |
+| `onAuthorizeSuccess(button)`         | No       | Payment authorized successfully. Default no-op.                                                                                                                                                         |
+| `onAuthorizeFailed(button, failure)` | No       | Payment failed, was rejected, or an error occurred. Default no-op.                                                                                                                                      |
+| `onPaymentSessionExpired(button)`    | **Yes**  | Session is no longer usable — fires after cancel, and also after `authorizeFailed` when the session expired during the payment attempt. Must fetch fresh init data and call `Payrails.createSession()`. |
+| `onCancelled(button)`                | No       | User explicitly cancelled in the PayPal browser flow. Fires before `onPaymentSessionExpired` on explicit cancellation. Default no-op.                                                                   |
+| `onStateChanged(button, state)`      | No       | Button state changed (`LOADING` when payment starts, `ENABLED` when complete). Default no-op.                                                                                                           |
+
+Only `onPaymentSessionExpired` has no default implementation and must be provided — the session cannot be reused after a PayPal cancellation or expiry, so the merchant must handle this to allow retries.
+
+## Redirect Payments
+
+### GenericRedirectButton
+
+Create a `GenericRedirectButton` for redirect-based payment methods (iDEAL, Bancontact, Sofort, etc.). Use `Session.getPaymentMethodConfig(PaymentMethodFilter.Redirect)` to discover which methods are configured.
+
+> **Kotlin/Compose only.** Element creation and `Render()` require Kotlin and Jetpack Compose. The delegate callbacks below are Java-compatible.
+
+### Discovering Available Redirect Methods
+
+```kotlin
+val redirectMethods: List<PayrailsPaymentOption> =
+    session.getPaymentMethodConfig(PaymentMethodFilter.Redirect)
+```
+
+Returns an empty list if no redirect methods are configured. See
+[`Session.getPaymentMethodConfig(filter)`](#sessiongetpaymentmethodconfigfilter) for the
+full filter API.
+
+#### PayrailsPaymentOption
+
+| Property            | Type      | Nullable | Description                                                 |
+| ------------------- | --------- | -------- | ----------------------------------------------------------- |
+| `paymentMethodCode` | `String`  | No       | Payment method identifier (e.g., `"iDeal"`, `"bancontact"`) |
+| `displayName`       | `String?` | Yes      | Human-readable label from the backend                       |
+
+### Creating a Redirect Button
+
+```kotlin
+val button = Payrails.createGenericRedirectButton(
+    translations = CardPaymenButtonTranslations(label = "Pay with iDEAL"),
+    paymentMethodCode = "iDeal",
+    buttonStyle = CardButtonStyle(/* optional styling */)
+)
+
+button.delegate = object : GenericRedirectPaymentButtonDelegate {
+    override fun onPaymentButtonClicked(button: GenericRedirectButton) {}
+    override fun onAuthorizeSuccess(button: GenericRedirectButton) {}
+    override fun onAuthorizeFailed(button: GenericRedirectButton) {}
+    override fun onPaymentSessionExpired(button: GenericRedirectButton) {}
+    override fun onStateChanged(button: GenericRedirectButton, state: ButtonState) {}
+}
+
+// In Compose
+button.Render()
+```
+
+**Java** — setting the delegate
+
+```java
+button.setDelegate(new GenericRedirectPaymentButtonDelegate() {
+    @Override
+    public void onPaymentButtonClicked(GenericRedirectButton button) {}
+    @Override
+    public void onAuthorizeSuccess(GenericRedirectButton button) {}
+    @Override
+    public void onAuthorizeFailed(GenericRedirectButton button) {}
+    // onPaymentSessionExpired and onStateChanged have default no-ops
+});
+```
+
+#### GenericRedirectPaymentButtonDelegate
+
+| Callback                             | When it fires                                                                                                     |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `onPaymentButtonClicked(button)`     | User tapped the button; redirect flow is starting                                                                 |
+| `onAuthorizeSuccess(button)`         | Payment authorized successfully                                                                                   |
+| `onAuthorizeFailed(button, failure)` | Payment failed, was rejected, or an error occurred                                                                |
+| `onCancelled(button)`                | User explicitly cancelled the redirect (e.g., pressed back in the browser). Optional — default no-op.             |
+| `onPaymentSessionExpired(button)`    | Redirect was abandoned without reaching a terminal status, triggering session recovery. Optional — default no-op. |
+| `onStateChanged(button, state)`      | Button state changed (`LOADING` when payment starts, `ENABLED` when complete). Optional — default no-op.          |
+
+#### Redirect Flow Behavior
+
+When the user taps the button, the SDK:
+
+1. Opens the payment provider's redirect URL in a Custom Tab (falls back to system browser)
+2. Polls the execution status in the background until terminal success/failure
+3. Delivers the result through delegate callbacks
+
+The redirect flow shares the same polling and session recovery infrastructure as card 3DS and Google Pay 3DS redirects. If the redirect is abandoned or remains non-terminal, or the provider reports an authentication/session-expiry error, the `onPaymentSessionExpired` callback (if implemented) is invoked for automatic recovery.
+
+#### Button Styling
+
+`GenericRedirectButton` accepts the same `CardButtonStyle` and `CardPaymenButtonTranslations` as `CardPaymentButton`. See [Card Payment Button Styling](#card-payment-button-styling) for available properties.
+
+## Stored Instruments
+
+### StoredInstrument Interface
+
+Each `StoredInstrument` exposes:
+
+| Property       | Type                      | Description                                                          |
+| -------------- | ------------------------- | -------------------------------------------------------------------- |
+| `id`           | `String`                  | Instrument identifier                                                |
+| `email`        | `String?`                 | Email (PayPal instruments)                                           |
+| `description`  | `String?`                 | Legacy display string (`"bin***suffix"` for cards, email for PayPal) |
+| `type`         | `PaymentMethod`           | Instrument payment method                                            |
+| `displayName`  | `String?`                 | Server-provided display name (cards: custom name; PayPal: email)     |
+| `isDefault`    | `Boolean`                 | Whether this is the holder's default instrument                      |
+| `cardMetadata` | `CardInstrumentMetadata?` | Typed card details (non-null for cards, null for other types)        |
+
+The SDK maps the backend instrument field `default` to `StoredInstrument.isDefault`.
+
+#### CardInstrumentMetadata
+
+Public data class with typed card presentation data:
+
+| Property        | Type      | Description                                   |
+| --------------- | --------- | --------------------------------------------- |
+| `bin`           | `String?` | Card BIN (first digits)                       |
+| `suffix`        | `String?` | Card last digits                              |
+| `network`       | `String?` | Card network (e.g., `"visa"`, `"mastercard"`) |
+| `issuerCountry` | `String?` | Issuing country code                          |
+
+Migration note: prefer `displayName` and `cardMetadata` over parsing the `description` string. `description` remains available for backwards compatibility.
+
+### Retrieving Stored Instruments
+
+Use `session.getStoredInstruments()` to retrieve available instruments, then set one on the button:
+
+**Kotlin**
+
+```kotlin
+val instruments = session.getStoredInstruments()
+val cardInstruments = session.getStoredInstruments(forType = PaymentMethod.card)
+
+// Set a stored instrument on the card payment button
+payButton.setStoredInstrument(cardInstruments.first())
+```
+
+**Java**
+
+```java
+List<StoredInstrument> instruments = session.getStoredInstruments(null);
+List<StoredInstrument> cardInstruments = session.getStoredInstruments(PaymentMethod.card);
+
+payButton.setStoredInstrument(cardInstruments.get(0));
+```
+
+### Instrument Management APIs
+
+Use typed methods on `Session` to delete or update stored instruments:
+
+```kotlin
+// Delete an instrument
+val deleteResult: InstrumentAPIResponse.Delete = session.deleteInstrument(instrumentId)
+
+// Update an instrument
+val updateResult: InstrumentAPIResponse.Update = session.updateInstrument(
+    instrumentId,
+    UpdateInstrumentBody(default = true)
+)
+```
+
+The return type is `InstrumentAPIResponse`, a sealed class with `Delete`, `Update`, and `Save` variants (capitalized). See [Card Tokenization](#card-tokenization) for the `Save` variant and the `tokenize()` method.
+
+## Results and Errors
+
+Payment results are surfaced through delegate interfaces:
+
+**Card payments** — `PayrailsCardPaymentButtonDelegate`:
+
+- `onAuthorizeSuccess` — payment succeeded
+- `onAuthorizeFailed` — payment failed (includes session-expiry outcomes from redirect reconciliation)
+- `onThreeDSecureChallenge` — 3DS challenge started
+- `onPaymentButtonClicked` — button was tapped
+
+**Google Pay** — `PayrailsGooglePayButtonDelegate`:
+
+- `onAuthorizeSuccess` — payment succeeded
+- `onAuthorizeFailed` — payment failed
+- `onThreeDSecureChallenge` — 3DS challenge started
+- `onPaymentButtonClicked` — button was tapped
+- `onGooglePayAvailable` — Google Pay is ready on this device
+
+**PayPal** — `PayrailsPayPalButtonDelegate`:
+
+- `onAuthorizeSuccess` — payment authorized
+- `onAuthorizeFailed` — payment failed or was rejected
+- `onCancelled` — user explicitly cancelled in the browser
+- `onPaymentSessionExpired` — session expired and must be refreshed before retry (**required**)
+- `onPaymentButtonClicked` — button was tapped
+
+**Generic Redirect** — `GenericRedirectPaymentButtonDelegate`:
+
+- `onAuthorizeSuccess` — payment authorized
+- `onAuthorizeFailed` — payment failed or was rejected
+- `onCancelled` — user explicitly cancelled the redirect
+- `onPaymentSessionExpired` — redirect was abandoned or session expired
+- `onPaymentButtonClicked` — button was tapped
+
+`Failed` includes session-expiry outcomes from redirect reconciliation (for example browser abandoned/non-terminal timeout), including cases where automatic `onSessionExpired` recovery is attempted.
+
+Errors are represented by `PayrailsError` (e.g., `authenticationError`, `missingData`).
+
+---
+
+## Co-Branded Cards
+
+Support for cards carrying two networks (a local scheme like `mada` plus an international one like `mastercard`). Activates only when the session is co-branded-enabled (backend `featureConfig.coBrandedCardsRollout` flag + a `binLookup` link). See the [how-to](/docs/how-to-co-branded-cards) and the [concept](/docs/sdk-concepts#co-branded-cards).
+
+### `Session.binLookup(bin)`
+
+```kotlin
+suspend fun binLookup(bin: String): BinLookupResponse?
+```
+
+One-shot BIN lookup against the session's `binLookup` endpoint. **Non-throwing**: returns `null` on invalid input (not 6–8 digits), an inactive session, a missing endpoint, or a network error (coroutine cancellation propagates). No throttling or caching — the card form's internal as-you-type lookup handles that.
+
+```kotlin
+val result = session.binLookup("529741")
+if (result?.localNetwork != null) { /* co-branded */ }
+```
+
+### `BinLookupResponse`
+
+| Field           | Type             | Notes                                               |
+| --------------- | ---------------- | --------------------------------------------------- |
+| `bin`           | `String`         | The looked-up BIN                                   |
+| `network`       | `String`         | Canonical international scheme, e.g. `"mastercard"` |
+| `localNetwork`  | `String?`        | Co-branded local scheme, e.g. `"mada"`              |
+| `issuer`        | `String?`        | Issuing bank                                        |
+| `issuerCountry` | `IssuerCountry?` | Issuer country                                      |
+| `type`          | `String?`        | e.g. `"credit"` / `"debit"`                         |
+
+### `IssuerCountry`
+
+| Field  | Type      |
+| ------ | --------- |
+| `code` | `String`  |
+| `name` | `String?` |
+| `iso3` | `String?` |
+
+### `CardFormEvents.onPreferredSchemeChanged`
+
+```kotlin
+val onPreferredSchemeChanged: ((PreferredSchemeChange) -> Unit)? = null
+```
+
+Invoked when the shopper's preferred scheme changes: on resolution to a co-branded card (default selection), on a selection change, and once with an empty payload when co-branded state clears. De-duplicated.
+
+### `PreferredSchemeChange`
+
+| Field             | Type               | Notes                                               |
+| ----------------- | ------------------ | --------------------------------------------------- |
+| `preferredScheme` | `String?`          | Selected canonical code; `null` when not co-branded |
+| `cardSchemes`     | `List<CardScheme>` | Detected schemes (empty when not co-branded)        |
+
+### `CardScheme`
+
+| Field      | Type      | Notes                                |
+| ---------- | --------- | ------------------------------------ |
+| `code`     | `String`  | Canonical scheme code, e.g. `"mada"` |
+| `name`     | `String`  | Display label                        |
+| `logoUrl`  | `String?` | Brand logo URL                       |
+| `selected` | `Boolean` | Whether this scheme is selected      |
+
+### Selector UI, styling, and translations
+
+The Card Brand selector renders automatically inside `CardForm` for co-branded cards. Customize:
+
+- **Text** — `CardTranslations.Labels.cardBrandSelectorTitle` / `cardBrandSelectorSubtitle` (defaults `"Card Brand"` / `"Select your preferred network"`).
+- **Look** — `CardFormStylesConfig.cardBrandSelector: CardBrandSelectorStyle?`; see the [Card Brand Selector styling reference](/docs/styling-guide#card-brand-selector).
+
+### Payment
+
+When a co-branded card is paid, the selected scheme is submitted as `paymentInstrumentData.preferredScheme` on the authorize request; it is omitted for single-brand cards.
+
+---
+
+## Further Reading
+
+- **[Quick Start](/docs/android-sdk-1)** — Get a card payment working in 15 minutes
+- **[How to Tokenize a Card](/docs/how-to-tokenize-card)** — Save a card without charging the customer
+- **[How to Accept Redirect Payments](/docs/how-to-accept-redirect-payments)** — Accept iDEAL, Bancontact, Sofort, and other redirect-based methods
+- **[How to Update the Checkout Amount](/docs/update-checkout-amount)** — Apply tips, discounts, or shipping costs after session creation
+- **[Styling Guide](/docs/styling-guide)** — Customize form and button appearance
+- **[SDK Concepts](/docs/sdk-concepts)** — Architecture, payment flows, 3DS, security model
+- **[Troubleshooting](/docs/troubleshooting)** — Common issues and solutions

@@ -1,0 +1,135 @@
+---
+description: "TrueMoney Wallet is one of Southeast Asia's most popular digital wallets, enabling customers to make secure online payments using their wallet balance, linked bank accounts, or stored cards. With TrueMoney, customers can complete purchases through a fast redirect-based flow, making it one of the most trusted and widely used payment methods in Thailand."
+title: "TrueMoney"
+---
+## Introduction
+TrueMoney uses a **redirect-based payment flow**. When a customer selects TrueMoney at checkout, they are redirected to TrueMoney's interface to authenticate and confirm their payment via QR code, then redirected back to your website or app upon completion. TrueMoney is a single-use payment method where customers must authenticate each payment.
+
+This guide explains the process of integrating TrueMoney into your app or website using Payrails.
+
+## Pre-requisites
+
+Before you start accepting TrueMoney payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for TrueMoney via **dLocal** as a Payment Service Provider. If you do not have a dLocal integration already configured in your workspace, please follow the [dLocal integration setup guide](/docs/orchestration/integrations/dlocal) first.
+3. Enable TrueMoney as a payment method in your dLocal integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your dLocal integration instance, and enable the **TrueMoney** checkbox under Payment methods, then save the account.
+4. Enable TrueMoney as a [payment option](set-up-payment-methods) in your workflow.
+5. Make sure you're sending the TrueMoney-specific meta fields in your requests.
+
+## Ways to integrate TrueMoney
+
+### Payrails SDK
+
+The simplest way to use TrueMoney with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with TrueMoney except for handling success/failure screens for your users.
+
+For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#generic-redirect-element) for your client-side implementation.
+
+### Server-to-server integration
+
+You can integrate TrueMoney by completely managing your own client-side implementation, and using Payrails APIs with a server-to-server integration to process TrueMoney payments.
+
+#### Parse TrueMoney from lookup response
+
+With a server-to-server integration, you can call our [lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) endpoint to get available payment options. As shown in the example below, you can see `trueMoney` returned as an option of the `paymentCompositionOptions`.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2026-03-26T12:00:00.000000000Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "redirect",
+        "paymentMethodCode": "trueMoney",
+        "description": "TrueMoney"
+      }
+    ]
+  },
+  "links": {
+    "execution": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+    "authorize": {
+      "method": "POST",
+      "href": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
+    }
+  }
+}
+```
+
+#### Pass TrueMoney payment method in request to authorize payment with Payrails
+
+You can then make a request to our [authorize a payment endpoint](/reference/authorizeaction) with `trueMoney` as the `paymentMethodCode`. See an example below:
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "50000",
+    "currency": "THB"
+  },
+  "paymentComposition": [
+    {
+      "integrationType": "redirect",
+      "paymentMethodCode": "trueMoney",
+      "amount": {
+        "value": "50000",
+        "currency": "THB"
+      }
+    }
+  ],
+  "meta": {
+    "customer": {
+      "name": "Jane Doe",
+      "email": "jane.doe@email.com",
+      "country": {
+        "code": "TH"
+      }
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+> **Note on amounts:** THB uses 2 decimal places. Amounts should be provided in the smallest currency unit — e.g., `50000` for ฿500.00.
+>
+>
+> **Note:** TrueMoney is a redirect-based, single-use payment method. After calling the authorize endpoint, the customer will be redirected to TrueMoney's interface to authenticate and confirm the payment via QR code. Once confirmed, the customer will be redirected back to the `returnInfo.success` URL. Make sure to provide valid `returnInfo` URLs in your authorization request.
+
+#### Handle the redirect response
+
+After the customer completes the payment on TrueMoney's side, they will be redirected back to your `success` or `error` URL. You should then verify the payment status by checking the workflow execution status via the Payrails API or by listening to webhook notifications.
+
+## Supported currencies
+
+TrueMoney via dLocal supports the following presentment currency:
+
+* THB — Thai Baht
+
+## Supported regions / countries
+
+### Customer regions
+
+TrueMoney is available to customers based in:
+
+* Thailand 🇹🇭
+
+### Merchant regions
+
+Merchants enabled for Thailand can accept TrueMoney payments via dLocal.
+
+## Supported workflows and services
+
+| Workflow                             | Supported |
+| ------------------------------------ | --------- |
+| Available via Payrails SDK           | ✔️        |
+| Available via Payrails API           | ✔️        |
+| Delayed / Manual Capture             | ✖️        |
+| Instant Capture                      | ✔️        |
+| Cancel / Void                        | ✖️        |
+| Refund / Reverse                     | ✔️        |
+| Save Instruments                     | ✖️        |
+| Merchant Initiated Transaction (MIT) | ✖️        |

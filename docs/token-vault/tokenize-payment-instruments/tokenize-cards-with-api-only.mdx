@@ -1,0 +1,274 @@
+---
+title: Tokenize cards with API-only
+---
+<Note>
+  This is the most advanced way to send cards to Payrails Vault. We recommend using the [Secure Fields](doc:tokenize-cards-with-secure-fields) or [Client-Side Encryption](doc:tokenize-cards-with-client-side-encryption) guides if you're looking for the lowest PCI DSS scope and a lower integration effort.
+</Note>
+
+If you want full control over collecting card details from your customers and then sending them to us via API, this tokenization type is the right choice. However, it's still important that the card data that travels from your system to ours is encrypted using the highest standards possible.
+
+Payrails uses JWE with an encryption algorithm `RSA-OAEP-256` and content encryption `A256CBC-HS512`.
+
+If you need to know more about tokenization and Payrails Token Vault, we recommend you first read this guide to [tokenize cards](index).
+
+## How it works
+
+### Step 1. Collect the card data from your customer
+
+Collect the relevant card data into a JSON object with the following fields.  Keep in mind that `holderName` and  `securityCode` are optional but strongly recommended for increasing your authorization rates when sending a payment request to your Payment Provider.
+
+```json
+{
+    "cardNumber": "4111111111111111",
+    "expiryMonth": "03",
+    "expiryYear": "30",
+    "securityCode": "737",
+    "holderName": "John Doe",
+    "holderReference": "customer123"
+}
+```
+
+### Step 2. Encrypt the card data
+
+Encrypt the full JSON using [Get public encryption key for tokenization API](/reference/vaultpublicinfo).
+
+* The `encryptionPublicKey` and `encryptionKeyId` will be fetched from the API, and be used to encrypt the data.
+* Ensure that `expiresIn` value is validated from the API response.
+* The encrypted data should be encrypted using JWE with the encryption algorithm `RSA-OAEP-256` and content encryption `A256CBC-HS512`.
+* The `encryptionKeyID` must be included as the `kid` JWE header.
+
+Here are some examples of how to do this in a few programming languages:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/go-jose/go-jose/v3"
+	"github.com/golang-module/dongle/openssl"
+)
+
+type publicKeyInfo struct {
+	ExpiresIn           int    `json:"expiresIn"`
+	EncryptionKeyID     string `json:"encryptionKeyId"`
+	EncryptionPublicKey string `json:"encryptionPublicKey"`
+}
+
+var latestPublicKeyInfo publicKeyInfo
+
+func updatePublicKey() {
+	response, err := http.Get("https://payrails-api.staging.payrails.io/payment/vault/info")
+	// this demo example does not check errors and it is not thread safe, it just shows the principle
+	if err != nil {
+		panic(err)
+	}
+	err = json.NewDecoder(response.Body).Decode(&latestPublicKeyInfo)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func backgroundRefresh() {
+	for {
+		sleepDuration := time.Duration(latestPublicKeyInfo.ExpiresIn)*time.Second - time.Minute
+		if sleepDuration > 0 {
+			time.Sleep(sleepDuration)
+		}
+		updatePublicKey()
+	}
+}
+
+func main() {
+	// fetch vault key info first and update it every `expiryIn` seconds with some time buffer
+	go backgroundRefresh()
+
+	instrumentDetails := InstrumentDetails{
+		HolderReference: "customer123",
+		HolderName:      "John Doe",
+		CardNumber:      "4111111111111111",
+		ExpiryMonth:     "03",
+		ExpiryYear:      "30",
+		SecurityCode:    "737",
+	}
+
+	instrumentDetailsJSON, err := json.Marshal(instrumentDetails)
+	if err != nil {
+		// handle error
+		panic(err)
+	}
+	fmt.Println(string(instrumentDetailsJSON))
+	// {"cardNumber":"4111111111111111","expiryMonth":"03","expiryYear":"30","securityCode":"737","holderName":"John Doe","holderReference":"customer123"}
+
+	encryptedCardData, err := jweEncrypt(instrumentDetailsJSON)
+	if err != nil {
+		// handle error
+		panic(err)
+	}
+	fmt.Println(encryptedCardData)
+	// eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIn0...
+}
+
+// InstrumentDetails represents the instrument details to be encrypted
+type InstrumentDetails struct {
+	CardNumber      string `json:"cardNumber"`
+	ExpiryMonth     string `json:"expiryMonth"`
+	ExpiryYear      string `json:"expiryYear"`
+	SecurityCode    string `json:"securityCode,omitempty"`
+	HolderName      string `json:"holderName"`
+	HolderReference string `json:"holderReference"`
+}
+
+func jweEncrypt(jsonData []byte) (string, error) {
+	publicKey, err := openssl.RSA.ParsePublicKey(openssl.RSA.FormatPublicKey(openssl.PKCS8, []byte(latestPublicKeyInfo.EncryptionPublicKey)))
+	if err != nil {
+		return "", err
+	}
+	recipient := jose.Recipient{
+		Algorithm: jose.RSA_OAEP_256,
+		Key:       publicKey,
+		KeyID:     latestPublicKeyInfo.EncryptionKeyID,
+	}
+
+	e, err := jose.NewEncrypter(jose.A256CBC_HS512, recipient, nil)
+	if err != nil {
+		return "", err
+	}
+
+	encrypted, err := e.Encrypt(jsonData)
+	if err != nil {
+		return "", err
+	}
+	return encrypted.CompactSerialize()
+}
+
+```
+```python
+# Due to an issue in python-jose (https://github.com/mpdavis/python-jose/issues/281)
+# Please use the fork which allows to use RSA-OAEP-256: https://github.com/jkamp-aws/python-jose
+# Ex:
+# pip3 install cryptograph
+# pip3 install git+https://github.com/jkamp-aws/python-jose
+
+from jose import jwe
+import json
+import requests
+
+class PublicKeyInfo(object):
+    def __init__(self, resp):
+        print(resp)
+        self.__dict__ = resp
+
+def format_public_key_to_pem(public_key):
+    pem_header = "-----BEGIN PUBLIC KEY-----"
+    pem_footer = "-----END PUBLIC KEY-----"
+
+    chunks = [public_key[i:i+64] for i in range(0, len(public_key), 64)]
+    pem_content = "\n".join(chunks)
+    pem_key = f"{pem_header}\n{pem_content}\n{pem_footer}"
+
+    return pem_key
+
+    data = {
+      "cardNumber": "4111111111111111",
+      "expiryMonth": "03",
+      "expiryYear": "30",
+      "securityCode": "737",
+      "holderName": "John Doe",
+      "holderReference": "customer123"
+    }
+
+def updatePublicKey():
+    #fetch from Payrails API reference: /reference/vaultpublicinfo
+    #this demo example does not check errors and it is not thread safe, it just shows the principle
+    resp = requests.get("https://payrails-api.staging.payrails.io/payment/vault/info")
+    latestPublicKeyInfo = PublicKeyInfo(resp.json())
+
+def backfroundRefresh():
+   while True:
+      expiryTime = latestPublicKeyInfo.expiresIn - 60
+      if expiryTime > 0:
+        time.sleep(expiryTime)
+        updatePublicKey()
+
+# '...' should be the public key
+# response: { "encryptionPublicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0MqUlEo2bC9iJi4LEHQ6+DeeQCN4JSSesh894JWo+ikdUpxd5bYBkjNUFW1uAyeqE3DAkM8RJY+unuBHfhXhZhB4Oi9hKmDo8YAfV2uyVS7RTmPGtdRzUqel2I7Q4fw7TjGfqZAc6IOWZLKJ6IAyh5XdW/QbLFWEpPNQyN9CVGfFGhYu6Z93LSPSH5Ku/GuL5GWfHjwJ6f8PdI2O2r5MdgIaz9SRoRCb+VnHwvy7m1zwb78iwhdFBXoT5pRAtGAea0hJ0ufubuG/yvIHi1XVqNNRPy6EY8WVz93+Dxw6jmZeLWA3B/nYlRIoPpEerTvb9B3wkAHk6CehvTetVsLj+QIDAQAB", "encryptionKeyId": "b24ff007-728c-455d-b51c-556108ccdf59", "expiresIn": 3300 }
+updatePublicKey()
+
+ticker_thread = threading.Thread(target=backfroundRefresh, args=(latestPublicKey.expiresIn,))
+ticker_thread.daemon = True  # Daemonize the thread
+ticker_thread.start()  # Start the ticker thread
+
+jsonData = json.dumps(data).encode('utf-8')
+# {"cardNumber":"4111111111111111","expiryMonth":"03","expiryYear":"30","securityCode":"737","holderName":"John Doe","holderReference":"customer123"}
+
+encryptedCardData = jwe.encrypt(plaintext=jsonData, algorithm='RSA-OAEP-256', encryption='A256CBC-HS512', key=latestPublicKeyInfo.publicKey, keyID=latestPublicKeyInfo.keyID)
+# eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIn0...
+
+```
+
+### Step 3. Store the card in Payrails Vault
+
+Depending on your use case and the flow you choose, you may want to store the card and authorize its first payment in two different steps or into a single one.
+
+#### Only Tokenize
+
+In case you want to tokenize first, you can use the encrypted data in the previous step as the `encryptedData` field in the [Create Instrument](/reference/createinstrument#/) API under `data` object with the payment method defined as `card`.
+
+Remember to obtain consent from your customer to store the instrument for permanent usage, and choose the right value for the `storeInstrument` flag according to their choice.
+
+We recommend checking our [Authorization Flags](doc:authorization-flags) guide for optimizing the future authorization rates of that instrument.
+
+The response will contain the `id` of the newly created Payment Instrument, which can be used later for payments or other use cases.
+
+Here's an example payload of an [Authorize](ref:authorizeaction) action using that stored instrument:
+
+```json
+{
+  "paymentComposition": [
+    {
+      "paymentInstrumentId": "384279fe-fee4-441d-9836-d2ef663551ad", //your stored instrument id
+      "paymentMethodCode": "card",
+      "integrationType": "api",
+      "amount": {
+        "value": "12.50",
+        "currency": "EUR"
+      }
+    }
+  ],
+  ...
+}
+```
+
+#### Tokenize and Authorize
+
+If you want to immediately use the tokenized card in a payment, you can use the encrypted data in the previous step as a parameter in the [Authorize](ref:authorizeaction) action as in the following example:
+
+```json
+{
+  "paymentComposition": [
+    {
+      "paymentMethodCode": "card",
+      "integrationType": "api",
+      "amount": {
+        "value": "12.50",
+        "currency": "EUR"
+      },
+      "paymentInstrumentData": {
+        "encryptedData": ".......encryptedCard.......",
+        "futureUsage": "CardOnFile"
+      }
+    }
+  ],
+  ...
+}
+```
+
+<Note>
+  In case you want to re-send the security code of the card after the initial tokenization of a card, you can use the `encryptedData` under payment composition object in the authorize API.
+</Note>
+
+

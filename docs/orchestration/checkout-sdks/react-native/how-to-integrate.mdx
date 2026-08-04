@@ -1,0 +1,330 @@
+---
+title: How to Integrate
+description: How to integrate Drop-in and use different Elements.
+---
+
+# How to Integrate Drop-in
+
+Drop-in is a pre-built UI that bundles all your payment methods into a single, ready-to-mount component. No per method integration required.
+
+## Prerequisites
+
+- `@payrails/react-native-sdk` installed.
+- A backend endpoint that calls `/client/init` and returns the session response.
+- See the [Getting Started](how-to-integrate#getting-started-with-the-sdk) guide for provider setup.
+
+## Steps
+
+### 1. Mount the Drop-in
+
+Pass the full `/client/init` response to `config`. The Drop-in will not render without a valid config.
+
+```typescript React Native
+import { PayrailsDropin } from '@payrails/react-native-sdk';
+
+<PayrailsDropin
+  config={initResponse}
+  returnInfo={{
+    success: 'myapp://payment/success',
+    cancel: 'myapp://payment/cancel',
+    error: 'myapp://payment/error',
+    pending: 'myapp://payment/pending',
+  }}
+  events={{
+    onAuthorizeSuccess: () => console.log('Success'),
+    onAuthorizeFailure: (failure) => console.log('Payment failed', failure),
+  }}
+/>
+```
+
+### 2. Configure return URLs
+
+- If you use `returnInfo`, the base return URLs must also be configured in the Payrails Admin Portal. Contact the Payrails team for that setup.
+
+- `returnInfo` defines where the payment provider redirects the user after a redirect-based payment flow.
+
+### 3. Handle payment outcomes
+
+Use `events.onAuthorizeSuccess` and `events.onAuthorizeFailure` to navigate or show feedback. Always confirm the final payment status server-side via webhook — do not rely solely on client callbacks.
+
+## Customising the Drop-in
+
+- **Styles**: pass a `DropinStyles` object to the `styles` property. See the [Drop-in API Reference](api-references#styling) for the full type.
+- **Payment method visibility**: use `paymentMethodsConfiguration` to show or hide logos, stored instruments, and cardholder name. See the [Drop-in API Reference](api-references#payment-methods-configuration).
+- **Translations**: pass a `Translations` object to localise all labels. See the [Drop-in API Reference](api-references#translations).
+  ***
+  <br />
+
+# How to Use Elements
+
+Each Element handles a single payment method — drop it anywhere in your UI for full control over layout and placement.
+
+- Elements must be rendered inside a `PayrailsProvider`. See the [Getting Started](how-to-integrate#getting-started-with-the-sdk) guide for provider setup.
+
+- For configuration options for each element, see the [Elements API Reference](api-references#elements-api-reference).
+
+## How to Pay with a Stored Card
+
+```typescript React Native
+import React, { useState } from 'react';
+import {
+  PayWithCardButton,
+  useStoredCardInstruments,
+  PayrailsProvider,
+} from '@payrails/react-native-sdk';
+
+export function StoredCardsExample() {
+  const [loading, setLoading] = useState(false);
+  const storedCards = useStoredCardInstruments();
+
+  return (
+    <PayrailsProvider config={config}>
+      {storedCards.map((card) => (
+        <PayWithCardButton
+          key={card.id}
+          instrument={card}
+          disabled={loading}
+          onAuthorizeSuccess={() => console.log('Payment succeeded')}
+          onAuthorizeFailure={(failure) =>
+            console.log('Payment failed', failure)
+          }
+          onRequestProgressChange={(inProgress) => setLoading(inProgress)}
+        />
+      ))}
+    </PayrailsProvider>
+  );
+}
+```
+
+---
+
+## How to Pay with a New Card
+
+```typescript React Native
+import React from 'react';
+import {
+  TokenizationForm,
+  CardNumberElement,
+  CardHolderNameElement,
+  ExpirationDateElement,
+  CvvElement,
+  PayWithNewCardButton,
+  PayrailsProvider,
+} from '@payrails/react-native-sdk';
+
+export function NewCardPaymentExample() {
+  return (
+    <PayrailsProvider config={config}>
+      <TokenizationForm>
+        <CardNumberElement />
+        <CardHolderNameElement />
+        <ExpirationDateElement />
+        <CvvElement />
+        <PayWithNewCardButton
+          title="Pay"
+          shouldSaveCard={true}
+          onAuthorizeSuccess={() => console.log('Payment succeeded')}
+          onAuthorizeFailure={(failure) =>
+            console.log('Payment failed', failure)
+          }
+        />
+      </TokenizationForm>
+    </PayrailsProvider>
+  );
+}
+```
+
+---
+
+## How to Add Apple Pay
+
+Apple Pay renders a native button on iOS and returns `null` on Android.
+
+**Prerequisites**: Apple Pay must be configured in your Apple Developer account, and the device must have at least one card added.
+
+```typescript React Native
+import { ApplePay, useApplePayAvailable } from '@payrails/react-native-sdk';
+
+const isAvailable = useApplePayAvailable();
+
+{isAvailable && (
+  <ApplePay
+    buttonType="buy"
+    buttonStyle="black"
+    height={48}
+    cornerRadius={8}
+    onAuthorizeSuccess={() => console.log('Apple Pay succeeded')}
+    onAuthorizeFailure={(failure) => console.log('Apple Pay failed', failure)}
+    onAuthorizeCancel={() => console.log('User cancelled Apple Pay')}
+  />
+)}
+```
+
+---
+
+## How to Add Google Pay
+
+Google Pay renders a native button on Android and returns `null` on iOS.
+
+```typescript React Native
+import { GooglePay, useGooglePayAvailable } from '@payrails/react-native-sdk';
+
+const isAvailable = useGooglePayAvailable();
+
+{isAvailable && (
+  <GooglePay
+    merchantInfo={{ merchantId: 'your-merchant-id', merchantName: 'Your Store' }}
+    buttonType="pay"
+    onAuthorizeSuccess={() => console.log('Google Pay succeeded')}
+    onAuthorizeFailure={(failure) => console.log('Google Pay failed', failure)}
+    onAuthorizeCancel={() => console.log('User cancelled Google Pay')}
+  />
+)}
+```
+
+---
+
+## How to Add PayPal
+
+```typescript React Native
+import { PayPal } from '@payrails/react-native-sdk';
+
+<PayPal
+  storeInstrument={false}
+  style={{ height: 45 }}
+  onAuthorizeSuccess={() => console.log('PayPal payment succeeded')}
+  onAuthorizeFailure={(failure) => console.log('PayPal payment failed', failure)}
+  onAuthorizeCancel={() => console.log('User cancelled PayPal')}
+  onSessionExpired={async () => {
+    const newConfig = await refreshSession();
+    return { data: newConfig.data, version: newConfig.version };
+  }}
+/>
+```
+
+### How to Pay with a Stored PayPal Account
+
+```typescript React Native
+import { useStoredPayPalInstruments, PayPal } from '@payrails/react-native-sdk';
+
+const storedPayPalAccounts = useStoredPayPalInstruments();
+
+<PayPal
+  paymentInstrumentId={storedPayPalAccounts[0].id}
+  onAuthorizeSuccess={() => console.log('Stored PayPal payment succeeded')}
+  onAuthorizeFailure={(failure) => console.log('Failed', failure)}
+/>
+```
+
+---
+
+## How to Add Generic Redirect (iDeal, pix, yape, etc.)
+
+Pass `returnInfo` on `PayrailsProvider` so the payment provider redirects the user back to your app via deep link or universal link after payment.
+
+```typescript React Native
+import {
+  PayrailsProvider,
+  GenericRedirect,
+  RedirectModes,
+} from '@payrails/react-native-sdk';
+
+<PayrailsProvider
+  config={config}
+  returnInfo={{
+    success: 'myapp://payment/success',
+    cancel: 'myapp://payment/cancel',
+    error: 'myapp://payment/error',
+    pending: 'myapp://payment/pending',
+  }}
+>
+  <GenericRedirect
+    paymentMethodCode="iDeal"
+    redirectMode={RedirectModes.customTab}
+    translations={{ label: 'Pay with iDEAL', loading: 'Redirecting...' }}
+    styles={{
+      base: { backgroundColor: '#CC0066', height: 48, borderRadius: 8 },
+      loading: { opacity: 0.7 },
+      pressed: { backgroundColor: '#AA0055' },
+      disabled: { backgroundColor: '#ccc' },
+    }}
+    textStyles={{
+      base: { color: '#FFFFFF', fontWeight: '600' },
+      loading: { color: '#eee' },
+      pressed: { color: '#fff' },
+      disabled: { color: '#999' },
+    }}
+    onAuthorizeSuccess={() => console.log('iDEAL payment succeeded')}
+    onAuthorizeFailure={(failure) => console.log('Failed', failure)}
+    onAuthorizeCancel={() => console.log('User cancelled')}
+    onSessionExpired={async () => {
+      const newConfig = await refreshSession();
+      return { data: newConfig.data, version: newConfig.version };
+    }}
+  />
+</PayrailsProvider>
+
+```
+
+---
+
+## How to Add Lean (Bank Transfer — UAE)
+
+**Prerequisites**
+
+- Lean requires the peer dependency `lean-react-native` with version `4.2.0`. Earlier versions may not be compatible.
+- Also install `react-native-webview` if it is not already installed in your project.
+
+```typescript React Native
+yarn add lean-react-native@4.2.0 react-native-webview
+// OR
+npm install lean-react-native@4.2.0 react-native-webview
+```
+
+The button label is fixed to **"Pay by bank with Al Tareq."** and cannot be overridden.
+
+Pass `returnInfo` on `PayrailsProvider` to redirect the user back to your app after the bank transfer completes.
+
+```typescript React Native
+import { PayrailsProvider, Lean } from '@payrails/react-native-sdk';
+
+<PayrailsProvider
+  config={config}
+  returnInfo={{
+    success: 'myapp://payment/success',
+    cancel: 'myapp://payment/cancel',
+    error: 'myapp://payment/error',
+    pending: 'myapp://payment/pending',
+  }}
+>
+  <Lean
+    translations={{ loading: 'Processing...' }}
+    styles={{
+      base: { backgroundColor: '#00B67A', height: 48, borderRadius: 8 },
+      loading: { opacity: 0.7 },
+      disabled: { backgroundColor: '#ccc' },
+    }}
+    textStyles={{
+      base: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+      loading: { color: '#eee' },
+      disabled: { color: '#999' },
+    }}
+    customization={{
+      themeColor: '#0080ff',
+      buttonTextColor: '#ffffff',
+      buttonBorderRadius: '8',
+      linkColor: '#0080ff',
+      overlayColor: 'rgba(0, 0, 0, 0.8)',
+    }}
+    onAuthorizeSuccess={() => console.log('Success')}
+    onAuthorizeFailure={(failure) => console.log('Failed', failure)}
+    onAuthorizeCancel={() => console.log('Cancelled')}
+    onSessionExpired={async () => {
+      const newConfig = await refreshSession();
+      return { data: newConfig.data, version: newConfig.version };
+    }}
+  />
+</PayrailsProvider>
+```
+
+For payment completion mode options (polling, background polling, return URLs), see [Payment Completion Modes](how-to-integrate#payment-completion-modes).

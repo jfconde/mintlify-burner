@@ -1,0 +1,96 @@
+---
+title: Authorization flags
+description: Optional optimization parameters for improving your authorization rates.
+---
+Card networks and issuers require merchants to state each transaction type they send (for example, the first transaction of a subscription, or a subsequent payment in a subscription cycle). How you send each transaction affects its chance of success.
+
+Each provider defines these parameters differently. Payrails handles that complexity for you and manages it in a provider-agnostic way.
+
+This document explains the different payment processing types and instrument future usage for the [Authorize a payment API](ref:authorizeaction) reference. For a more detailed walkthrough, refer to the [Authorize a payment guide](doc:authorize-a-payment).
+
+Determine two main parameters when making a payment:
+
+**1. Payment Processing Type**
+
+Defines the payment type that the card details apply to within a particular payment.
+
+* **Regular**: a customer-initiated payment where the user enters the card details and chooses whether to store them.
+* **MOTO**: a customer-initiated payment where the customer is not present in the journey. The acronym stands for Mail Order / Telephone Order, which describes how the customer requested the good or service and passed their instrument details for a payment. These transactions carry no authentication challenge, and the liability remains with the merchant.
+* **CardOnFile**: a customer-initiated payment using a stored instrument.
+* **Subscription**: a merchant-initiated payment using a stored instrument as part of a series of payments on a fixed schedule and with a fixed or variable amount.\
+  Note: If you would like to send Subscription payments where the first payment was not processed by Payrails please align with the Payrails Payment Strategy team on designing the optimal implementation solution for your business needs.
+* **UnscheduledCardOnFile**: a merchant-initiated payment using a stored instrument that occurs on a not fixed schedule and/or without a set amount.
+
+**2. Instrument Future Usage**
+
+Parameter used to define in which payment flows you intend to use the stored (or to-be-stored) instrument in the future. In the API request this parameter is the `futureUsage` field, sent inside `paymentInstrumentData` on the payment composition element (`paymentComposition[].paymentInstrumentData.futureUsage`).\
+When a customer requests to store their card details, Payrails creates an instrument and assigns it one of these `futureUsage` values:
+
+* **CardOnFile**: the customer initiates payments using the instrument.
+* **Subscription**: the merchant initiates payments using the instrument on a fixed schedule, with a fixed or variable amount.
+* **UnscheduledCardOnFile**: the merchant initiates payments using the instrument on a non-fixed schedule and/or without a set amount.
+
+Assign the `futureUsage` value in one of these ways, in priority order:
+
+1. The merchant sends it while tokenizing an instrument, from the backend or the client-side encryption SDK.
+2. *(If the merchant does not send it)* The workflow configuration applies its default value.
+
+The following table summarizes the usage of flags:
+
+|                                           Use case                                           |      Schedule      |       Amount      |     Initiation     | Save instrument | Instrument Future Usage  | Payment Processing Type  |
+| :------------------------------------------------------------------------------------------: | :----------------: | :---------------: | :----------------: | :-------------: | :----------------------- | ------------------------ |
+|                                     Pay once without save                                    |          -         |      Variable     | Customer-initiated |        No       | -                        | `Regular`                |
+|                    Pay once while ordering off-journey, e.g through phone                    |          -         |      Variable     | Customer-initiated |        No       | -                        | `MOTO`                   |
+|                                    Save card while paying                                    |          -         |      Variable     | Customer-initiated |       Yes       | `CardOnFile`             | `Regular`                |
+|                               Pay with a previously stored card                              |          -         |      Variable     | Customer-initiated |       Yes       | `CardOnFile`             | `CardOnFile`             |
+|              Store your card while paying for the first subscription of a series             |          -         |      Variable     | Customer-initiated |       Yes       | `Subscription`           | `Regular`                |
+|                         Subsequent payments of a subscription series                         |   Fixed schedule   | Fixed or variable | Merchant-initiated |       Yes       | `Subscription`           | `Subscription`           |
+|                 Store your card for future unscheduled charges while paying                  |          -         |      Variable     | Customer-initiated |       Yes       | `UnscheduledCardOnFile`  | `Regular`                |
+| Merchant-initiated payments that are not part of a fixed schedule and amount, for example auto top-ups | Non-fixed schedule | Fixed or variable | Merchant-initiated |       Yes       | `UnscheduledCardOnFile`  | `UnscheduledCardOnFile`  |
+
+Payrails uses two request fields to differentiate between the current payment and future ones:
+
+* `paymentProcessingType` describes the payment flow you are processing now. Send it directly on the `paymentComposition[]` element *(Enum: Regular, MOTO, CardOnFile, Subscription, UnscheduledCardOnFile)*.
+* `futureUsage` specifies which payment flows the stored instrument serves in the future. Send it inside `paymentInstrumentData` *(Enum: CardOnFile, Subscription, UnscheduledCardOnFile)*.
+
+## Where the flags sit in the request
+
+Both fields sit inside the `paymentComposition[]` array of the [Authorize a payment](ref:authorizeaction) request, but at different levels:
+
+* `paymentProcessingType` is a field on the `paymentComposition[]` element itself — a sibling of `paymentInstrumentData`.
+* `futureUsage` is a field inside `paymentInstrumentData`.
+
+The following request saves a card while paying. `paymentProcessingType` is `Regular` because the customer initiates the payment, and `futureUsage` is `CardOnFile`, marking the stored card for later customer-initiated payments.
+
+```json
+{
+  "amount": {
+    "currency": "EUR",
+    "value": "12.50"
+  },
+  "paymentComposition": [
+    {
+      "amount": {
+        "currency": "EUR",
+        "value": "12.50"
+      },
+      "integrationType": "api",
+      "paymentMethodCode": "card",
+      "storeInstrument": true,
+      "paymentProcessingType": "Regular",
+      "paymentInstrumentData": {
+        "encryptedData": "<encrypted-card-data>",
+        "vaultProviderConfigId": "<vault-provider-config-id>",
+        "futureUsage": "CardOnFile"
+      }
+    }
+  ],
+  "returnInfo": {
+    "success": "https://your-store.example/success",
+    "cancel": "https://your-store.example/cancel",
+    "error": "https://your-store.example/error"
+  }
+}
+```
+
+If you created a stored instrument for one future usage (for example, `Subscription`) but the customer now makes a different type of payment on that same card (for example, a one-time payment), set `paymentProcessingType` on the `paymentComposition[]` element to match the current payment — for example, `CardOnFile`.

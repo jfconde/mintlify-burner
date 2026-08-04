@@ -1,0 +1,39 @@
+---
+title: Payment Options
+description: Payment options are the ways in which your customers can choose to pay for your goods and services. These can include payment methods such as cards and alternative payment methods, as well as a customer’s saved payment instruments.
+---
+
+With the Payrails **Merchant Portal**, you can optimize payment acceptance rates and lower processing costs by controlling the payment options \[and the order in which they’re] presented to different customers, with conditions based on customer attributes and the context of a given payment. The payment options you can enable will depend on your processor integrations.
+
+<img
+  className="mx-auto block"
+  caption="Payment options configuration in the Payrails Merchant Portal"
+  src="/images/docs/payment-options.png"
+/>
+
+If you’re using the Payrails **drop-in,** we take care of looking up and presenting your payment options when a customer checks out. If you have a pure API integration, you can call the [Lookup payment options API](ref:lookupaction) to get the available payment options and present them to your customer in your own checkout front end. For more details, see our guide [Lookup payment options](https://payrails.readme.io/docs/lookup-payment-options).
+
+```json
+{
+  "id": "e1f510db-ea53-42fa-837c-27ce338ab385",
+  "code": "card",
+  "description": "Card.",
+  "paymentInstruments": [
+    {
+      "id": "4763f494-a244-4318-9a0b-47c3434e2cc0",
+      "holderName": "John Doe",
+      "email": "john.doe@gmail.com",
+      "bin": "411111",
+      "suffix": "1111",
+      "expiryMonth": "12",
+      "expiryYear": "2030",
+      "network": "Visa",
+      "issuer": "SomeBank"
+    }
+  ]
+}
+```
+
+> 📘
+>
+> Payment options will only be presented if they are enabled for configured payment processors. However, the lookup is independent of any processor, as we handle the processor selection for you via dynamic routing.

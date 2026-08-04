@@ -1,0 +1,50 @@
+---
+title: Settlements report
+---
+
+import { DownloadSettlementsCSV } from "/snippets/analytics/download-settlements-csv.mdx";
+
+This report provides a unified, standardized view of the transaction lifecycle and fee structures for both orchestrator and non-orchestrator users. By mapping complex provider data into granular fields—including SETTLEMENT_AMOUNT, FX_RATE, and specific FEE_TYPE categories—it offers full transparency into every movement of funds.
+
+### Sample report
+
+<DownloadSettlementsCSV /> (CSV file).
+
+### Columns
+
+| Column                         | Type      | Description                                                                                                                                  |
+| :----------------------------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------- |
+| workspace_id                   | VARCHAR   | Workspace identifier mapped from the merchant, used for Payrails reporting.                                                                  |
+| merchant_id                    | VARCHAR   | Unique identifier of the merchant.                                                                                                           |
+| provider_name                  | VARCHAR   | Provider who processed the payment.                                                                                                          |
+| acquirer                       | VARCHAR   | Acqurier which settled the payment.                                                                                                          |
+| provider_merchant_account      | VARCHAR   | The identifier of merchant account with a provider.                                                                                          |
+| provider_payment_reference     | VARCHAR   | The provider payment identifier.                                                                                                             |
+| created_at                     | TIMESTAMP | Date when transaction has been created.                                                                                                      |
+| settled_at                     | TIMESTAMP | Date when transaction has been settled.                                                                                                      |
+| disbursed_at                   | TIMESTAMP | Date when transaction has been disbursed to merchant.                                                                                        |
+| timezone                       | VARCHAR   | The timezone of date fields.                                                                                                                 |
+| provider_transaction_reference | VARCHAR   | The provider transaction identifier.                                                                                                         |
+| other_transaction_references   | VARCHAR   | Stringified JSON of additional PSP-specific identifiers                                                                                      |
+| transaction_type               | VARCHAR   | Type of transaction / money movement, values: capture, chargeback, fee, partial capture, payout, payout returned, refund.                    |
+| fee_type                       | VARCHAR   | Fee category for transaction type fee, values: paypal fee, scheme fee, interchange, psp add-on, processing fee, chargeback.                  |
+| fee_details                    | VARCHAR   | Fee details for transaction type fee.                                                                                                        |
+| decline_reason                 | VARCHAR   | Reason why the transaction was not processed successfully.                                                                                   |
+| transaction_currency           | VARCHAR   | The 3-letter ISO code that identifies the currency of the transaction.                                                                       |
+| transaction_amount             | FLOAT     | The transaction amount, expressed in the transaction currency.                                                                               |
+| settlement_currency            | VARCHAR   | The 3-letter ISO code that identifies the currency of the settlement.                                                                        |
+| settlement_amount              | FLOAT     | The transaction amount, expressed in the settlement currency.                                                                                |
+| fx_rate                        | FLOAT     | Transaction to settlement currency exchange rate.                                                                                            |
+| provider_customer_reference    | VARCHAR   | PSP-native identifier of the customer.                                                                                                       |
+| payment_method                 | VARCHAR   | Payment method, values: card, paypal_account.                                                                                                |
+| card_type                      | VARCHAR   | Card type, values: credit, debit, notset, prepaid.                                                                                           |
+| card_network                   | VARCHAR   | Card network that supports the card, e.g. Visa, Mastercard, American Express. Card only.                                                     |
+| card_bin                       | VARCHAR   | The payment method’s Bank Identification Number (BIN).                                                                                       |
+| card_issuer                    | VARCHAR   | The bank that issued the customer’s card. This will return an empty string for alternative payment methods such as Android Pay or Apple Pay. |
+| card_issuer_country            | VARCHAR   | Name of the country that issued the card.                                                                                                    |
+| card_issuer_region             | VARCHAR   | Region of the country that issued the card.                                                                                                  |
+| provider_payout_reference      | VARCHAR   | The identifier of the funds transfer from provider to merchant.                                                                              |
+| is_payrails                    | BOOLEAN   | Whether the payment was processed by Payrails.                                                                                               |
+| payrails_payment_id            | VARCHAR   | Unique identifier of the Payment in Payrails.                                                                                                |
+| payrails_execution_id          | VARCHAR   | Unique identifier of the execution.                                                                                                          |
+| meta                           | VARIANT   | Full merchant's meta field details.                                                                                                          |

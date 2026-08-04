@@ -1,0 +1,502 @@
+---
+title: SDK Concepts
+description: This page explains *why* the Payrails Android SDK is designed the way it is. Understanding these concepts helps you integrate correctly and debug issues faster.
+---
+
+## Mental Model
+
+The SDK is built around three layers:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                      Your App (Compose)                       │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌──────────┐   ┌─────────────┐   ┌───────────────┐   ┌──────────┐  │
+│   │ CardForm │   │ CardPayment │   │  GooglePay    │   │  PayPal  │  │
+│   │          │   │   Button    │   │    Button     │   │  Button  │  │
+│   └────┬─────┘   └──────┬──────┘   └───────┬───────┘   └────┬─────┘  │
+│        │                │                   │                │
+│        └────────┬───────┴───────────────────┴──────────┘      │
+│                 │                                            │
+│          ┌──────┴──────┐                                      │
+│          │   Session   │                                      │
+│          └──────┬──────┘                                      │
+│                 │                                            │
+├─────────────────┼────────────────────────────────────────────┤
+│                   Payrails API                               │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### Session
+
+A `Session` is the foundation and the merchant's handle to all runtime SDK operations. It holds your initialization data, manages communication with the Payrails API, and tracks payment state. You create one session per checkout flow.
+
+```kotlin
+val session = Payrails.createSession(configuration)
+```
+
+The returned `Session` is a public class — keep the reference for the lifetime of the
+checkout. All runtime operations are called on it:
+
+```kotlin
+session.query(PayrailsQuery.ExecutionId)
+session.update(PayrailsUpdate(amount = AmountUpdate("54.99", "EUR")))
+session.getStoredInstruments(forType = PaymentMethod.card)
+session.deleteInstrument(instrumentId)
+session.getPaymentMethodConfig(PaymentMethodFilter.Redirect)
+```
+
+`Session` handles queries and configuration. To **execute** a payment you use
+`PayrailsPaymentLauncher` (see [Custom UI: the launcher and the internal client](#custom-ui-the-launcher-and-the-internal-client)).
+
+The `Payrails` object now exposes only `createSession` and UI factory methods
+(`createCardForm`, `createCardPaymentButton`, `createPayPalButton`,
+`createGooglePayButton`, `createGenericRedirectButton`). Most runtime operations — query,
+update, stored instruments, instrument management — live on the `Session`. Payment
+**execution** is the exception: it is public only through `PayrailsPaymentLauncher`.
+
+All UI elements (`CardForm`, `CardPaymentButton`, `GooglePayButton`, `PayPalButton`) are created _after_ the session and operate within its context. If the session doesn't exist, element creation throws an error.
+
+### Elements Are Decoupled
+
+`CardForm`, `CardPaymentButton`, `GooglePayButton`, and `PayPalButton` are independent composable elements. They don't need to be created together or rendered in the same container. The SDK links card elements automatically:
+
+```
+CardForm ◄─── auto-linked ───► CardPaymentButton
+
+GooglePayButton (standalone — no form linkage needed)
+
+PayPalButton    (standalone — no form linkage needed)
+```
+
+This design lets you:
+
+- Place the form and button in different parts of your layout
+- Create the button before the form (or vice versa)
+- Reuse the same button for both card form payments and stored instrument payments
+- Add Google Pay or PayPal alongside card payments as separate buttons
+
+### Delegates (Event Callbacks)
+
+The SDK uses the delegate pattern for event callbacks. Each element type has a delegate interface:
+
+| Element                 | Delegate                               | Key callbacks                                                                                                    |
+| ----------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `CardPaymentButton`     | `PayrailsCardPaymentButtonDelegate`    | `onAuthorizeSuccess`, `onAuthorizeFailed`, `onThreeDSecureChallenge`, `onStateChanged`                           |
+| `GooglePayButton`       | `PayrailsGooglePayButtonDelegate`      | `onGooglePayAvailable`, `onAuthorizeSuccess`, `onAuthorizeFailed`, `onThreeDSecureChallenge`, `onStateChanged`   |
+| `PayPalButton`          | `PayrailsPayPalButtonDelegate`         | `onAuthorizeSuccess`, `onAuthorizeFailed`, `onCancelled`, `onPaymentSessionExpired` (required), `onStateChanged` |
+| `GenericRedirectButton` | `GenericRedirectPaymentButtonDelegate` | `onAuthorizeSuccess`, `onAuthorizeFailed`, `onCancelled`, `onPaymentSessionExpired`, `onStateChanged`            |
+
+Delegates are set on the element instance, not passed as constructor parameters. This keeps the creation API clean and allows you to change handlers at runtime.
+
+> **Stored instruments:** The SDK does not provide a pre-built stored-instruments UI. Retrieve saved cards with `session.getStoredInstruments()`, build your own picker, and call `cardPaymentButton.setStoredInstrument(instrument)` to pay with one.
+
+## Payment Flow
+
+### Card Payment (Happy Path)
+
+```
+User fills card form
+        │
+        ▼
+User taps "Pay Now"
+        │
+        ▼
+SDK validates card data ──── Invalid? ──► Show field errors
+        │                                  (auto-clear on fix)
+        │ Valid
+        ▼
+SDK encrypts card data (via CSE)
+        │
+        ▼
+SDK calls authorize API
+        │
+        ├──── Success ──────────────► onAuthorizeSuccess
+        │
+        ├──── 3DS Required ─────────► Open browser (Custom Tab)
+        │                                    │
+        │                              User completes 3DS
+        │                                    │
+        │                              SDK polls for result
+        │                                    │
+        │                              ├──── Success ──► onAuthorizeSuccess
+        │                              └──── Failure ──► onAuthorizeFailed
+        │
+        └──── Failure ──────────────► onAuthorizeFailed
+```
+
+### Stored Instrument Payment
+
+When a stored instrument is selected, the button bypasses card form validation entirely:
+
+```
+User selects stored instrument
+        │
+        ▼
+CardPaymentButton enters "stored instrument mode"
+        │
+        ▼
+User taps "Pay Now"
+        │
+        ▼
+SDK authorizes with stored instrument
+        │
+        ├──── Success ──► onAuthorizeSuccess
+        └──── Failure ──► onAuthorizeFailed
+```
+
+If the user starts typing in the card form, the stored instrument selection is automatically cleared and the button returns to "form mode."
+
+### Google Pay Payment
+
+Google Pay uses a separate `GooglePayButton` element with its own self-contained flow:
+
+```
+App creates GooglePayButton
+        │
+        ▼
+SDK checks isReadyToPay() ─── Not ready? ──► Button stays hidden
+        │
+        │ Ready
+        ▼
+Button becomes visible
+onGooglePayAvailable fires
+        │
+        ▼
+User taps Google Pay button
+        │
+        ▼
+SDK opens Google Pay payment sheet
+        │
+        ├──── User selects payment method ──► SDK receives token
+        │                                            │
+        │                                     SDK calls authorize API
+        │                                            │
+        │                                     ├──── Success ──► onAuthorizeSuccess
+        │                                     │
+        │                                     ├──── 3DS Required ──► Custom Tab
+        │                                     │                        (same as card 3DS)
+        │                                     │
+        │                                     └──── Failure ──► onAuthorizeFailed
+        │
+        └──── User cancels ──────────────► Button returns to enabled state
+```
+
+Google Pay configuration (gateway, merchant info, allowed card networks) is provided entirely by the Payrails backend. The SDK reads it from `clientConfig.additionalConfig` and passes it through unchanged to the Google Pay API.
+
+### PayPal Payment
+
+PayPal uses a separate `PayPalButton` element that routes through the same redirect infrastructure as 3DS:
+
+```
+App creates PayPalButton
+        │
+        ▼
+User taps PayPal button
+        │
+        ▼
+SDK calls authorize API
+        │
+        ▼
+SDK opens PayPal in Custom Tab (or external browser fallback)
+        │
+        ├──── User approves in PayPal ──► Activity resumes
+        │                                       │
+        │                                SDK polls for result
+        │                                       │
+        │                                ├──── Success ──► onAuthorizeSuccess
+        │                                └──── Failure ──► onAuthorizeFailed
+        │
+        ├──── User cancels ──────────────► SDK polls → canceled status
+        │                                         │
+        │                                   onCancelled fires
+        │                                         │
+        │                                   onPaymentSessionExpired fires
+        │                                   (session is no longer usable)
+        │
+        └──── Authorization fails ──────► onAuthorizeFailed fires
+                                                  │
+                                          onPaymentSessionExpired fires
+                                          (if session expired during attempt)
+```
+
+**Session expiry:** Unlike Google Pay, when a user cancels a PayPal payment the Payrails session is expired and cannot be reused — `onPaymentSessionExpired` fires unconditionally after cancel. It also fires after `onAuthorizeFailed` when the payment attempt itself triggered session expiry (for example a failed redirect that left the session in an unusable state). The `onPaymentSessionExpired` callback is required — the merchant must fetch fresh init data from their backend before the user can attempt payment again.
+
+**Stored instruments:** Saved PayPal accounts are charged directly via the prebuilt button, or `launcher.authorize(storedInstrument = storedInstrument)` for a custom-UI flow. A frictionless charge opens no browser — the request goes straight to the API and returns `onAuthorizeSuccess` or `onAuthorizeFailed`.
+
+## 3DS (3D Secure)
+
+3DS is a security protocol that adds an extra verification step for card payments. Here's what happens under the hood:
+
+### The Flow
+
+1. **SDK requests authorization** — The Payrails API may respond with a 3DS challenge URL
+2. **Browser opens** — The SDK opens the URL in a Chrome Custom Tab (preferred) or the system browser
+3. **User completes challenge** — The user interacts with their bank's 3DS page
+4. **User returns to app** — The Custom Tab closes or the user navigates back
+5. **SDK polls for result** — The SDK checks the execution status until it reaches a terminal state
+6. **Result delivered** — `onAuthorizeSuccess` or `onAuthorizeFailed` fires
+
+### Why Custom Tabs (Not WebView)?
+
+The SDK uses Chrome Custom Tabs instead of WebView for 3DS because:
+
+- **Bank compatibility** — Some issuer/ACS pages block or behave incorrectly in embedded WebViews
+- **Security** — Custom Tabs provide better isolation than WebViews, reducing compliance risk
+- **User experience** — Deep-link returns are more reliable from Custom Tabs; users are less likely to get stuck
+
+### Background Handling
+
+When a user backgrounds your app during 3DS (e.g., switches to their banking app for OTP), the SDK uses a foreground service to keep polling alive. This ensures the payment result is captured even if the user takes time to complete the challenge.
+
+### Session Recovery
+
+If the 3DS flow is abandoned (user closes the browser without completing) or remains non-terminal past the reconciliation window:
+
+1. The `onAuthorizeFailed` delegate callback fires
+2. If `onSessionExpired` is configured, the SDK calls it to get fresh init data
+3. The SDK refreshes the session state, allowing the user to retry
+
+Configure this in your session setup:
+
+```kotlin
+val configuration = Configuration(
+    initData = initData,
+    option = Options(
+        redirectSessionLifecycle = RedirectSessionLifecycle(
+            onSessionExpired = {
+                val refreshed = fetchInitPayloadFromBackend()
+                InitData(version = refreshed.version, data = refreshed.data)
+            }
+        )
+    )
+)
+```
+
+## Button Modes
+
+`CardPaymentButton` operates in two mutually exclusive modes:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                CardPaymentButton                     │
+│                                                      │
+│   ┌──────────────────┐    ┌───────────────────────┐  │
+│   │    Form Mode     │    │ Stored Instrument Mode│  │
+│   │                  │    │                       │  │
+│   │ Validates card   │    │ Skips card form       │  │
+│   │ form, encrypts,  │◄──►│ Uses stored data      │  │
+│   │ then authorizes  │    │ directly              │  │
+│   └──────────────────┘    └───────────────────────┘  │
+│                                                      │
+│   Switching:                                         │
+│   • setStoredInstrument() → enters stored mode       │
+│   • User types in card form → returns to form mode   │
+│   • clearStoredInstrument() → returns to form mode   │
+└─────────────────────────────────────────────────────┘
+```
+
+This means a single `CardPaymentButton` instance handles both new card payments and stored instrument payments. You don't need separate buttons.
+
+## Custom UI: the launcher and the internal client
+
+There is **one** public way to execute a payment — `PayrailsPaymentLauncher` — built on an
+internal networking client inside `Session`:
+
+```
+        You own the button & layout                 SDK owns everything post-tap
+   ┌────────────────────────────────────────┐  ┌──────────────────────────────────────┐
+   │   PayrailsPaymentLauncher  (public)     │  │   Google Pay sheet · 3DS / PayPal /    │
+   │   your Button → launcher.authorize(...) │─►│   redirect Custom Tab · polling        │
+   └────────────────────────────────────────┘  └──────────────────────────────────────┘
+                    │ delegates networking
+                    ▼
+   ┌────────────────────────────────────────┐
+   │   Session  (internal authorize)          │  stateless networking —
+   │   not a public payment trigger           │  no Activity, no UI.
+   └────────────────────────────────────────┘
+```
+
+- **`PayrailsPaymentLauncher`** is the public handle. You draw your own button; the launcher
+  owns the post-tap UI hand-off. It is lifecycle-bound — construct it early
+  (`Activity.onCreate` or a Compose `remember`) so it can register the Google Pay Activity
+  Result contract before the host is `STARTED`. Because it always holds an `Activity` (and
+  therefore a presenter), a single `authorize(...)` call handles **both** frictionless and
+  3DS/step-up outcomes — you never predict which path a charge will take.
+- **`Session`** holds the stateless networking (no `Activity`, no UI). Its
+  `authorize(...)` overloads are **`internal`** — the launcher and the prebuilt buttons
+  delegate into them, but they are **not** a public payment trigger. `Session`'s public
+  surface is queries and configuration (`query`, `update`, `getStoredInstruments`,
+  `getPaymentMethodConfig`, `isGooglePayAvailable`).
+
+This mirrors the idiomatic Android "launcher owns the UI, client does the networking" split
+(e.g. Stripe's `PaymentLauncher`, Braintree's `Launcher` + `Client`) — with a single public
+trigger.
+
+### Why no encryption API
+
+The launcher's card path — `authorize(encryptedCardData: String)` — accepts an
+**already-encrypted** string only. The SDK deliberately exposes no client-side encryption API
+and no raw-card API on this surface: raw card fields never cross the public boundary, and
+producing the encrypted payload (via the client-side encryption library) stays the
+integrator's responsibility. This keeps the PCI-sensitive surface area minimal and matches how
+the prebuilt `CardForm` already feeds an encrypted payload into the same internal flow (see
+[Security Model](#security-model)).
+
+### Why there's no public headless trigger
+
+`Session` deliberately exposes no public `authorize`. Whether a charge needs a 3DS step-up is
+decided by the issuer at authorization time — not knowable up front — and
+[`ActionResult`](/docs/sdk-api-reference#actionresult) is always terminal, with no "pending
+challenge" variant a presenter-less caller could resume. A public headless trigger would
+therefore fail unpredictably on 3DS. Instead, `PayrailsPaymentLauncher` (which always has a
+presenter) is the single public path and completes the challenge for you.
+
+## Security Model
+
+### Card Data
+
+Card data never leaves the device in plain text. The flow is:
+
+1. User enters card details into `CardForm` (Compose text fields)
+2. On payment, the SDK uses the CSE (Client-Side Encryption) library to encrypt card data
+3. Only the encrypted payload is sent to the Payrails API
+4. The SDK never stores raw card data beyond the current form state
+
+### Logging
+
+The SDK has two logging channels:
+
+- **In-memory buffer** — Always active. Stores the last 500 timestamped log entries for the built-in debug viewer.
+- **Logcat** — Off by default. Gated behind `Log.isLoggable("PayrailsSDK", Log.DEBUG)`, so no log output appears in production unless explicitly enabled via `adb shell setprop log.tag.PayrailsSDK DEBUG`.
+
+The SDK never logs raw card data, tokens, or PII through either channel. See [Troubleshooting](/docs/troubleshooting#enabling-sdk-debug-logs) for how to enable Logcat output during development.
+
+### Client Context
+
+By default, the SDK collects device metadata (OS type, screen size, timezone, language) and attaches it to authorization requests. This data helps with fraud detection and 3DS risk assessment.
+
+You can opt out:
+
+```kotlin
+val configuration = Configuration(
+    initData = initData,
+    option = Options(collectMetadata = false)
+)
+```
+
+## Card Tokenization
+
+Tokenization and payment are distinct operations that share the same card entry UI but diverge at the point of submission.
+
+### Two paths, one form
+
+When a user fills in the `CardForm`, the SDK can do one of two things with the data:
+
+- **Payment path** — the `CardPaymentButton` triggers form collection, encrypts card data, and calls the Payrails authorize endpoint. A charge is attempted.
+- **Tokenization path** — `session.tokenize(TokenizationRequest.Card(cardForm))` encrypts card data and calls the Payrails vault endpoint. No charge is attempted. The result is a saved instrument with an ID. (`CardForm.tokenize()` is a convenience wrapper over this same path.)
+
+The encryption step is identical in both paths. What changes is the endpoint and the intent.
+
+```
+CardForm (collects + validates card data)
+         │
+         ├── CardPaymentButton.Render()              → authorize endpoint → charge
+         │
+         └── session.tokenize(Card(cardForm))        → vault endpoint     → saved instrument
+```
+
+### Why separate operations?
+
+Card vaulting without payment is a common need in commerce: onboarding flows that save a card before the first transaction, subscription setups where billing happens later, in-app wallets where the user manages saved payment methods explicitly. Bundling vaulting into the payment flow would force merchants to make a charge to save a card, which is the wrong user experience in these cases.
+
+The SDK exposes tokenization as a first-class standalone method rather than a flag on the payment call to make this separation explicit and avoid ambiguity about what a given call will do.
+
+### Card and Google Pay
+
+Tokenization supports two payment methods — **card** and **Google Pay** — mirroring the iOS SDK's `card` and Apple Pay cases. Both go through the same `session.tokenize(request, options)` call and converge on one save-instrument request; only the source of the sensitive data differs: the card path encrypts the live card fields client-side, while the Google Pay path drives the Google Pay sheet (via a presenter) and saves the returned wallet token. Other payment methods are out of scope for tokenization.
+
+### What `storeInstrument` means
+
+`TokenizeOptions.storeInstrument` controls whether the vault persists the instrument for repeated use after the tokenization call:
+
+- `storeInstrument = false` (default) — the card data is encrypted and vaulted for a single use. The instrument may be usable once, then expired.
+- `storeInstrument = true` — the instrument is retained in the holder's vault and can be retrieved via `session.getStoredInstruments()` for future payments.
+
+For save-card-for-later flows, always set `storeInstrument = true`.
+
+### What `FutureUsage` signals
+
+`FutureUsage` is a signal to the card network about how the merchant intends to use the stored credential. Card networks use this to apply appropriate authorization rules:
+
+- `CardOnFile` — the cardholder is present and initiating the payment (the common case for checkout)
+- `Subscription` — a recurring, scheduled charge that the cardholder pre-authorized
+- `UnscheduledCardOnFile` — a merchant-initiated charge with no fixed schedule
+
+Setting the right value helps reduce authorization declines and chargeback risk. It is not merely cosmetic — it affects how the issuer processes subsequent charges made with the stored credential.
+
+### Instrument lifecycle after tokenization
+
+A tokenized card becomes a `StoredInstrument` with a stable `id`. That ID can be used to:
+
+- Pay: `payButton.setStoredInstrument(instrument)` or `launcher.authorize(storedInstrument = instrument)`
+- Delete: `session.deleteInstrument(instrumentId)`
+- Update (e.g., set as default): `session.updateInstrument(instrumentId, UpdateInstrumentBody(default = true))`
+
+The `SaveInstrumentResponse` returned by `tokenize()` is the snapshot at creation time. Retrieve the live instrument list from `session.getStoredInstruments()`.
+
+## Element Lifecycle
+
+Elements are tied to the session lifecycle:
+
+```
+createSession() ──► Session active
+       │
+       ├── createCardForm()
+       ├── createCardPaymentButton()
+       ├── createGooglePayButton()
+       ├── createPayPalButton()
+       │
+       ▼
+Activity destroyed (isFinishing = true)
+       │
+       ▼
+session.destroy() called automatically
+       │
+       ▼
+All element references become stale
+```
+
+The SDK registers an `ActivityLifecycleCallbacks` listener internally. When the bound Activity is destroyed (and `isFinishing` is true), the SDK automatically cleans up the session and element state.
+
+## Co-Branded Cards
+
+Some cards are **co-branded** (also called **co-badged**, or **card brand choice**): they carry two payment networks — a local/domestic scheme (e.g. `mada`, `cartesbancaires`) and an international one (e.g. `visa`, `mastercard`). The shopper — or merchant preference — decides which network the payment routes over, which has real cost and acceptance implications.
+
+### How it works
+
+1. As the shopper types, the SDK looks up the BIN (first 6–8 digits) against the `binLookup` endpoint — throttled (~500 ms), cached, and de-duplicated, with stale responses discarded so a slow lookup can never overwrite a newer card number.
+2. The detected schemes resolve into an ordered list of canonical codes (merchant `preferredSchemes` first, else local-first) with a default selection.
+3. When two or more schemes are detected, the **Card Brand selector** renders inside `CardForm`; the shopper can change the selection.
+4. The selected scheme is submitted as `paymentInstrumentData.preferredScheme` on the payment.
+
+### When it activates (gating)
+
+Co-branded handling runs only when **both** hold: the backend `featureConfig.coBrandedCardsRollout` flag is active for the session (evaluated once, then cached) **and** the init response includes the `binLookup` link. Otherwise the form behaves exactly as a single-brand card form — no selector, no extra payload.
+
+### Design notes
+
+- **Uniform tiles.** All scheme tiles are styled identically — the only visual difference is the check mark on the selected one — satisfying the EU IFR 2015/751 visual-balance requirement. There is no per-scheme styling.
+- **Canonical string codes.** Schemes are plain strings (`mada`, `mastercard`, …), not a closed enum, so new networks never require an SDK release.
+- **Resilient.** A failed or unavailable BIN lookup degrades silently to a non-co-branded card; the public `Session.binLookup` returns `null` rather than throwing (matching the iOS and Web SDKs).
+
+## Further Reading
+
+- **[Quick Start](/docs/android-sdk-1)** — Get a card payment working in 15 minutes
+- **[How to Accept PayPal Payments](/docs/how-to-accept-paypal-payments)** — PayPal redirect flow and stored instruments
+- **[How to Accept Redirect Payments](/docs/how-to-accept-redirect-payments)** — iDEAL, Bancontact, Sofort, and other redirect methods
+- **[How to Tokenize a Card](/docs/how-to-tokenize-card)** — Save a card to vault without charging it
+- **[Troubleshooting](/docs/troubleshooting)** — Common issues and solutions
+- **[Styling Guide](/docs/styling-guide)** — Customize the look and feel
+- **[API Reference](/docs/sdk-api-reference)** — Complete public API documentation

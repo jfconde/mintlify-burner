@@ -1,0 +1,62 @@
+---
+title: MangoPay
+---
+This guide will help you to obtain API credentials to ingest settlement and payout data from MangoPay into your Payrails account.
+
+## Prerequisites
+
+- A MangoPay account.
+- **Role:** Administrator or Developer (required to view/generate API keys and configure permissions).
+- Access to the MangoPay Dashboard.
+- **Contact:** You must identify the MangoPay account admin to coordinate permissions and report scheduling.
+
+## Environment Selection
+
+When generating your API keys, ensure you are targeting the correct MangoPay environment. Payrails supports both:
+
+- **Sandbox (Test):** `https://api.sandbox.mangopay.com`
+- **Production (Live):** `https://api.mangopay.com`
+
+> Note: MangoPay uses separate credentials for each environment. You can configure both in Payrails if needed.
+
+## Step-by-step instructions
+
+### Step 1: Create API keys and Configure Scopes
+
+To create a set of API keys, log in to your MangoPay Dashboard and navigate to the **API** or **Developer** section.
+
+**1. Gather Credentials**
+
+- **Client ID:** Locate your unique MangoPay Client ID.
+- **API Key:** Generate a new API Key (often referred to as the "Passphrase" or "Client Password" in some MangoPay contexts).
+- **Sandbox Access:** If you have a sandbox account, repeat this process to gather the test credentials for initial integration testing.
+
+**2. Configure Permissions (Scopes)**
+Ensure your API key is configured with the following specific scopes to allow Payrails to ingest data:
+
+- **Clients:** `READ` and `WRITE` permissions.
+- **Reports:** `Reports` scope (Required for both POST and GET calls to the reports endpoint).
+- **Disputes:** `READ` permission on the `Disputes.General` scope (Required if dispute processing is needed).
+
+**3. Verify Reporting Requirements**
+
+- **Data Range:** Confirm availability of historical data (typically 24 to 36 months).
+
+***
+
+### Step 2: Add the credentials to the portal
+
+With the self-serve flow you configure the integration yourself in the Payrails portal. There's no need to share credentials over a vault or PGP-encrypted file.
+
+1. Log in to the Payrails dashboard and open **Settings → Integrations → Data**.
+2. Click **Add instance** (top-right).
+3. In New instance, select provider: **MangoPay** and click **Continue**.
+4. On the **Configure account** screen, fill in:
+   - **Account Name:** a unique internal identifier for this instance (e.g. `mangopay_primary`).
+   - **Account Display Name:** a human-readable label shown in the Payrails dashboard (e.g. `Mangopay Primary`).
+   - **Start Date:** the date of today or tomorrow (currently we can not backfill over the self-serve capability. In the need of backfilling, please reach out to your Payrails account manager).
+   - **Client ID:** the MangoPay Client ID gathered in Step 1.
+   - **API Key:** the MangoPay API Key (reffered as Passphrase/Client Password) gathered in Step 1. This value is masked and stored securely once saved.
+5. Click **Save account**. The instance appears in the Data integrations list and Payrails begins ingesting data.
+
+

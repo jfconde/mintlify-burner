@@ -1,0 +1,170 @@
+---
+title: How to Build a Custom Pay Button (Your Own UI)
+---
+
+Drive checkout from your **own** button and method selector while the SDK handles the
+post-tap work — the Google Pay sheet, the 3DS / PayPal / redirect Custom Tab, and polling.
+Use this when you want full control of styling, placement, and state but don't want to
+reimplement payment orchestration. The handle that makes this possible is
+[`PayrailsPaymentLauncher`](/docs/sdk-api-reference#payrailspaymentlauncher).
+
+## Prerequisites
+
+- An active Payrails session (see [Quick Start](/docs/android-sdk-1))
+- The `Session` reference returned by `Payrails.createSession(...)`
+- The `com.payrails.android:checkout` dependency (see [Quick Start](/docs/android-sdk-1))
+- For the encrypted-card path: a card payload **already encrypted** by your client-side
+  encryption library (the SDK exposes no encryption API — see
+  [Why no encryption API](/docs/sdk-concepts#why-no-encryption-api))
+
+## Steps
+
+### 1. Create the launcher early
+
+The launcher registers a Google Pay Activity Result contract, so it must be created before
+the host reaches the `STARTED` state. In Compose, call the factory during composition:
+
+```kotlin
+@Composable
+fun CheckoutScreen(session: Session) {
+    var status by remember { mutableStateOf<ActionResult?>(null) }
+    val launcher = rememberPayrailsPaymentLauncher(session) { result ->
+        status = result
+    }
+    // ... your UI below
+}
+```
+
+From a View / Activity, create it in `onCreate`:
+
+```kotlin
+class CheckoutActivity : ComponentActivity() {
+    private lateinit var launcher: PayrailsPaymentLauncher
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        launcher = Payrails.createPaymentLauncher(this, session) { result ->
+            render(result)
+        }
+    }
+}
+```
+
+### 2. Draw your own method selector and Pay button
+
+This is your UI — style it however you like. Track the selected method in your own state:
+
+```kotlin
+var selected by remember { mutableStateOf(PaymentMethod.googlePay) }
+
+DropdownMenuForYourMethods(
+    selected = selected,
+    onSelect = { selected = it }
+)
+
+Button(onClick = { launcher.authorize(selected) }) {
+    Text("Pay")
+}
+```
+
+### 3. Trigger the payment
+
+Call the matching `authorize(...)` overload from your button. The SDK opens whatever UI the method
+needs:
+
+```kotlin
+// By method type — SDK opens the Google Pay sheet / Custom Tab as required
+launcher.authorize(PaymentMethod.googlePay)
+launcher.authorize(PaymentMethod.payPal, saveInstrument = true)
+launcher.authorize(PaymentMethod.genericRedirect, paymentMethodCode = "klarna")
+
+// A previously saved instrument
+launcher.authorize(storedInstrument = savedCard)
+
+// An already-encrypted card — 3DS handled in a Custom Tab when required
+launcher.authorize(encryptedCardData = encrypted, saveInstrument = true)
+```
+
+### 4. Handle the result
+
+Each `authorize(...)` resolves to exactly one [`ActionResult`](/docs/sdk-api-reference#actionresult),
+delivered to the callback you supplied in step 1:
+
+```kotlin
+when (val result = status) {
+    ActionResult.Success -> showReceipt()
+    is ActionResult.Failed -> when (result.failure.code) {
+        AuthorizationFailureReason.USER_CANCELLED -> { /* user dismissed the sheet / tab — no action */ }
+        else -> showDeclined(result.failure.message)
+    }
+    null -> { /* no payment attempted yet */ }
+}
+```
+
+## Full example — custom dropdown + single Pay button
+
+```kotlin
+@Composable
+fun CustomCheckout(session: Session) {
+    var selected by remember { mutableStateOf(PaymentMethod.googlePay) }
+    var encrypted by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf<String?>(null) }
+
+    val launcher = rememberPayrailsPaymentLauncher(session) { result ->
+        status = when (result) {
+            ActionResult.Success -> "Approved"
+            is ActionResult.Failed -> "Declined: ${result.failure.code}"
+        }
+    }
+
+    Column {
+        // Your own method selector
+        PaymentMethodDropdown(selected) { selected = it }
+
+        // Optional: your own card field that yields an ENCRYPTED string
+        OutlinedTextField(
+            value = encrypted,
+            onValueChange = { encrypted = it },
+            label = { Text("Encrypted card payload") }
+        )
+
+        Button(
+            onClick = {
+                if (encrypted.isNotBlank()) launcher.authorize(encryptedCardData = encrypted)
+                else launcher.authorize(selected)
+            }
+        ) { Text("Pay") }
+
+        status?.let { Text(it) }
+    }
+}
+```
+
+## Troubleshooting
+
+**Problem**: The launcher throws when created
+**Solution**: `Payrails.createPaymentLauncher(...)` must be called from `Activity.onCreate`.
+Registering the Google Pay Activity Result contract after the activity is `STARTED` is not
+allowed by the Android Activity Result API.
+
+**Problem**: A card that needs 3DS does not complete
+**Solution**: 3DS is handled automatically by the launcher (it owns the Custom Tab) — you do
+not branch on it. The terminal `ActionResult` arrives after the challenge resolves. There is no
+separate "headless" card call to choose; `launcher.authorize(encryptedCardData = …)` covers
+both frictionless and 3DS.
+
+**Problem**: `ActionResult.Failed` with `code == UNKNOWN_ERROR` (rawError `unsupportedPayment`)
+**Solution**: The selected method is not configured on the session. Confirm availability with
+[`session.getPaymentMethodConfig()`](/docs/sdk-api-reference#sessiongetpaymentmethodconfigfilter)
+before calling `authorize(...)`.
+
+**Problem**: Google Pay never opens
+**Solution**: Check device capability with `session.isGooglePayAvailable(context)` and confirm
+Google Pay is configured on the session.
+
+## See also
+
+- [`PayrailsPaymentLauncher` API Reference](/docs/sdk-api-reference#payrailspaymentlauncher) — every method and factory
+- [Custom UI: Launcher vs Client](/docs/sdk-concepts#custom-ui-the-launcher-and-the-internal-client) — how the launcher and the internal networking client relate
+- [How to Execute a Payment Without an SDK Button (Headless)](/docs/how-to-execute-payment-headless) — the same launcher flow framed for headless/ViewModel-driven checkouts
+- [`ActionResult` API Reference](/docs/sdk-api-reference#actionresult) — every terminal payment outcome

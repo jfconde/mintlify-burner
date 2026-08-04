@@ -1,0 +1,611 @@
+---
+title: Operation Results
+description: Understand operation result values returned by Payrails payment operations.
+---
+
+Processing payments is a complex and long chain of interactions between many actors involved, and there's a long list of things that can go wrong there. Thankfully, our team at Payrails has seen a lot in their years of experience and is here to help you navigate this complex field.
+
+One of the main challenges we have is to understand exactly what happened in a payment transaction. Unfortunately, there's not yet a standard of responses from PSPs, and each of them has its own way to inform you about these results. For example, some of them opt for a numeric list of possible responses, others choose to inform you through HTTP status codes, others through a string field, and a big etcetera.
+
+Payrails comes to your help here! Every time we integrate a new PSP, we work together with them to map from their list of response codes to ours, so that we can provide you with only one list of possible results regardless of which PSP was used for processing the transaction.
+
+These response codes can be found in the `result` field of each of your Payment Operations. For example, here's how the [Get an execution by ID](ref:getexecution) response would look for a failed execution because of blocked instrument:
+
+```json
+{
+  "id": "fe67fc45-ce47-4fc8-a283-22d03ae68b77",
+  "status": [
+    ...
+    {
+      "code": "authorizeFailed",
+      "time": "2022-04-22T17:53:36.814Z",
+      "errors": [
+        {
+          "id": "a24bc325-3929-4d9d-9c08-b3aa532685b7",
+          "code": "workflow.action.failed",
+          "detail": "The execution of the requested workflow action failed",
+          "docUrl": "/docs/resources/error-codes#workflow.action.failed",
+          "reason": {
+            "category": "Instrument",
+            "result": "BlockedInstrument",
+            "source": "Customer",
+            "detail": "LostInstrument"
+          }
+        }
+      ]
+    }
+  ],
+  ...
+}
+```
+
+And here's the notification for the same execution:
+
+```json
+{
+  "event": "executionActionCompleted",
+  "time": "2022-04-22T17:53:36.814Z",
+  "details": {
+    "action": "authorize",
+    "execution": {
+      "workflowCode": "d5454c2f-ae5e-44f3-8edf-f6dad64f005f",
+      "id": "fe67fc45-ce47-4fc8-a283-22d03ae68b77",
+      "merchantReference": "order_3573894940903"
+    },
+    "success": false,
+    "errors": [
+      {
+        "id": "a24bc325-3929-4d9d-9c08-b3aa532685b7",
+        "code": "workflow.action.failed",
+        "detail": "The execution of the requested workflow action failed",
+        "docUrl": "/docs/resources/error-codes#workflow.action.failed",
+        "reason": {
+          "category": "Instrument",
+          "result": "BlockedInstrument",
+          "source": "Customer",
+          "detail": "LostInstrument"
+        }
+      }
+    ]
+  }
+}
+```
+
+# Result Categories
+
+Before listing down the list of all possible result codes, you must know that the fields `source` and `detail` under the `reason` struct are optional, meaning they will be filled/provided based on the `result` itself. Below is a list of all possible result codes from Payrails, grouped by `category` with their descriptions and possible optional fields:
+
+## Success
+
+Since successful payments are by definition not encountering errors, you'll usually find the results under the `Success` category listed in the `operationResult` field as there won't be an `error` struct attached. In such cases the `success` flag will be set to `true` in the response you receive.
+
+| `result` | description                                                                                                                                                                                                           |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Success  | The requested operation was performed successfully.                                                                                                                                                                   |
+| Accepted | The operation was requested but not executed yet, it was scheduled for execution on the provider side. This is usually followed by waiting for a notification callback or a status querying with some waiting policy. |
+
+## Pending
+
+Next, also a type of happy path but with some type of pending action before they can be completed.
+
+| `result` | description                                                                                                                                                    |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pending  | The operation is waiting for an action to be completed. Could be the user receiving a push notification on their phone, the bank reviewing a transaction, etc. |
+
+## Redirect
+
+Next, also a type of happy path but with some type of pending action, namely redirection, before they can be completed.
+
+| `result`             | description                                                                                                                                                                                                                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HTTPRedirectRequired | This is a special type of `Pending`, where there's an HTTP redirection that needs to be made for the user to complete the process, i.e. 3DS, external wallets, etc. This result always comes with redirection data in the response body, i.e., a redirect URL and a set of parameters. |
+| FormRedirectRequired | Same as `HTTPRedirectRequired`, but with a Form redirection.                                                                                                                                                                                                                           |
+
+## Unknown
+
+Let's discuss the most worrying ones next, the ones where we don't know what actually happened. Any of these results should be considered a high priority to alert and analyze as soon as possible.
+
+| `result`                   | `source` | description                                                                                                             |
+| -------------------------- | :------- | ----------------------------------------------------------------------------------------------------------------------- |
+| UnexpectedProviderResponse | Provider | Received a response, but it was not any of the ones that we expected for the type of operation being executed.          |
+| ProviderUnknownError       | Provider | Received a Failed response from a provider. The provider can not detect the error from the acquirer or the third party. |
+| UnexpectedProviderError    | Provider | Received an Error response, but it was not any of the ones that we expected for the type of operation being executed.   |
+
+## Connection
+
+Next, equally important to analyze and optimize if possible, are the connection and timeout-related codes.
+
+| `result`                | `source` | description                                                                                                                                                 |
+| ----------------------- | :------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ProviderConnectionError | Provider | There was a problem reaching the provider services. Could be caused by an actual connection problem, or that the provider is down or not responding.        |
+| Timeout                 | Provider | There was a timeout waiting for a response from the provider. In this case, the connection could actually be established, but there was no timely response. |
+| ProviderTimeout         | Provider | Same as `Timeout` but the connection that failed was between the provider and another actor, i.e. acquirer.                                                 |
+
+## Operation
+
+Next, let's look at the payment rejection results, which depending on the provider and other factors, may go from completely generic to very specific.
+
+<Table align={[null,"left","left",null]}>
+  <thead>
+    <tr>
+      <th>
+        `result`
+      </th>
+
+      <th>
+        `source`
+      </th>
+
+      <th>
+        `detail`
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        GenericRejection
+      </td>
+
+      <td>
+
+      </td>
+
+      <td>
+
+      </td>
+
+      <td>
+        The provider (or any of the actors in the chain) rejects the transaction but does not specify a specific reason. This code is often referred to as "do not honor".
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        DuplicateOperation
+      </td>
+
+      <td>
+        Merchant
+      </td>
+
+      <td>
+
+      </td>
+
+      <td>
+        Payment is rejected because it would be a duplicate of another one. We should check if we were actually retrying it or if it was a mistake.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        OperationNotAllowed
+      </td>
+
+      <td>
+        Merchant
+      </td>
+
+      <td>
+        TransactionNotPermitted
+        NetworkTransactionReferenceRejected
+      </td>
+
+      <td>
+        Operation is not allowed, usually related to the current status of the transaction, i.e. trying to capture an already canceled payment.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        PayerCanceled
+      </td>
+
+      <td>
+        Customer
+      </td>
+
+      <td>
+
+      </td>
+
+      <td>
+        When operation is cancelled by customer before the payment was made.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        LimitExceeded
+      </td>
+
+      <td>
+        Customer
+      </td>
+
+      <td>
+        LimitExceededAmount
+        LimitExceededCount
+        LimitExceededPinAttempts
+        LimitExceededTime
+      </td>
+
+      <td>
+        Some limit was exceeded by the provider or the issuer. Usually a configurable value on their systems for preventing fraud.
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+## Instrument
+
+Next, a special type of payment rejections, the payment instrument related rejections.
+
+<Table align={[null,"left","left",null]}>
+  <thead>
+    <tr>
+      <th>
+        `result`
+      </th>
+
+      <th>
+        `source`
+      </th>
+
+      <th>
+        `detail`
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        InstrumentNotAllowed
+      </td>
+
+      <td>
+        Customer
+      </td>
+
+      <td>
+
+      </td>
+
+      <td>
+        Operation is not allowed for the instrument, i.e. trying to use a debit card when it should be credit.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        InvalidInstrument
+      </td>
+
+      <td>
+        Customer
+      </td>
+
+      <td>
+        InvalidInstrumentSecurityCode
+        InvalidInstrumentNumber
+        InvalidInstrumentPin
+        InvalidInstrumentExpiryDate
+        InvalidInstrumentAVS
+        InvalidInstrumentToken
+        InvalidInstrumentType
+      </td>
+
+      <td>
+        The instrument is not valid for any reason not specified. In some cases the provider groups other responses into this one (insufficient balance, expired, blocked, etc.)
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        BlockedInstrument
+      </td>
+
+      <td>
+        Customer
+      </td>
+
+      <td>
+        StolenInstrument
+        LostInstrument
+        PickUpInstrument
+        ClosedAccount
+        ContactIssuer
+        CanceledSubscription
+      </td>
+
+      <td>
+        The instrument is currently blocked. Could be a temporary state because it's pending approval for example, but could be permanent like when cards are blocked because they were stolen.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        ExpiredInstrument
+      </td>
+
+      <td>
+        Customer
+      </td>
+
+      <td>
+
+      </td>
+
+      <td>
+        The instrument is expired. In case it was a card, it reached the expiration date. In case it was a token, it may have been revoked or was initially issued for a short time.
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+## Configuration
+
+Next, we have the parameter or configuration errors. These could be similar to the rejections but could be caused by a problem with formatting, missing required parameters, etc.
+
+<Table align={[null,"left",null]}>
+  <thead>
+    <tr>
+      <th>
+        `result`
+      </th>
+
+      <th>
+        `source`
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        ValidationError
+      </td>
+
+      <td>
+        Merchant
+        Payrails
+      </td>
+
+      <td>
+        Before sending the transaction to the provider, we performed a parameter validation and it failed. This code comes together with a list of errors specifying the fields and problems.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        ParamsError
+      </td>
+
+      <td>
+        Merchant
+      </td>
+
+      <td>
+        After sending the transaction to the provider, they decided not to execute it because of a problem with the parameters we sent. Could be a required field is missing, incorrectly formatted, etc.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        ProviderConfigError
+      </td>
+
+      <td>
+        Payrails
+      </td>
+
+      <td>
+        When sending the transaction to the provider, they refused to process it because we are missing something required for the operation, e.g. merchant ID, client secret, etc.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        InvalidSignature
+      </td>
+
+      <td>
+        Payrails
+      </td>
+
+      <td>
+        For providers that require a signature in the requests, there's a specific result for when the signature was actually invalid.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        InternalServerError
+      </td>
+
+      <td>
+        Payrails
+      </td>
+
+      <td>
+        There was an error in our system while trying to process the operation. This will trigger an alert for the Payrails team to act immediately.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        AuthenticationError
+      </td>
+
+      <td>
+        Payrails
+      </td>
+
+      <td>
+        A special case of `ParamsError`, but specifically about an error when authenticating on the provider services.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        PaymentMethodNotSupported
+      </td>
+
+      <td>
+        Merchant
+      </td>
+
+      <td>
+        Payment method is not supported by the Provider. Probably not configured correctly or missing credentials or approvals.
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+## PayerAuthentication
+
+Next, we have the payer authentication error, which can either arise from a missing or incorrect PIN or a 3DS check that didn't occur. It's important to distinguish these ones, that are payer specific, from the server credentials authentication errors.
+
+<Table align={[null,"left","left",null]}>
+  <thead>
+    <tr>
+      <th>
+        `result`
+      </th>
+
+      <th>
+        `source`
+      </th>
+
+      <th>
+        `detail`
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        PayerAuthenticationRequired
+      </td>
+
+      <td>
+        Merchant
+      </td>
+
+      <td>
+
+      </td>
+
+      <td>
+        The payment requires payer authentication (e.g. 3DS) but the merchant didn't ask for authentication or forced not to execute it.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        PayerAuthenticationFailed
+      </td>
+
+      <td>
+        Customer
+      </td>
+
+      <td>
+        PayerAuthenticationCanceled
+        PayerAuthenticationAbandoned
+        PayerAuthenticationNotSupported
+        PayerAuthenticationIdentityCardMismatch
+      </td>
+
+      <td>
+        The payment failed payer authentication (e.g. failed 3DS) due to payer abandoning or canceling the authentication flow, or the required authentication is not supported.
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+## Insufficient Balance
+
+| `result`            | `source` | `detail`            | description |
+| ------------------- | :------- | :------------------ | ----------- |
+| InsufficientBalance | Customer | InsufficientBalance |             |
+
+## Fraud Risk
+
+<Table align={[null,"left","left",null]}>
+  <thead>
+    <tr>
+      <th>
+        `result`
+      </th>
+
+      <th>
+        `possible sources`
+      </th>
+
+      <th>
+        `detail`
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        FraudRisk
+      </td>
+
+      <td>
+        Acquirer
+        Issuer
+        Provider
+      </td>
+
+      <td>
+        FraudRiskBlockList
+        FraudRiskScore
+        FraudRiskRule
+        FraudRiskSecurity
+        FraudRiskSuspectedFraud
+      </td>
+
+      <td>
+
+      </td>
+    </tr>
+
+  </tbody>
+</Table>

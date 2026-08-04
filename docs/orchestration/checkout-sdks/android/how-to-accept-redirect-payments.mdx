@@ -1,0 +1,111 @@
+---
+title: How to Accept Redirect Payments
+description: Accept payments through redirect-based payment methods (iDEAL, Bancontact, Sofort, etc.) using the Payrails SDK.
+---
+
+## Prerequisites
+
+- An active Payrails session (see [Quick Start](/docs/android-sdk-1))
+- A session init payload with redirect-capable payment methods configured in the Payrails backend
+- Kotlin + Jetpack Compose for rendering the redirect buttons
+
+## Steps
+
+### 1. Initialize a session
+
+```kotlin
+val configuration = Configuration(
+    initData = InitData(version = payload.version, data = payload.data),
+    option = Options()
+)
+val session = Payrails.createSession(configuration)
+```
+
+### 2. Discover available redirect methods
+
+Ask the session for redirect payment methods configured by the backend:
+
+```kotlin
+val redirectMethods: List<PayrailsPaymentOption> =
+    session.getPaymentMethodConfig(PaymentMethodFilter.Redirect)
+```
+
+Returns an empty list if no redirect methods are configured.
+
+Each `PayrailsPaymentOption` contains:
+
+- `paymentMethodCode` — the identifier used to create the button (e.g., `"ideal"`, `"bancontact"`)
+- `displayName` — a human-readable label from the backend (nullable)
+
+### 3. Create a redirect button for each method
+
+```kotlin
+redirectMethods.forEach { method ->
+    val button = Payrails.createGenericRedirectButton(
+        translations = CardPaymenButtonTranslations(
+            label = method.displayName ?: method.paymentMethodCode
+        ),
+        paymentMethodCode = method.paymentMethodCode
+    )
+
+    button.delegate = object : GenericRedirectPaymentButtonDelegate {
+        override fun onPaymentButtonClicked(button: GenericRedirectButton) {
+            // Payment flow started — show loading indicator if desired
+        }
+
+        override fun onAuthorizeSuccess(button: GenericRedirectButton) {
+            // Payment succeeded — navigate to success screen
+        }
+
+        override fun onAuthorizeFailed(button: GenericRedirectButton) {
+            // Payment failed — show error UI
+        }
+
+        override fun onPaymentSessionExpired(button: GenericRedirectButton) {
+            // Session expired during redirect — prompt user to retry
+        }
+
+        override fun onStateChanged(button: GenericRedirectButton, state: ButtonState) {
+            // LOADING when payment starts, ENABLED when it completes
+        }
+    }
+
+    // In Compose
+    button.Render(modifier = Modifier.padding(horizontal = 24.dp))
+}
+```
+
+### 4. Handle the redirect flow
+
+When the user taps the button, the SDK:
+
+1. Opens the payment provider's page in a Custom Tab (or system browser as fallback)
+2. Polls the execution status in the background
+3. Returns the result through the delegate callbacks
+
+No additional handling is needed — the SDK manages the redirect lifecycle, polling, and result delivery automatically.
+
+## Session recovery
+
+If the redirect flow is abandoned or remains non-terminal, the SDK follows the same session recovery path as card 3DS redirects. Configure `onSessionExpired` in `Options.redirectSessionLifecycle` to enable automatic recovery:
+
+```kotlin
+val configuration = Configuration(
+    initData = initData,
+    option = Options(
+        redirectSessionLifecycle = RedirectSessionLifecycle(
+            onSessionExpired = {
+                val refreshed = fetchInitPayloadFromBackend()
+                InitData(version = refreshed.version, data = refreshed.data)
+            }
+        )
+    )
+)
+```
+
+## Related
+
+- [How to Accept PayPal Payments](/docs/how-to-accept-paypal-payments) — PayPal uses the same redirect infrastructure
+- [SDK API Reference](/docs/sdk-api-reference) — Full API details for redirect payments
+- [Quick Start](/docs/android-sdk-1) — Get started with the SDK
+- [SDK Concepts](/docs/sdk-concepts) — Payment flow architecture

@@ -1,0 +1,191 @@
+---
+
+title: Update Checkout Amount
+description: Change the checkout amount (and optionally currency) at runtime — for example, when the user selects a tip, applies a discount code, or when shipping costs are calculated after address entry. ---
+
+## Prerequisites
+
+- An active Payrails session (see [Quick Start](/docs/android-sdk-1))
+- The `Session` reference returned by `Payrails.createSession(...)`
+- At least one payment button already created (`CardPaymentButton` or `GooglePayButton`)
+- Your backend can call the Payrails **lookup action** on an execution
+
+## How amount updates work
+
+Updating the checkout amount requires **two coordinated steps** — one on your backend and
+one on the client. Both must happen before the payment is triggered, and they must agree
+on the same amount.
+
+1. **Backend**: Call the Payrails lookup action on the execution with the new amount. This
+   authorizes the updated amount on the Payrails side.
+2. **Client**: Call `session.update()` with the same new amount. This tells the SDK what
+   amount to send in the next payment request.
+
+> **Important**: If the amount authorized by your backend (via lookup) and the amount
+> sent by the SDK (via `update()`) do not match, Payrails will reject the payment with
+> a `401` HTTP error. Always keep the two in sync.
+
+## Steps
+
+### 1. Calculate the new amount in your UI logic
+
+Compute the final amount before calling your backend. The value must be a numeric string
+matching the format your backend expects.
+
+```kotlin
+val originalAmount = 45.99
+val tipPercent = 0.15
+val totalAmount = originalAmount + (originalAmount * tipPercent)  // 52.89
+val totalAmountString = "%.2f".format(totalAmount)               // "52.89"
+```
+
+### 2. Call your backend to update the execution via the lookup action
+
+Your backend must call the Payrails lookup action with the new amount before the client
+updates the SDK. Pass the `executionId` from the active session so your backend knows
+which execution to update.
+
+```kotlin
+// Get the execution ID from the active session
+val executionId = session.query(PayrailsQuery.ExecutionId)
+
+// Call your own backend endpoint, which in turn calls the Payrails lookup action
+myApiClient.updateExecutionAmount(
+    executionId = executionId,
+    amount = totalAmountString,
+    currency = "EUR"
+)
+```
+
+Your backend endpoint should call the Payrails lookup action:
+
+```
+POST /v1/merchant/executions/{executionId}/lookup
+{
+  "amount": {
+    "value": "52.89",
+    "currency": "EUR"
+  }
+}
+```
+
+Wait for your backend to confirm success before proceeding to step 3.
+
+### 3. Call `session.update()` with the same new amount
+
+Once your backend has successfully updated the execution, update the SDK with the
+matching amount. The value and currency must be identical to what was sent to the
+backend.
+
+```kotlin
+session.update(
+    PayrailsUpdate(
+        amount = AmountUpdate(
+            value = totalAmountString,
+            currency = "EUR"
+        )
+    )
+)
+```
+
+`update()` is synchronous and requires no `suspend` context.
+
+### 4. Trigger payment as normal
+
+The updated amount is applied automatically on the next `pay()` call. No additional
+configuration is required.
+
+```kotlin
+cardPaymentButton.pay()
+```
+
+## Full example — tip selection before payment
+
+```kotlin
+@Composable
+fun CheckoutScreen(session: Session, myApiClient: MyApiClient) {
+    val scope = rememberCoroutineScope()
+    var selectedTipPercent by remember { mutableStateOf(0.0) }
+    var isUpdatingAmount by remember { mutableStateOf(false) }
+    val baseAmount = 45.99
+    val executionId = remember { session.query(PayrailsQuery.ExecutionId) }
+
+    val cardPaymentButton = remember {
+        Payrails.createCardPaymentButton(
+            translations = CardPaymenButtonTranslations(label = "Pay")
+        )
+    }
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // Tip selector
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(0.0, 0.10, 0.15, 0.20).forEach { tip ->
+                Button(
+                    enabled = !isUpdatingAmount,
+                    onClick = {
+                        scope.launch {
+                            isUpdatingAmount = true
+                            val total = baseAmount + (baseAmount * tip)
+                            val totalString = "%.2f".format(total)
+
+                            // Step 1: update the execution on your backend first
+                            myApiClient.updateExecutionAmount(
+                                executionId = executionId,
+                                amount = totalString,
+                                currency = "EUR"
+                            )
+
+                            // Step 2: update the SDK with the same amount
+                            session.update(
+                                PayrailsUpdate(
+                                    amount = AmountUpdate(
+                                        value = totalString,
+                                        currency = "EUR"
+                                    )
+                                )
+                            )
+
+                            selectedTipPercent = tip
+                            isUpdatingAmount = false
+                        }
+                    }
+                ) {
+                    Text(if (tip == 0.0) "No tip" else "${(tip * 100).toInt()}%")
+                }
+            }
+        }
+
+        cardPaymentButton.Render()
+    }
+}
+```
+
+## Important: update() is reset on redirect session recovery
+
+If the session is refreshed during a redirect flow (via `onSessionExpired`), the amount
+override is cleared and the value from the new session init payload takes effect. If your
+checkout flow involves redirects, re-call `session.update()` after session recovery if a
+merchant-side amount override is still needed.
+
+## Troubleshooting
+
+**Problem**: Payment fails with a `401` HTTP error after calling `update()`
+**Solution**: The amount set on the SDK and the amount authorized on the backend via the
+lookup action do not match. Ensure both use exactly the same `value` and `currency`
+strings, and that your backend lookup call succeeded before `session.update()` was
+called.
+
+**Problem**: `IllegalStateException` — "No active Payrails session"
+**Solution**: `session.update()` was called before `createSession()` completed. Ensure
+the session is fully initialized before calling `update()`.
+
+**Problem**: `IllegalArgumentException` — "AmountUpdate.value must be a valid positive number"
+**Solution**: The `value` string is not a valid positive number (it may be empty, zero,
+negative, or contain non-numeric characters). Validate your amount calculation before
+passing it to `AmountUpdate`.
+
+## See also
+
+- [`session.update()` API Reference](/docs/sdk-api-reference#sessionupdatechanges) — full parameter and exception reference
+- [`PayrailsUpdate` API Reference](/docs/sdk-api-reference#payrailsupdate) — extensible update container
+- [`AmountUpdate` API Reference](/docs/sdk-api-reference#amountupdate) — amount and currency fields

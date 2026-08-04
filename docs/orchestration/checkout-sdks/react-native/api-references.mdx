@@ -1,0 +1,463 @@
+---
+title: API References
+---
+
+# Drop-in API Reference
+
+## `PayrailsDropin`
+
+### Properties
+
+| Property                      | Type                                                                      | Required | Description                                                                                                                         |
+| :---------------------------- | :------------------------------------------------------------------------ | :------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| `config`                      | `InitData`                                                                | Yes      | Init payload `{ data: string; version: string}` from the `/client/init` response.                                                   |
+| `returnInfo`                  | `{ success?: string; cancel?: string; error?: string; pending?: string }` | No       | Optional deep link or universal link targets sent with redirect-based authorize requests. Missing fields fall back to SDK defaults. |
+| `paymentMethodsConfiguration` | `PaymentMethodsConfiguration`                                             | No       | Per-method display and behaviour options.                                                                                           |
+| `events`                      | `DropinEvents`                                                            | Yes      | Payment lifecycle callbacks.                                                                                                        |
+| `styles`                      | `DropinStyles`                                                            | No       | Visual styling for the Drop-in container and all child elements.                                                                    |
+| `translations`                | `Translations`                                                            | No       | Localised labels for all Drop-in UI strings.                                                                                        |
+
+---
+
+### Events
+
+| Property                  | Type                                  | Description                                                                                             |
+| :------------------------ | :------------------------------------ | :------------------------------------------------------------------------------------------------------ |
+| `onRequestProgressChange` | `(inProgress: boolean) => void`       | Fired when payment processing starts or ends.                                                           |
+| `onAuthorizeStart`        | `() => boolean`                       | Called before authorization begins. Return `true` to proceed.                                           |
+| `onAuthorizeSuccess`      | `(result: AuthorizeResult) => void`   | Called when the payment is successfully authorized.                                                     |
+| `onAuthorizeFailure`      | `(failure: AuthorizeFailure) => void` | Called when authorization fails.                                                                        |
+| `onAuthorizeRequestStart` | `() => void`                          | Called when the authorization request begins for Apple Pay and Google Pay.                              |
+| `onPaymentOptionSelected` | `(option: PaymentOption) => void`     | Called when the user selects a payment method.                                                          |
+| `onBillingAddressChanged` | `(address: BillingAddress) => void`   | Called when the user changes country code or postal code. Only fires when address selection is enabled. |
+
+---
+
+### Styling
+
+Pass a `DropinStyles` object to the `styles` property.
+
+```tsx
+type DropinStyles = {
+  container?: {
+    base?: ViewStyle;
+  };
+
+  element?: {
+    neutral?: {
+      container?: ViewStyle;
+      radioOuter?: ViewStyle;
+      label?: TextStyle;
+      logo?: ImageStyle;
+    };
+    selected?: {
+      container?: ViewStyle;
+      radioOuter?: ViewStyle;
+      radioInner?: ViewStyle;
+      label?: TextStyle;
+      logo?: ImageStyle;
+    };
+  };
+
+  leanButton?: {
+    styles?: {
+      base?: ViewStyle;
+      loading?: ViewStyle;
+      disabled?: ViewStyle;
+    };
+    textStyles?: {
+      base?: TextStyle;
+      loading?: TextStyle;
+      disabled?: TextStyle;
+    };
+    customization?: {
+      themeColor?: string;
+      buttonTextColor?: string;
+      buttonBorderRadius?: string;
+      linkColor?: string;
+      overlayColor?: string;
+    };
+  };
+
+  googlePayButton?: {
+    type?:
+      | "pay"
+      | "buy"
+      | "book"
+      | "checkout"
+      | "donate"
+      | "order"
+      | "subscribe"
+      | "mark";
+    style?: ViewStyle;
+  };
+
+  paypalButton?: {
+    color?: "gold" | "blue" | "silver" | "white" | "black";
+    height?: number;
+    label?:
+      | "paypal"
+      | "checkout"
+      | "buynow"
+      | "pay"
+      | "installment"
+      | "subscribe"
+      | "donate";
+    shape?: "rect" | "pill";
+    tagline?: boolean;
+  };
+
+  applePayButton?: {
+    type?:
+      | "plain"
+      | "buy"
+      | "setUp"
+      | "inStore"
+      | "donate"
+      | "checkout"
+      | "book"
+      | "subscribe"
+      | "reload"
+      | "addMoney"
+      | "topUp"
+      | "order"
+      | "rent"
+      | "support"
+      | "contribute"
+      | "tip"
+      | "continue";
+    buttonStyle?: "white" | "white-outline" | "black";
+  };
+
+  cardForm?: {
+    inputFields?: InputStyles;
+    errorTextStyles?: {
+      base: TextStyle;
+    };
+    cardNumberInput?: InputStyles;
+    expiryDateInput?: InputStyles;
+    cvvInput?: InputStyles;
+    cardholderNameInput?: InputStyles;
+  };
+
+  cardPaymentButton?: {
+    base?: Record<string, string | number>;
+    disabled?: Record<string, string | number>;
+    text?: Record<string, string | number>;
+  };
+
+  storeInstrumentSwitch?: {
+    style?: ViewStyle;
+    thumbColor?: string;
+    trackColor?: {
+      false?: string;
+      true?: string;
+    };
+  };
+
+  addressInput?: {
+    wrapper?: ViewStyle | TextStyle;
+    countrySelector?: {
+      wrapper?: ViewStyle | TextStyle;
+      element?: ViewStyle | TextStyle;
+      label?: TextStyle;
+      error?: ViewStyle | TextStyle;
+    };
+    postalCodeInput?: {
+      wrapper?: ViewStyle | TextStyle;
+      element?: ViewStyle | TextStyle;
+      label?: TextStyle;
+      error?: ViewStyle | TextStyle;
+    };
+  };
+};
+```
+
+---
+
+### Payment Methods Configuration
+
+Controls how individual payment methods appear and behave within the Drop-in.
+
+```tsx
+paymentMethodsConfiguration: {
+  preselectFirstPaymentOption?: boolean;
+  cards?: {
+    showCardHolderName?: boolean;
+    showExistingCards?: boolean;
+    showPaymentMethodLogo?: boolean;
+  };
+  payPal?: {
+    showPaymentMethodLogo?: boolean;
+  };
+  googlePay?: {
+    showPaymentMethodLogo?: boolean;
+  };
+  applePay?: {
+    showPaymentMethodLogo?: boolean;
+  };
+  mercadoPago?: {
+    showPaymentMethodLogo?: boolean;
+  };
+}
+```
+
+---
+
+### Translations
+
+All UI strings are localised through the `translations` prop.
+
+```tsx
+export enum ElementType {
+  CARD_NUMBER = "CARD_NUMBER",
+  CARDHOLDER_NAME = "CARDHOLDER_NAME",
+  CVV = "CVV",
+  EXPIRATION_MONTH = "EXPIRATION_MONTH",
+  EXPIRATION_YEAR = "EXPIRATION_YEAR",
+  EXPIRATION_DATE = "EXPIRATION_DATE",
+}
+
+export interface Translations {
+  googlePayButton?: {
+    labels?: {
+      storeInstrument?: string;
+    };
+  };
+  cardPaymentButton?: {
+    labels?: {
+      neutral?: string;
+      processing?: string;
+    };
+  };
+  cardForm?: {
+    placeholders?: {
+      [key in ElementType]?: string;
+    };
+    labels?: {
+      [key in ElementType]?: string;
+    } & {
+      label?: string;
+      storeInstrument?: string;
+    };
+  };
+  leanButton?: {
+    labels?: {
+      loading?: string;
+      // Note: the button label is fixed to "Pay by bank with Al Tareq." and cannot be overridden.
+    };
+  };
+  paymentResult?: {
+    success?: string;
+    fail?: string;
+    pending?: string;
+  };
+  paypalButton?: {
+    labels?: {
+      storeInstrument?: string;
+    };
+  };
+  applePayButton?: {
+    labels?: {
+      storeInstrument?: string;
+    };
+  };
+}
+```
+
+---
+
+# Elements API Reference
+
+All Elements must be rendered inside a `PayrailsProvider`. For usage examples, see [How to Use Elements](how-to-integrate#how-to-use-elements).
+
+---
+
+## `PayWithCardButton`
+
+Renders a payment button for a stored card instrument.
+
+| Prop                      | Type                                  | Required | Description                          |
+| ------------------------- | ------------------------------------- | -------- | ------------------------------------ |
+| `instrument`              | `StoredCardInstrument`                | Yes      | The stored card instrument to charge |
+| `title`                   | `string`                              | No       | Custom button label                  |
+| `onAuthorizeSuccess`      | `() => void`                          | No       | Called when payment is authorized    |
+| `onAuthorizeFailure`      | `(failure: AuthorizeFailure) => void` | No       | Called when authorization fails      |
+| `onRequestProgressChange` | `(inProgress: boolean) => void`       | No       | Called when request state changes    |
+
+The button displays the card network icon and masked card number automatically. It is disabled while a payment request is in progress.
+
+**Hooks**
+
+| Hook                       | Returns                  | Description                                              |
+| -------------------------- | ------------------------ | -------------------------------------------------------- |
+| `useStoredCardInstruments` | `StoredCardInstrument[]` | Retrieves saved card instruments for the current session |
+
+---
+
+## `PayWithNewCardButton`
+
+Renders the submit button for a new card payment. Must be placed inside a `TokenizationForm`.
+
+| Prop                 | Type                                  | Required | Default             | Description                              |
+| -------------------- | ------------------------------------- | -------- | ------------------- | ---------------------------------------- |
+| `title`              | `string`                              | No       | `"Confirm payment"` | Button label                             |
+| `shouldSaveCard`     | `boolean`                             | No       | —                   | Whether to store the card for future use |
+| `dropinStyles`       | `CustomStylingProps`                  | No       | —                   | Custom button styles                     |
+| `translations`       | `Translations`                        | No       | —                   | Localised labels                         |
+| `isAddressEnabled`   | `boolean`                             | No       | —                   | Enables billing address validation       |
+| `onAuthorizeSuccess` | `() => void`                          | No       | —                   | Called when payment is authorized        |
+| `onAuthorizeFailure` | `(failure: AuthorizeFailure) => void` | No       | —                   | Called when authorization fails          |
+
+The button is automatically disabled until all card fields pass validation.
+
+**Related hooks**
+
+| Hook           | Returns            | Description                                     |
+| -------------- | ------------------ | ----------------------------------------------- |
+| `useBinLookup` | `BinLookupResult`  | Identifies card network from BIN as user types  |
+| `useTokenize`  | `TokenizeFunction` | Tokenizes card data without executing a payment |
+
+---
+
+## `ApplePay`
+
+Renders the native Apple Pay button on iOS. Returns `null` on Android and when Apple Pay is unavailable.
+
+| Prop                 | Type                                  | Required | Description                                                                                                                                                                                                                       |
+| -------------------- | ------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buttonType`         | `ButtonType`                          | No       | Button label variant: `"plain"`, `"buy"`, `"setUp"`, `"inStore"`, `"donate"`, `"checkout"`, `"book"`, `"subscribe"`, `"reload"`, `"addMoney"`, `"topUp"`, `"order"`, `"rent"`, `"support"`, `"contribute"`, `"tip"`, `"continue"` |
+| `buttonStyle`        | `ButtonStyle`                         | No       | Button appearance: `"white"`, `"whiteOutline"`, `"black"`                                                                                                                                                                         |
+| `width`              | `number`                              | No       | Button width in pixels                                                                                                                                                                                                            |
+| `height`             | `number`                              | No       | Button height in pixels                                                                                                                                                                                                           |
+| `cornerRadius`       | `number`                              | No       | Button corner radius                                                                                                                                                                                                              |
+| `storeInstrument`    | `boolean`                             | No       | Whether to save the instrument for future use                                                                                                                                                                                     |
+| `label`              | `string`                              | No       | Payment label shown in the Apple Pay sheet                                                                                                                                                                                        |
+| `onAuthorizeSuccess` | `() => void`                          | No       | Called when Apple Pay payment is authorized                                                                                                                                                                                       |
+| `onAuthorizeFailure` | `(failure: AuthorizeFailure) => void` | No       | Called when authorization fails                                                                                                                                                                                                   |
+| `onAuthorizeCancel`  | `() => void`                          | No       | Called when the user cancels the Apple Pay sheet                                                                                                                                                                                  |
+
+**Hooks**
+
+| Hook                   | Returns   | Description                                                     |
+| ---------------------- | --------- | --------------------------------------------------------------- |
+| `useApplePayAvailable` | `boolean` | `true` when Apple Pay is configured and available on the device |
+
+---
+
+## `GooglePay`
+
+Renders the native Google Pay button on Android. Returns `null` on iOS and when Google Pay is unavailable.
+
+| Prop                 | Type                                  | Required | Description                                                                                                    |
+| -------------------- | ------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
+| `merchantInfo`       | `MerchantInfo`                        | Yes      | `{ merchantId: string, merchantName?: string, merchantOrigin?: string }`                                       |
+| `buttonType`         | `ButtonType`                          | No       | Button label variant: `"pay"`, `"buy"`, `"book"`, `"checkout"`, `"donate"`, `"order"`, `"subscribe"`, `"mark"` |
+| `storeInstrument`    | `boolean`                             | No       | Whether to save the instrument for future use                                                                  |
+| `style`              | `Record<string, any>`                 | No       | Custom button styles                                                                                           |
+| `onAuthorizeSuccess` | `() => void`                          | No       | Called when Google Pay payment is authorized                                                                   |
+| `onAuthorizeFailure` | `(failure: AuthorizeFailure) => void` | No       | Called when authorization fails                                                                                |
+| `onAuthorizeCancel`  | `() => void`                          | No       | Called when the user cancels Google Pay                                                                        |
+
+**Hooks**
+
+| Hook                    | Returns   | Description                                       |
+| ----------------------- | --------- | ------------------------------------------------- |
+| `useGooglePayAvailable` | `boolean` | `true` when Google Pay is available on the device |
+
+---
+
+## `PayPal`
+
+Renders a PayPal payment button. Works on both iOS and Android.
+
+| Prop                  | Type                                                       | Required | Description                                                                                |
+| --------------------- | ---------------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `storeInstrument`     | `boolean`                                                  | No       | Whether to save the PayPal account for future use                                          |
+| `paymentInstrumentId` | `string`                                                   | No       | Stored PayPal instrument ID; charges the saved account directly without opening a redirect |
+| `style`               | `PayPalButtonStyleConfig`                                  | No       | Button style. Supports `height` (number, 30–55px)                                          |
+| `onAuthorizeSuccess`  | `() => void`                                               | No       | Called when PayPal payment is authorized                                                   |
+| `onAuthorizeFailure`  | `(failure: AuthorizeFailure) => void`                      | No       | Called when authorization fails                                                            |
+| `onAuthorizeCancel`   | `() => void`                                               | No       | Called when the user cancels the PayPal flow                                               |
+| `onSessionExpired`    | `() => Promise<{ data: string; version: string } \| void>` | No       | Called when the session expires; return a refreshed config                                 |
+
+**Hooks**
+
+| Hook                         | Returns                    | Description                                             |
+| ---------------------------- | -------------------------- | ------------------------------------------------------- |
+| `useStoredPayPalInstruments` | `StoredPayPalInstrument[]` | Retrieves saved PayPal accounts for the current session |
+
+---
+
+## `GenericRedirect`
+
+Renders a redirect-based payment button for methods such as iDEAL, Pix, Yape, MercadoPago, and others.
+
+| Prop                 | Type                                                       | Required | Description                                                                                               |
+| -------------------- | ---------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| `paymentMethodCode`  | `string`                                                   | Yes      | Payment method identifier: `"ideal"`, `"pix"`, `"yape"`, `"mercadopago"`, `"bankaccount"`, `"revolutpay"` |
+| `redirectMode`       | `RedirectModes`                                            | No       | How to open the redirect URL. Default: `RedirectModes.customTab`. Options: `customTab`, `defaultBrowser`  |
+| `translations`       | `{ label?: string; loading?: string }`                     | No       | Button text overrides                                                                                     |
+| `styles`             | `{ base?, loading?, pressed?, disabled? }`                 | No       | `ViewStyle` per button state                                                                              |
+| `textStyles`         | `{ base?, loading?, pressed?, disabled? }`                 | No       | `TextStyle` per text state                                                                                |
+| `onAuthorizeSuccess` | `() => void`                                               | No       | Called when payment is authorized                                                                         |
+| `onAuthorizeFailure` | `(failure: AuthorizeFailure) => void`                      | No       | Called when authorization fails                                                                           |
+| `onAuthorizeCancel`  | `() => void`                                               | No       | Called when the user cancels                                                                              |
+| `onSessionExpired`   | `() => Promise<{ data: string; version: string } \| void>` | No       | Called when the session expires; return a refreshed config                                                |
+
+> `paymentMethodCode` must match the payment method code from your configuration exactly, including case.
+
+**`RedirectModes`**
+
+| Value                          | Behavior                                                                                                                                        |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RedirectModes.customTab`      | Opens in Chrome Custom Tab (Android) / SFSafariViewController (iOS). Recommended. Falls back to default browser if custom tabs are unavailable. |
+| `RedirectModes.defaultBrowser` | Opens the system browser. The user must manually return to the app. The SDK detects app foregrounding to resume.                                |
+
+---
+
+## `Lean`
+
+Renders a bank transfer payment button for the UAE, powered by the Lean SDK checkout dialog.
+
+**Prerequisites**
+
+- Lean requires the peer dependency `lean-react-native` with version `4.2.0`. Earlier versions may not be compatible.
+- Also install `react-native-webview` if it is not already installed in your project.
+
+```typescript React Native
+yarn add lean-react-native@4.2.0 react-native-webview
+// OR
+npm install lean-react-native@4.2.0 react-native-webview
+```
+
+The button label is fixed to **"Pay by bank with Al Tareq."** and cannot be overridden via `translations`.
+
+| Prop                 | Type                                                       | Required | Description                                                    |
+| -------------------- | ---------------------------------------------------------- | -------- | -------------------------------------------------------------- |
+| `translations`       | `LeanTranslations`                                         | No       | `{ loading?: string }` — only the loading text is configurable |
+| `styles`             | `LeanStyles`                                               | No       | `ViewStyle` per button state: `base`, `loading`, `disabled`    |
+| `textStyles`         | `LeanTextStyles`                                           | No       | `TextStyle` per text state: `base`, `loading`, `disabled`      |
+| `customization`      | `LeanCustomization`                                        | No       | Lean checkout dialog theming (see below)                       |
+| `onAuthorizeSuccess` | `() => void`                                               | No       | Called when the bank transfer is authorized                    |
+| `onAuthorizeFailure` | `(failure: AuthorizeFailure) => void`                      | No       | Called when authorization fails                                |
+| `onAuthorizeCancel`  | `() => void`                                               | No       | Called when the user dismisses the Lean dialog                 |
+| `onSessionExpired`   | `() => Promise<{ data: string; version: string } \| void>` | No       | Called when the session expires; return a refreshed config     |
+
+**`LeanCustomization`**
+
+| Property             | Type     | Description                                   |
+| -------------------- | -------- | --------------------------------------------- |
+| `themeColor`         | `string` | Primary color for the Lean checkout dialog UI |
+| `buttonTextColor`    | `string` | Text color on dialog buttons                  |
+| `buttonBorderRadius` | `string` | Border radius of dialog buttons (e.g. `"8"`)  |
+| `linkColor`          | `string` | Color of links inside the dialog              |
+| `overlayColor`       | `string` | Overlay backdrop color                        |
+
+For payment completion options, see [Payment Completion Modes](how-to-integrate#payment-completion-modes).
+
+---
+
+## Event Callbacks
+
+All Elements share the same callback contract. See the [React Native event glossary](/docs/orchestration/checkout-sdks/web-v5-legacy/sdk-events-glossary#react-native-event-glossary) for full type definitions.

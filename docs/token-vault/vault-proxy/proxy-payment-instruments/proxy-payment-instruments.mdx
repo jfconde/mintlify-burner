@@ -1,0 +1,366 @@
+---
+title: Cards via Proxy
+description: Learn how to send instant proxy requests for payments with cards.
+---
+This feature is used to execute payment authorization requests **with cards as a payment method**. When a merchant user's card is stored as a payment instrument in Payrails Vault, you can use it with any request to a payment provider. As an example, you can make a request to Adyen to make a payment authorization, or make a request to Checkout.com to make a store card-on-file request. Payrails proxy API supports you to forward any request to a provider by replacing the instrumentId with sensitive card values and keeping the rest of the request payload as is. 
+
+The following is a high-level sequence diagram of the interaction between the services.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/vault-proxy/proxy-payment-instruments/proxy-payment-instruments-1.svg"
+  width="600px"
+/>
+
+### How to send a proxy request
+
+You will use the [Vault Proxy](ref:vaultproxy) API endpoint to forward a request to a provider using Payrails as a proxy. What you need to do:
+
+1. **Prepare the request body you want to pass to the payment provider based on the provider's API contract.**
+
+This request will include fields that are non-sensitive (i.e. amount), as well as the card information that is PCI sensitive. You will put `{{key}}` in the place of the sensitive fields, while forwarding the rest of the payload as it is. Read in the next section what the key variables you will use are in more detail.
+
+This is the `body` object you will see under [Vault Proxy](ref:vaultproxy) API.
+
+2. **Prepare the request headers that are needed to be passed to the payment provider.**
+
+The payment providers typically require certain headers to securely receive a request from the senders, such as authentication or authorization keys. In order for us to send a request to the payment provider, we need to provide those headers when forwarding your request to the provider. You will provide all required header information defined by the provider's API contract.
+
+This is the `headers` object in [Vault Proxy](ref:vaultproxy) API.
+
+3. **Prepare the URL of the provider that you want Payrails to forward the request.**
+
+You have to define a destination URL path for every proxy request that you want to send. This is the URL of the API endpoint of the payment provider. You will pass it to Payrails, so that we can send your request body and headers you prepared in the previous steps to the designated URL.
+
+This is `url` object in [Vault Proxy](ref:vaultproxy) API.
+
+Below you can find some examples of some well-known providers and how you should map the card data using our instruments.
+
+```json Adyen
+{
+  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url":"https://checkout-test.adyen.com/v69/payments",
+  "headers":{
+    "x-API-key":"YOUR_API_KEY",
+    "Content-Type":"application/json"
+  },
+  "body":{
+    "paymentMethod":{
+      "type":"scheme",
+      "number":"{{cardNumber}}",
+      "expiryMonth":"{{cardExpiryMonth}}",
+      "expiryYear":"{{cardExpiryYear}}",
+      "cvc":"{{cardSecurityCode}}",
+      "holderName":"{{cardHolderName}}"
+    },
+    "amount":{
+      "currency":"USD",
+      "value":1000
+    },
+    "reference":"your-order-number",
+    "returnUrl":"https://your-company.com/...",
+    "merchantAccount":"YOUR_MERCHANT_ACCOUNT"
+  }
+}
+```
+```json Checkout
+{
+  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url":"https://api.sandbox.checkout.com/payments",
+  "headers":{
+    "x-API-key":"YOUR_API_KEY",
+    "Content-Type":"application/json"
+  },
+  "body":{
+    "amount":1000,
+    "currency":"USD",
+    "reference":"some_reference",
+    "source":{
+      "type":"card",
+      "number":"{{cardNumber}}",
+      "expiry_month":"{{cardExpiryMonth}}",
+      "expiry_year":"{{cardExpiryYear}}",
+      "cvv":"{{cardSecurityCode}}",
+      "name":"{{cardHolderName}}"
+    },
+    "payment_type":"Regular",
+    "authorization_type":"Final",
+    "capture":true,
+    "processing_channel_id":"pc_xxxxxxxxxxx",
+    "risk":{
+      "enabled":false
+    },
+    "merchant_initiated":true
+  }
+}
+```
+```json Mangopay
+{
+  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url":"https://pci.mangopay.com/pci/v2.01/YOUR_CLIENT_ID/payins/card/direct/raw",
+  "headers":{
+    "Content-Type":"application/json"
+  },
+  "body":{
+    "Tag":"Custom meta",
+    "AuthorId":"205062273",
+    "DebitedFunds":{
+      "Currency":"EUR",
+      "Amount":5000
+    },
+    "SecureModeReturnURL":"https://mangopay.com/docs/please-ignore",
+    "Culture":"EN",
+    "BrowserInfo":{
+      "AcceptHeader":"text/html, application/xhtml+xml, application/xml;q=0.9, /;q=0.8",
+      "JavaEnabled":true,
+      "Language":"en-EN",
+      "ColorDepth":4,
+      "ScreenHeight":1800,
+      "ScreenWidth":400,
+      "TimeZoneOffset":60,
+      "UserAgent":"Mozilla/5.0 (iPhone; CPU iPhone OS 13_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+      "JavascriptEnabled":true
+    },
+    "IpAddress":"b02a:7967:ecc2:d827:cdd0:67d3:6d2f:4fef",
+    "Billing":{
+      "FirstName":"Alex",
+      "LastName":"Smith",
+      "Address":{
+        "AddressLine1":"100 rue Rivoli",
+        "AddressLine2":null,
+        "City":"Paris",
+        "Region":"Ile-de-France",
+        "PostalCode":"75001",
+        "Country":"FR"
+      }
+    },
+    "Shipping":{
+      "FirstName":"Alex",
+      "LastName":"Smith",
+      "Address":{
+        "AddressLine1":"100 rue Rivoli",
+        "AddressLine2":null,
+        "City":"Paris",
+        "Region":"Ile-de-France",
+        "PostalCode":"75001",
+        "Country":"FR"
+      }
+    },
+    "Card":{
+      "Number":"{{cardNumber}}",
+      "ExpirationDate":"{{cardExpiryMonth}}{{cardExpiryYear2Digits}}",
+      "CVX":"{{cardSecurityCode}}"
+    },
+    "CardType":"CB_VISA_MASTERCARD"
+  }
+}
+```
+```json Stripe
+{
+  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url":"https://api.stripe.com/v1/payment_methods",
+  "headers":{
+    "Authorization":"***",
+    "Content-Type":"application/x-www-form-urlencoded"
+  },
+  "body":"type=card&card[exp_month]={{cardExpiryMonth}}&card[exp_year]={{cardExpiryYear}}&card[number]={{cardNumber}}&card[cvc]={{cardSecurityCode}}"
+}
+```
+
+### Dynamic variable substitution during proxying
+
+In this type of proxy, you don't need to pre-configure a connection to map the sensitive fields up front, but you just need to put `{{key}}` in the place of the sensitive fields inside the proxy body, while sending the proxy request to Payrails. The fields with the format `{{key}}` will be replaced by actual card data by Payrails Vault, the fields that do not have a key will be sent "as is" to the destination payment provider.
+
+You can use the below `{{key}}`s for **cards** and **network tokens**, when sending payment authorization requests to payment providers.
+
+#### Cards
+
+* For card number, use`{{cardNumber}}`
+* For cardholder name, use`{{cardHolderName}}`
+* For card security code (or CVV, CVC, etc), use `{{cardSecurityCode}}`
+* For card expiry month, use`{{cardExpiryMonth}}` or `{{MM}}`
+* For card expiry year, if:
+* 4-digit card expiry year, use `{{cardExpiryYear}}` or `{{YYYY}}`
+* 2-digit card expiry year, use`{{cardExpiryYear2Digits}}` or `{{YY}}`.
+
+#### Network tokens
+
+* For network token number, use `{{networkTokenNumber}}`
+* For cryptogram, use`{{networkTokenCryptogram}}`
+* Expiry month of the network token, use`{{networkTokenExpiryMonth}}`
+* For expiry year of the network token, if:
+* 4-digit expiry year of the network token, use`{{networkTokenExpiryYear}}`
+* 2-digit expiry year of the network token, use `{{networkTokenExpiryYear2Digits}}`.
+
+If you would like to send any other field that does not exist in the above list, please contact our team to support you to enable custom records for your environment.
+
+> ❗️ With great power comes great responsibility
+>
+> This feature gives you absolute control on what is sent to the Provider. Make sure you sanitize and validate your requests to avoid risk of exposing sensitive information in a field that is not protected.
+>
+> For example, if you put the variable `{{cardNumber}}` in a field that the Provider shows in their Portal (like an order description, cart item name, etc.), then you would be exposing the customer's card number to your support team.
+
+### Support of multiple content types
+
+We currently support JSON, XML and x-www-form-urlencoded. If you need additional content types, you can contact our team to enable more. If the destination provider requires a JSON body for the API endpoint to which you wish to proxy data, use a request header of 'Content-Type': text/json. Similarly, if you need to send XML to the destination provider, use the request header as 'Content-Type': text/xml.
+
+```json JSON
+curl --location 'http://127.0.0.1/payment/providers/97d028f0-24bd-4705-924f-6c956b9a7a1c/proxy' \
+--header 'x-idempotency-key: 75b4db76-bd2d-429c-b757-ebff73f72d56' \
+--header 'Accept: application/json' \
+--header 'Authorization: Bearer ....' \
+--header 'Content-Type: application/json' \
+--header 'Accept: application/json' \
+--data '
+{
+"paymentInstrumentId": "0fb576ef-9f5e-4480-9254-94b6d03b2c9c",
+"url": "https://checkout-test.adyen.com/v69/payments",
+"headers": {
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+  },
+"body": {
+  "paymentMethod": {
+  "number": "{{cardNumber}}",
+  "expiryMonth": "{{cardExpiryMonth}}",
+  "expiryYear": "{{cardExpiryYear}}",
+  "cvc": "{{cardSecurityCode}}",
+  "holderName": "{{cardHolderName}}"
+  }
+}
+```
+```shell XML
+curl --location 'http://127.0.0.1/payment/providers/97d028f0-24bd-4705-924f-6c956b9a7a1c/proxy' \
+--header 'x-idempotency-key: 75b4db76-bd2d-429c-b757-ebff73f72d56' \
+--header 'Accept: application/json' \
+--header 'Authorization: Bearer ....' \
+--header 'Content-Type: application/json' \
+--header 'Accept: application/json' \
+--data '{
+"paymentInstrumentId": "0fb576ef-9f5e-4480-9254-94b6d03b2c9c",
+"url": "https://checkout-test.adyen.com/v69/payments",
+"headers": {
+"Accept": "application/xml",
+"Content-Type": "application/xml"
+},
+"body": "<request><card_number><{{cardNumber}}</card_number><exp_month>{{cardExpiryMonth}}</pg_exp_month><exp_year>{{cardExpiryYear}}</exp_year></request>..."
+```
+```shell urlencoded
+curl --location 'http://127.0.0.1/payment/providers/97d028f0-24bd-4705-924f-6c956b9a7a1c/proxy' \
+--header 'x-idempotency-key: 75b4db76-bd2d-429c-b757-ebff73f72d56' \
+--header 'Accept: application/json' \
+--header 'Authorization: Bearer ....' \
+--header 'Content-Type: application/json' \
+--header 'Accept: application/json' \
+--data '{
+"paymentInstrumentId": "eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+"url":"https://api.stripe.com/v1/payment_methods",
+"headers":{
+"Authorization":"***",
+"Content-Type":"application/x-www-form-urlencoded"
+},
+"body":"type=card&card[exp_month]={{cardExpiryMonth}}&card[exp_year]={{cardExpiryYear}}&card[number]={{cardNumber}}&card[cvc]={{cardSecurityCode}}"
+}'
+```
+
+<Note>
+  The keys in the `headers` object must be case insensitive unique.
+</Note>
+
+### Obtaining providerId
+
+Before being able to use the `/proxy` endpoint, you have to inform Payrails about the provider with whom you want to exchange information.
+
+We must start by checking their PCI certification to receive full PANs securely. Payrails must check the provider before sending card data to ensure everyone's security and compliance. After the security checks, we're ready to enable the provider on your environment, and provide you a `providerId` that identifies the Provider in our system.
+
+### Usage of pre-processors and post-processors
+
+Some payment providers may require certain additional steps during the transmission of the request, which need to involve the Vault, given that the sensitive data being transmitted can only be handled by the Vault. In that case, Payrails Vault must execute such a process before forwarding your request to the destination, or execute a process before the response is forwarded back to the merchant. In order for the Vault to process such a requirement custom to a specific provider, you need to pass certain parameters in the Proxy API, under `preProcessors` and `postProcessors`.
+
+A **Pre**-processor is a function that you use when you need Payrails to make a customization in the request before forwarding it to the downstream destination (i.e. calculating a signature of the request body including sensitive data). Each pre-processor has a code and a set of parameters required to execute it. It can be applied to request headers, body, and the path.
+
+A **Post**-processor is a function that you use when you need Payrails to make a customization in the response of the downstream destination before forwarding it to your system (i.e. redact any sensitive information in the response from a payment processor). It is possible to use postProcessors both for response headers and body.
+
+#### Using a pre-processor for calculating a signature/hash in the request
+
+Some payment providers may require passing a field containing a calculated signature/hash. In this case, what you will need to do is make 2 additions in [Vault Proxy](ref:vaultproxy) API:
+
+1. You will use a key variable `{{requestHashSignature}}` in a place where you need to pass the signature. This is similar to how you use key variables like `{{cardNumber}}`.
+
+> 📘 It can be applied to request headers, body, and the path. See the example below where the "Signature" object is passed with the value `{{requestHashSignature}}` as well as in the header called "Signature" and the URL.
+
+2. You will add `preProcessor` object with:
+   1. `preProcessor.code` is `calculatehash` to achieve this type of pre-processing;
+   2. `preProcessor.parameters` has 5 fields, the values are defined by you depending on the provider's requirements.
+      1. Required parameters:
+         1. `algorithm`: The algorithm to calculate the specified payload. (i.e. md5)
+         2. `payload`: The string of the request body from which the signature has to be calculated. You can use the string `{{requestBodyString}}` to use what is sent in your request body, or you can build a string by putting all the fields, including placeholders, like `{{cardNumber}}`.  Before calculating the hash data, placeholders will be replaced with actual data so that the signature will include actual values.
+      2. Optional parameters:
+         1. `hashEncoding`: The format of the desired result after calculating the payload with the specified algorithm (i.e. base64, hex). It's an optional field that is by default hex.
+         2. `payloadEncoding`: If you want to set how data should be escaped, you can use this parameter. (i.e., for calculating the hash of JSON, set payloadEncoding to application/json).
+         3. `letterCase`: Some providers require the resulting hash to be in uppercase. In that case, pass "`uppercase`" as a value.
+         4. `key`: Some hashing algorithms accept an additional string key that is used in the calculation of the hash.
+
+> 📘 This pre-processor can be applied to request headers, body, and the path. See the example below where the "Signature" object is passed with the value `{{requestHashSignature}}` as well as in the header called "Signature" and the URL.
+
+```json JSON
+{
+    "headers":
+    {
+        "x-API-key": "YOUR_API_KEY",
+        "Content-Type": "application/json",
+        "signature": "{{requestHashSignature}}"
+    },
+    "url": "https://psp.com/authorize?signature={{requestHashSignature}}",
+    "body":
+    {
+        "amount":
+        {
+            "currency": "USD",
+            "value": 1000
+        },
+        "reference": "your-order-number",
+        "paymentMethod":
+        {
+            "type": "scheme",
+            "number": "{{cardNumber}}",
+            "expiryMonth": "{{cardExpiryMonth}}",
+            "expiryYear": "{{cardExpiryYear}}",
+            "cvc": "{{cardSecurityCode}}",
+            "holderName": "{{cardHolderName}}"
+        },
+        "signature": "{{requestHashSignature}}"
+    },
+    "preProcessors":
+    [
+        {
+            "code": "calculatehash",
+            "parameters":
+            {
+                "hashEncoding": "base64",
+                "algorithm": "sha256",
+                "payload": "{{requestBodyString}}"
+            }
+        }
+    ]
+}
+```
+
+We currently support algorithms for `md5`, `sha256`, `sha1`,`hmac-sha256`, and `hmac-sha512`, and support the hash encoding for `hex`,`base64` and `base64OfHex`. If you need another algorithm or result format, please contact our support team to help you with the request.
+
+If the provider you want to send a proxy request that requires another type of customization, please contact Payrails support to provide you with the necessary parameters based on the specific case.
+
+### Updating the security code value
+
+According to PCI DSS rules, we can only retain the card security code during a payment authorization. This means that when including the `{{cardSecurityCode}}` in your request body, you must ensure that the value is still available in our Vault.
+
+If the card was initially stored with the correct [authorization flags](doc:authorization-flags), you should not need the security code to authorize a payment. However, we provide this option in case you have one of the following use cases:
+
+* You want to ask for the security code to prevent fraud due to account takeover attacks,
+* A Provider requires you to include this field even if the card is already stored.
+
+Our [Vault Proxy](ref:vaultproxy-1) endpoint has an optional parameter called `encryptedSecurityCode` that allows you to override the stored value (if any) of the `{{cardSecurityCode}}` variable in the `body` you intend to send to your Provider.
+
+To obtain the value of the `encryptedSecurityCode`, you can use our client-side SDK function called `encryptCardData`. Check the documentation for it [here](doc:tokenize-cards-with-client-side-encryption).
+
+

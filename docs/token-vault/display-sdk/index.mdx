@@ -1,0 +1,293 @@
+---
+title: Display Cards via SDK
+description: Display tokenized card data securely in your frontend—with a customizable, easy to integrate, and fully compliant SDK.
+---
+## Introduction
+
+The Display SDK is a secure client-side tool that lets you show sensitive payment data directly in your web or mobile app, without storing or processing raw card data on your servers. It uses secure fields to render tokenized data from your vault, helping you stay PCI compliant while delivering a seamless user experience. Some example use cases are:
+
+**Card display in finance apps**: Allow users to temporarily view full card details or CVV before making a payment or setting up wallets.
+
+**Customer support tools**: Enable support agents to show users card info during particular workflows or troubleshooting.
+
+This guide explains how to integrate your frontend with Payrails Display SDK to show tokenized cardholder data without receiving any sensitive data on your servers. You’ll be able to display all the fields stored under a card record, such as card number and expiration date, in a customized UI without compromising on security.
+
+## Implementation
+
+The `display-sdk` is a library for creating and managing display elements for payment forms. It provides a simple API to initialize the SDK, create elements, and customize their styles and translations.
+
+### Installation
+
+Install the SDK via npm:
+
+```bash
+npm install @payrails/display-sdk
+```
+
+### Usage
+
+#### Initialization
+
+To use the SDK, initialize it with a response object and optional configuration options.
+
+```typescript
+import { DisplaySDK, DisplaySDKOptions } from '@payrails/display-sdk';
+
+const initResponse = 'response from /token/client/init';
+
+const options: DisplaySDKOptions = {
+  styles: {
+    base: {
+      color: 'black',
+      fontSize: '16px',
+    },
+    cardNumber: {
+      base: {
+        color: 'blue',
+      },
+    },
+  },
+  translations: {
+    base: {
+      loading: 'Loading...',
+    },
+    cardNumber: {
+      loading: 'Loading card number...',
+    },
+  },
+};
+
+const sdk = DisplaySDK.init(initResponse, options);
+```
+
+#### Creating Elements
+
+You can create display elements for different types of input fields, such as card number, expiry date, etc.
+
+```typescript
+import { DisplayElementType } from '@payrails/display-sdk';
+
+const cardNumberElement = sdk.createElement(DisplayElementType.CardNumber);
+const expiryMonthElement = sdk.createElement(DisplayElementType.ExpiryMonth);
+```
+
+#### Destroying Elements
+
+To clean up and unmount all created elements, use the `destroy` method.
+
+```typescript
+sdk.destroy();
+```
+
+### API Reference
+
+#### `DisplaySDK`
+
+###### `static init(initResponse: DisplaySDKInitResponse, options?: DisplaySDKOptions): DisplaySDK`
+
+Initializes the SDK with the given response and options.
+
+* `initResponse`: An object containing initialization data. The response is valid for 10 minutes.
+* `options`: Optional configuration for styles and translations.
+
+##### `createElement(type: DisplayElementType): DisplayElement`
+
+Creates a new display element of the specified type.
+
+* `type`: The type of the element to create. Possible values are:
+  * `DisplayElementType.CardNumber`
+  * `DisplayElementType.ExpiryYear`
+  * `DisplayElementType.ExpiryMonth`
+  * `DisplayElementType.SecurityCode`
+  * `DisplayElementType.CardHolderName`
+  * `DisplayElementType.CopyToClipboard` <span class="new-badge">NEW</span>
+
+###### `destroy(): void`
+
+Destroys all created elements and cleans up resources.
+
+#### `DisplaySDKOptions`
+
+Configuration options for the SDK.
+
+* `styles`: An object defining style configurations for elements.
+* `translations`: An object defining translations for elements.
+
+##### Examples
+
+###### Custom Styles
+
+```typescript
+const options: DisplaySDKOptions = {
+  styles: {
+    base: {
+      fontSize: '14px',
+    },
+    securityCode: {
+      error: {
+        color: 'red',
+      },
+    },
+  },
+};
+```
+
+###### Custom Translations
+
+```typescript
+const options: DisplaySDKOptions = {
+  translations: {
+    base: {
+      loading: 'Please wait...',
+      error: 'An error occurred',
+    },
+    expiryYear: {
+      loading: 'Loading expiry year...',
+    },
+    cardNumber: {
+      error: 'Error occurred while loading card number',
+    },
+  },
+};
+```
+
+#### `DisplayElementType`
+
+An enumeration of possible element types:
+
+* `CardNumber`
+* `ExpiryYear`
+* `ExpiryMonth`
+* `SecurityCode`
+* `CardHolderName`
+* `CopyToClipboard` <span class="new-badge">NEW</span>
+
+#### Copy To Clipboard element <span class="new-badge">NEW</span>
+
+Creates a new button element which allows copying any of the card display values `DisplayElementType`.
+
+Note that this feature requires a PCI compliance check of the use case and can be enabled by Payrails Compliance Team upon evaluation. To request this feature, please get in touch with our support team.  
+
+<Note>
+  New configuration as of **DisplaySDK@1.0.7**:
+</Note>
+
+```typescript Regular button with default icon
+displaySDK.createElement(
+  DisplayElementType.CopyToClipboard,
+  {
+    copyToClipboard: {
+      config: {
+        fields: [DisplayElementType.CardNumber],
+        template: `{cardNumber}`,
+      },
+    },
+  }
+).mount('#copy-to-clipboard');
+
+// Copied to clipboard value:
+// 4242424242424242
+
+```
+```typescript Button that copies multiple fields at once
+displaySDK.createElement(
+  DisplayElementType.CopyToClipboard,
+  {
+    copyToClipboard: {
+      config: {
+        fields: [DisplayElementType.ExpiryYear, DisplayElementType.ExpiryMonth],
+        template: `{expiryMonth} - {expiryYear}`,
+      },
+    },
+  }
+).mount('#copy-to-clipboard');
+
+// Copied to clipboard value:
+// 07 - 26
+```
+```typescript Button with all the available configuration
+displaySDK.createElement(
+  DisplayElementType.CopyToClipboard,
+  {
+    copyToClipboard: {
+      config: {
+        fields: [DisplayElementType.ExpiryYear, DisplayElementType.ExpiryMonth],
+        template: `{expiryMonth} - {expiryYear}`,
+      },
+
+      translations: {
+        loading: 'Copying',
+        error: 'Error!',
+        success: 'Copied',
+        buttonText: 'Copy',
+      },
+
+      styles: {
+        iconPosition: 'suffix', // 'hidden', 'prefix', 'suffix'
+        icons: {
+          default: 'linkToDefaultIcon.svg',
+          success: 'linkToSuccessIcon.svg',
+          error: 'linkToErrorIcon.svg',
+        },
+        base: {
+          backgroundColor: 'red',
+        },
+      },
+
+      events: {
+        onClick: (status: 'success' | 'error') => {
+          alert(status);
+        },
+      },
+    },
+  }
+).mount('#copy-to-clipboard');
+
+// Copied to clipboard value:
+// 07 - 26
+```
+
+<Note>
+  Deprecated configuration (still supported in **DisplaySDK@1.0.7**):
+</Note>
+
+```typescript Regular button with default icon
+displaySDK.createElement(
+  DisplayElementType.CopyToClipboard,
+  {
+    copyToClipboard: {
+      fields: [DisplayElementType.CardNumber],
+      template: `{cardNumber}`
+    }
+  }
+).mount('#copy-to-clipboard');
+
+// Copied to clipboard value:
+// 4242424242424242
+
+```
+```typescript Button that copies multiple fields at once
+displaySDK.createElement(
+  DisplayElementType.CopyToClipboard,
+  {
+    copyToClipboard: {
+      fields: [DisplayElementType.ExpiryMonth, DisplayElementType.ExpiryYear],
+      template: `{expiryMonth} / {expiryYear}`,
+      icons: {
+        default: 'https://some-merchant-assets/img/copy.svg',
+        success: 'https://some-merchant-assets/img/check.svg',
+      }
+    }
+  }
+).mount('#copy-to-clipboard');
+
+// Copied to clipboard value:
+// 03 / 26
+
+```
+
+### License
+
+This project is licensed under the MIT License.
+
+

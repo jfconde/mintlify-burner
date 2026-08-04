@@ -1,0 +1,103 @@
+---
+description: >-
+  Learn about workspaces which helps to create segregated and separately managed
+  spaces within your organization.
+---
+
+# Introduction
+
+Workspaces in Payrails are designed to help you effectively manage and organize your account. They provide a dedicated environment for configurations, payments, executions, and integrations. Workspaces improve team collaboration, while maintaining secure access control, ensuring that your operations run smoothly. Each Workspace is linked to your Payrails account [Organization](organization).
+
+## What are the benefits of using workspaces?
+
+Workspaces are a great tool for ensuring Simplicity and Security.
+
+### Simplicity
+
+- Each workspace has a dedicated payment acceptance workflow configuration. This allows you to setup different workflows for separate workspaces.
+- They let you organize your payment management by business vertical, geographical location, organizational structure or any other logical separation you want to use.
+- Segregate integration configurations for different workspaces to avoid managing all your integrations in one page.
+- View and monitor insights on workflows (payments, executions) and analytics separately.
+
+### Security
+
+- Manage people having access to the Payrails portal and specific workspaces with [Role-Based Access Control (RBAC)](organization)
+
+## How to set up workspaces?
+
+The agnostic nature of workspaces allows you to let them represent your companies business setup or any other logical structure you choose. You can use them to structure your Payrails account by:
+
+- **Country:** Each workspace represents a country. You can configure individual payment acceptance workflows for each country. (e.g. Germany, Brazil, UAE, etc.) This is the most used version.
+- **Region:** Each workspace represents a geographic country. You can configure individual payment acceptance workflows for each region. (North America, South America, EU, DACH, Benelux, etc.)
+- **Business verticals:** Each workspace represents a business vertical relevant to you. (e.g. Car Sharing, Taxi, Food Delivery) or currencies (EUR, USD, YEN)
+- **Currency:** Each workspace represents a separate currency. (e.g. EUR, USD, YEN)
+- **Payment methods:** Each workspace represents a payment method or provider. (Visa, Mastercard, Amex, etc.)
+
+<img
+  src="/images/docs/workspaces-setup-overview.png"
+  alt="Workspace setup examples"
+  className="mx-auto block rounded-lg"
+/>
+
+## How are payments linked to workspaces?
+
+Copy the workspace ID from the Portal and add them to the execution API calls as described in the API reference: [Create an execution](/reference/createexecution)
+
+## What parts of the Payrails portal are managed in the workspace context?
+
+Within the Portal you'll find two logical contexts.
+
+1. [Organization](organization) - Think of your organization as your Payrails account. This is where global settings, configuration & users are managed. Data from all workspaces are aggregated in the organization context.
+2. Workspace - Is always part of your organization. Data, settings and user management are restricted and confined within a given workspace.
+
+Payments, executions and users can be managed on both contexts. But, only data relevant for a given context will be shown. Let's assume there is a workspace for Germany and France and the organization is called ACME GmbH. Payments of Germany will not be shown in the France workspaces but are accessible in the organization context of ACME GmbH. More info on data separation and access can be found on the [Organization](organization) page.
+
+## How to create a new workspace?
+
+### Prerequisites
+
+Only Organization-Admins have the permission to create new workspaces. If you think you should have that role please reach out to your Organization-Admin to change your role accordingly.
+
+### Create a workspace
+
+There are 3 ways to create a new workspace:
+
+1. Portal:
+   1. Create a new blank workspace,
+   2. Create a new workspace by cloning an existing workspace and all associated settings and users.
+2. API: Create a new blank workspace via <a href="/reference/createworkspace" target="_blank">API</a>.
+
+**Create an execution**
+
+Once you have created your workspace, you can execute a workflow for the particular workspace by passing the workspace ID as a parameter using the following curl command:
+
+```sh
+curl --request POST \
+     --url https://demo-api.staging.payrails.io/merchant/workflows/workflowCode/executions \
+     --header 'accept: application/json' \
+     --header 'content-type: application/json' \
+     --data '{ "workspaceId": "some-workspaceID-string" }'
+```
+
+For subsequent operations on the execution, such as refunding or canceling a payment, passing the workspace ID is not necessary because the workspace information will be inherited from the execution data.
+
+However, if you want to programmatically create a new provider configuration, you can pass the workspace ID as a parameter to create it within the workspace. For reference, check the API documentation: [/reference/listactiveproviderconfigs](/reference/listactiveproviderconfigs).
+
+For a detailed API guide to executions, check the following URL:  
+[/reference/createexecution](/reference/createexecution).
+
+**Note:** If no workspace ID parameter is passed, the execution will be performed in the default workspace, which is called "Default Workspace" in the portal.
+
+## FAQ
+
+**Q: Can I migrate my payment data from one workspace to another?**  
+A: No, at the moment, this is not possible, but it's part of the future development roadmap.
+
+**Q: Are you allowed to copy configuration from one workspace to another?**  
+A: Yes, upon creation of a new workspace, you have the option to copy workflow configurations, notification configurations and integration instances from any other workspace
+
+**Q: Do I need separate logins for the different workspace?**  
+A: No. As long as you have access to the Portal, you can access a workspace within the Portal.
+
+**Q: Can I define notifications per workspace?**  
+A: Yes, notifications (webhooks) can be defined per workspace, default, or other workspace.

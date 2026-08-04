@@ -1,0 +1,221 @@
+---
+description: "Google Pay is a mobile payment and digital wallet service. With Google Pay, consumers can enjoy a seamless checkout experience, eliminating the need to enter payment and shipping information manually."
+---
+
+# Introduction
+
+Google Pay is a widely used mobile payment solution that offers a convenient and secure way for customers to pay for goods and services. Integrating Google Pay with Payrails allows you to provide a fast, easy-to-use payment option for your customers while leveraging our platform to route the payment to any Payment Service Provider (PSP). This guide will explain the process of integrating Google Pay into your app or website using Payrails.
+
+<img
+  src="/images/docs/orchestration/payment-methods/google-pay-workflow.svg"
+  alt=""
+  className="mx-auto block rounded-lg object-cover"
+  width="80%"
+/>
+
+# Pre-requisites
+
+In order to start using Google Pay with Payrails, you must:
+
+1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for cards via one of the following Payment Service Providers:  
+   [Stripe](/docs/orchestration/integrations/stripe), [Checkout.com](/docs/orchestration/integrations/checkout-com) or [Adyen](/docs/orchestration/integrations/adyen)
+3. Enable Google Pay as a [payment option](set-up-payment-methods).
+4. Make sure you're sending the provider specific card meta fields (found under Merchant configurations -> Meta fields on your Payrails dashboard and in the examples below) in your requests.
+5. Follow the setup steps in the Google Pay documentation below. The exact steps you must follow depend on the nature of your integration with Payrails. In any case, you must get your Google Pay implementation approved by Google as described [here](https://developers.google.com/pay/api/web/guides/test-and-deploy/publish-your-integration). Please then ensure to configure your Google Pay merchant ID in your SDK implementation as described [here](/docs/orchestration/checkout-sdks/web/elements#/google-pay-element).
+
+#### Google Pay on Android Devices
+
+- [Google Pay Android Developer Documentation](https://developers.google.com/pay/api/android/)
+- [Google Pay Android Integration Checklist](https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist)
+- [Google Pay Android Brand Guidelines](https://developers.google.com/pay/api/android/guides/brand-guidelines)
+
+#### Google Pay on the Web
+
+- [Google Pay Web Developer Documentation](https://developers.google.com/pay/api/web/)
+- [Google Pay Web Integration Checklist](https://developers.google.com/pay/api/web/guides/test-and-deploy/integration-checklist)
+- [Google Pay Web Brand Guidelines](https://developers.google.com/pay/api/web/guides/brand-guidelines)
+
+# Ways to integrate
+
+## Payrails SDK
+
+The simplest way to use Google Pay with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with Google Pay.
+
+For a more flexible implementation using our SDK, you can use our Google Pay element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#google-pay-element) for your client-side implementation.
+
+## Server-to-server integration
+
+You also have the option to completely manage your own client-side implementation, and use Payrails APIs with a server-to-server integration to process payments with Google Pay. With this approach, follow the Google documentation linked above to build Google Pay into your applications.
+
+#### Pass Google Pay configuration in lookup response to Google Pay SDK
+
+With a server-to-server integration, you can call our [lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) endpoint to get available payment options and relevant configurations for each payment method. You can get `allowedAuthMethods` and `allowedCardNetworks` from the response here and pass it to the Google Pay SDK. Please contact your Payrails representative during the onboarding phase in order to set these configurations before going live.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "bd879370-6935-4ff2-872e-fdb0c5ce3024",
+  "executedAt": "2023-06-12T07:53:09.360484718Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "api",
+        "paymentMethodCode": "googlePay",
+        "description": "GooglePay",
+        "config": {
+          "parameters": {
+            "allowedAuthMethods": ["PAN_ONLY", "CRYPTOGRAM_3DS"],
+            "allowedCardNetworks": ["MASTERCARD", "VISA", "AMEX", "DISCOVER"]
+          },
+          "tokenizationSpecification": {
+            "parameters": {
+              "gateway": "payrails",
+              "gatewayMerchantId": "EXAMPLE_MERCHANT_ID"
+            },
+            "type": "PAYMENT_GATEWAY"
+          },
+          "type": "CARD"
+        }
+      }
+    ]
+  },
+  "links": {
+    "execution": "https://payrails-api.staging.payrails.io/merchant/workflows/payment-acceptance/executions/2ef29a74-d1ae-4fa5-a1d9-84e2cd710c23",
+    "authorize": {
+      "method": "POST",
+      "href": "https://payrails-api.staging.payrails.io/merchant/workflows/payment-acceptance/executions/2ef29a74-d1ae-4fa5-a1d9-84e2cd710c23/authorize"
+    }
+  }
+}
+```
+
+<Note>
+  Please setup your `gatewayMerchantId` with Payrails before you start testing
+  your Google Pay integration in case of client owned Google Pay integration.
+  Payrails performs validations on the merchant Id we receive after decrypting
+  the token to ensure that we did not receive a forged token.
+</Note>
+
+#### Pass Google Pay payment token in request to authorize payment with Payrails
+
+When you initiate a transaction with the Google Pay SDK, a Payment Token (`paymentMethodData.tokenizationData.token`) containing a JSON-formatted string is sent to the merchant app. Pass the `paymentMethodData.tokenizationData.token` in your call to our [authorize a payment](/docs/orchestration/payment-acceptance/authorize-a-payment) endpoint. See an example below.
+
+```json
+{
+  "paymentComposition": [
+    {
+      "amount": {
+        "currency": "USD",
+        "value": "1.00"
+      },
+      "integrationType": "api",
+      "paymentInstrumentData": {
+        "billingAddress": {
+          "country": {
+            "code": "US"
+          },
+          "postalCode": "78759"
+        },
+        "card": null,
+        "paymentToken": "{\"apiVersion\":2,\"apiVersionMinor\":0,\"paymentMethodData\":{\"description\":\"Amex •••• 0002\",\"info\":{\"assuranceDetails\":{\"accountVerified\":true,\"cardHolderAuthenticated\":false},\"billingAddress\":{\"countryCode\":\"US\",\"name\":\"Card Holder Name\",\"postalCode\":\"94043\"},\"cardDetails\":\"0002\",\"cardNetwork\":\"AMEX\"},\"tokenizationData\":{\"token\":\"{\\\"signature\\\":\\\"MEUCIQCkwDXS2WcYP8ChfrNh55gow99Gw0/njq+ZN+L1S01dGgIgXxL+Ftb1PrWcgPiJSXQX8xSSkw2WW1wn66gKbEd9DC0\\\\u003d\\\",\\\"protocolVersion\\\":\\\"ECv1\\\",\\\"signedMessage\\\":\\\"{\\\\\\\"encryptedMessage\\\\\\\":\\\\\\\"Z6NNDumB9omrYocB1hzmHRh8fP5iiqHlFtaohXS5C/RrelQgrmmLVpw8pLsbMsG64iMwsFIs5chSIOpbtJuRuhZ9b0NzbEbqVd0jweM2a5M0Ea1TlQi6YjnviLXjJCtCOhyFb/n2EuYUuMmqlUnu8pKrKEGjcS2TOkel6p2oN8N8BxLz2SNtJb8ubYhEuy7n7HKcaiuDwfnjr0a8tEcNSet0IeA8LXDKi/5OAM7/vCLFV+ZYlQ+UvSoF3O4ooKZXgpsRHc12IeneAev8+koA+omxoK5R8SInAogwQ0FclRVlA30T2C8VdR8IlL/9oGQK9KmSIjkIxYNakHptU41NTLrv/dH40ZwkBp9lGQ1Kuup4Y9M5IA8zjAM1vnIySNIv1lIGinrgALoEB6jt91qYDeHB9jtNArISiym5JfxZjCRUbj9SuyQH+ovKvuFhfqSoJgWaZYsAiwgTYpxLj8B8eSaFgFaUdjjNvvXkoBuLXYLVoU6Ecjkl30BTHnNfUa0XstNPQf6kAPnvMhl0e3KJ4g\\\\\\\\u003d\\\\\\\\u003d\\\\\\\",\\\\\\\"ephemeralPublicKey\\\\\\\":\\\\\\\"BIHW3CPNcYs5v27HWo4fZDSMXNJetlJESpz5TKX5R9pzh5mE0RwMOiy9HZp9ll4DoPiEVLLsHQaQE4EhBZ5GYfc\\\\\\\\u003d\\\\\\\",\\\\\\\"tag\\\\\\\":\\\\\\\"wzvb6aeZ6jmspk2vVq6O9uu+P1cfhzHLt5CExkPDOAU\\\\\\\\u003d\\\\\\\"}\\\"}\",\"type\":\"PAYMENT_GATEWAY\"},\"type\":\"CARD\"}}",
+        "providerData": null,
+        "vaultToken": ""
+      },
+      "paymentMethodCode": "googlePay",
+      "storeInstrument": false
+    }
+  ]
+}
+```
+
+# Supported regions / countries
+
+<Table align={["left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        Region(s)
+      </th>
+
+      <th>
+        Countries
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        Europe
+      </td>
+
+      <td>
+        🇦🇹 Austria, 🇧🇪 Belgium, 🇧🇬 Bulgaria, 🇭🇷 Croatia, 🇨🇾 Cyprus,
+        🇨🇿 Czech Republic, 🇩🇰 Denmark, 🇪🇪 Estonia, 🇫🇮 Finland, 🇫🇷 France,
+        🇩🇪 Germany, :gibraltar: Gibraltar, 🇬🇷 Greece, 🇭🇺 Hungary, 🇮🇸 Iceland,
+        🇮🇪 Ireland, 🇮🇹 Italy, 🇱🇻 Latvia, :liechtenstein: Liechtenstein, 🇱🇹 Lithuania,
+        🇱🇺 Luxembourg, 🇲🇹 Malta, 🇳🇱 Netherlands, :norway: Norway, 🇵🇱 Poland,
+        🇵🇹 Portugal, 🇷🇴 Romania, 🇸🇰 Slovakia, :slovenia: Slovenia, 🇪🇸 Spain,
+        🇸🇪 Sweden, 🇨🇭 Switzerland, :gb: UK, others..
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        North and Central America
+      </td>
+
+      <td>
+        🇺🇸 USA, 🇲🇽 Mexico, :canada: Canada, :puerto_rico: Puerto Rico, others..
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        South America
+      </td>
+
+      <td>
+        🇧🇷 Brazil, others..
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        Africa
+      </td>
+
+      <td>
+        :morocco: Morocco, :south_africa: South Africa
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        Asia Pacific
+      </td>
+
+      <td>
+        :australia: Australia, :hong_kong: Hong Kong, :jp: Japan, :malaysia: Malaysia, :new_zealand: New Zealand,
+        :singapore: Singapore, :thailand: Thailand, :united_arab_emirates: UAE, others..
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+# Supported workflows and services
+
+| Workflow                                                                                         | Supported                  |
+| :----------------------------------------------------------------------------------------------- | :------------------------- |
+| Available via Payrails SDK                                                                       | :heavy_check_mark:         |
+| Available via Payrails API                                                                       | :heavy_check_mark:         |
+| [Delayed / Manual Capture](/docs/orchestration/payment-acceptance/capture-and-cancel-modes#capture-mode) | :heavy_check_mark:         |
+| [Instant Capture](/docs/orchestration/payment-acceptance/capture-and-cancel-modes#capture-mode)          | :heavy_check_mark:         |
+| [Cancel / Void](/docs/orchestration/payment-acceptance/cancel-a-payment)                                 | ✔️                         |
+| [Refund / Reverse](/docs/orchestration/payment-acceptance/refund-a-payment)                              | :heavy_check_mark:         |
+| [Save Instruments](/docs/resources/manage-instruments#/)                   | :heavy_check_mark:         |
+| [Merchant Initiated Transaction (MIT)](/docs/resources/payments/authorization-flags)       | :heavy_check_mark:         |
+| Interoperability                                                                                 | PSP tokens, Network tokens |

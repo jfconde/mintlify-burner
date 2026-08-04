@@ -1,0 +1,114 @@
+---
+title: Web SDK - Quick Start
+---
+
+Payrails Web provides the building blocks to create a checkout experience for<br />your customers. This page gets you to a first mounted checkout and is the hub<br />for the rest of the documentation.
+
+You can integrate at three levels, from quickest to most control:
+
+- **Drop-in** — all-in-one checkout UI; the quickest way to accept payments.
+- **Elements** — one component per payment method (card form, wallet buttons,
+  and more) for a fully customizable checkout.
+- **Secure fields** — the lowest-level option: mount individual PCI-compliant
+  card input iframes and build your own card-form markup around them. Most
+  control, most work.
+
+## Quick start
+
+Install the SDK, initialize it once, then pick the integration that fits your checkout.
+
+### 1. Install the SDK
+
+```bash
+npm install @payrails/web-sdk
+```
+
+### 2. Initialize with your client init response
+
+Call your backend, which calls the Payrails `/merchant/client/init` API, and pass the response to `Payrails.init`.&#x20;
+
+`init` is asynchronous - it loads the SDK bundle (and its styles) for the version your session was created with, so `await` it:
+
+```typescript
+import { Payrails } from "@payrails/web-sdk";
+
+const payrails = await Payrails.init(clientInitResponse, {
+  events: {
+    onClientInitialized: () => console.log("SDK ready"),
+  },
+});
+```
+
+You now have a `payrails` client. Handle payment results with the instance-level `.on(...)` API - the same events fire for **any** integration below, so you wire them once:
+
+```typescript
+payrails.on("success", (event) =>
+  console.log("Payment success", event.paymentMethodCode),
+);
+payrails.on("failed", (event) =>
+  console.log("Payment failed", event.data?.code),
+);
+```
+
+### 3. Choose your integration
+
+Pick one of the following and mount it into a container on your page. Each example is self-contained and assumes the `payrails` client and the `.on(...)`result handlers from step 2.
+
+#### Drop-in
+
+The drop-in renders every payment method enabled for the current session - you do not list methods yourself.
+
+```html
+<div id="dropin"></div>
+```
+
+```typescript
+const dropin = payrails.dropin({});
+dropin.mount("#dropin");
+```
+
+#### Elements
+
+Compose your own layout from individual components. Here a card form and a payment button, created from the same client — the client keeps the button disabled until the form is valid and starts the payment on click.
+
+```html
+<div id="card-form"></div>
+<div id="pay-button"></div>
+```
+
+```typescript
+const cardForm = payrails.cardForm({ showCardHolderName: true });
+cardForm.mount("#card-form");
+
+const payButton = payrails.paymentButton({
+  translations: { label: "Pay now" },
+});
+payButton.mount("#pay-button");
+```
+
+#### Secure fields
+
+Build a card form field by field with a collect container. Sensitive data stays inside Payrails-hosted iframes and never touches your page.
+
+```html
+<div id="card-number"></div>
+```
+
+```typescript
+import { ElementType } from "@payrails/web-sdk";
+
+const container = payrails.collectContainer({});
+const cardNumber = container.createCollectElement({
+  type: ElementType.CARD_NUMBER,
+});
+cardNumber.mount("#card-number");
+// create and mount CVV and expiry the same way, then container.collect()
+```
+
+You should now see your chosen integration render the payment methods configured for your merchant account. From here, pick a guide that matches your task.
+
+## Reporting a Vulnerability
+
+If you discover a potential security issue in this project, please reach out to us at [security@payrails.com](mailto:security@payrails.com).
+
+<br />

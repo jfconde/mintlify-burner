@@ -1,0 +1,48 @@
+---
+title: Disputes report
+---
+
+import { DownloadDisputesCSV } from "/snippets/analytics/download-disputes-csv.mdx";
+
+## Rows fall into two categories:
+
+- **Payrails-orchestrated disputes** — the original payment was processed through Payrails. These rows have `ORIG_TRANSACTION_ID`, `ORIG_TRANSACTION_DATE`, `ORIG_TRANSACTION_AMT`, `ORIG_TRANSACTION_CURR`, `PAYMENT_METHOD`, `ISSUER_NAME`, `BIN`, and `ISSUER_COUNTRY_CODE` populated.
+- **External disputes** — raised directly at the PSP, outside Payrails orchestration. The fields above are blank, since that information isn't available in the dispute event.
+
+## Sample report
+
+<DownloadDisputesCSV />
+(CSV file).
+
+## Columns
+
+| Column                    | Type      | Description                                                                                                                                                       |
+| ------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CREATED_AT                | TIMESTAMP | Dispute creation timestamp.                                                                                                                                       |
+| DEFENSE_PERIOD_EXPIRES_AT | TIMESTAMP | Final deadline by which the dispute must be responded to or defended.                                                                                             |
+| DEFENSE_STATUS            | STRING    | Most recent defense status. One of: `NotDefendable`, `Undefended`, `ReadyToSubmit`, `Submitted`, `UnderReview`, `Won`, `Lost`, `Accepted`, `Resolved`, `Unknown`. |
+| PROVIDER_REFERENCE        | STRING    | The payment provider's unique identifier for this dispute record.                                                                                                 |
+| AMOUNT                    | NUMERIC   | Disputed amount, in the dispute currency.                                                                                                                         |
+| CURRENCY                  | STRING    | Currency of the disputed amount (e.g. `EUR`, `USD`, `GBP`).                                                                                                       |
+| PROVIDER_NAME             | STRING    | Payment provider (PSP) handling the dispute, per your provider configuration (e.g. `stripedispute`).                                                              |
+| ISSUER_NAME               | STRING    | Name of the card-issuing bank, from the BIN lookup on the original payment's instrument. Blank for external disputes or non-card payments.                        |
+| PAYMENT_METHOD            | STRING    | Payment method used on the original transaction (e.g. `card`, `applePay`). Blank for external disputes.                                                           |
+| REASON_CODE               | STRING    | Reason code assigned by the issuing bank, per payment network rules (e.g. `10.4`, `4853`).                                                                        |
+| REASON_DESCRIPTION        | STRING    | Human-readable description of the dispute reason.                                                                                                                 |
+| ASSIGNED_USER_ID          | STRING    | ID of the internal operator assigned to handle this dispute.                                                                                                      |
+| ORIG_TRANSACTION_ID       | UUID      | Payrails payment ID of the original disputed transaction. Blank for external disputes.                                                                            |
+| ORIG_TRANSACTION_DATE     | TIMESTAMP | Creation timestamp of the original payment. Blank for external disputes.                                                                                          |
+| ORIG_TRANSACTION_AMT      | NUMERIC   | Amount of the original payment, in its processing currency. Blank for external disputes.                                                                          |
+| ORIG_TRANSACTION_CURR     | STRING    | Processing currency of the original payment. Blank for external disputes.                                                                                         |
+| WORKSPACE_ID              | UUID      | Workspace identifier.                                                                                                                                             |
+| MERCHANT_ID               | STRING    | Merchant identifier.                                                                                                                                              |
+| DISPUTE_ID                | UUID      | Payrails' internal identifier for the dispute.                                                                                                                    |
+| MERCHANT_REFERENCE        | STRING    | Your own reference for the payment, from the dispute event or, if absent, the original payment.                                                                   |
+| CHARGEBACK_TYPE           | STRING    | Dispute stage as reported by the provider. One of: `Created`, `FraudReport`, `Retrieval`, `Chargeback`, `PreArbitration`, `Arbitration`, `Unknown`.               |
+| CHARGEBACK_STATUS         | STRING    | Chargeback status as reported by the provider. One of: `Incoming`, `Executed`, `Reversed`, `SecondChargeback`, `IssuerReponseTimeframeExpired`, `Unknown`.        |
+| SCHEME_REASON_CODE        | STRING    | Scheme-specific reason code, when provided by the PSP.                                                                                                            |
+| LIABILITY_SHIFTED         | BOOLEAN   | Whether 3DS liability shift applied to this dispute.                                                                                                              |
+| BIN                       | STRING    | Bank Identification Number of the card used in the original payment. Blank for external disputes or non-card payments.                                            |
+| ISSUER_COUNTRY_CODE       | STRING    | ISO country code of the card-issuing bank.                                                                                                                        |
+| SHOPPER_COUNTRY_CODE      | STRING    | ISO country code of the shopper, when sent on the original payment.                                                                                               |
+| ARN                       | STRING    | Acquirer Reference Number, once assigned by the acquirer.                                                                                                         |

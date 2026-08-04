@@ -1,0 +1,136 @@
+---
+description: "PagoEfectivo is Peru's leading alternative payment network, allowing customers to pay for online purchases in cash at thousands of payment points across the country, or through their bank's online or mobile banking. It is widely used in Peru as it provides access to e-commerce for customers without credit cards."
+title: "PagoEfectivo"
+---
+## Introduction
+PagoEfectivo uses a **redirect-based payment flow**. When a customer selects PagoEfectivo at checkout, they are redirected to PagoEfectivo's hosted page where a payment code (CIP code) is generated. The customer then uses this code to pay at any supported bank, agent, or through internet banking. PagoEfectivo is a single-use payment method.
+
+This guide explains the process of integrating PagoEfectivo into your app or website using Payrails.
+
+## Pre-requisites
+
+Before you start accepting PagoEfectivo payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for PagoEfectivo via **dLocal** as a Payment Service Provider. If you do not have a dLocal integration already configured in your workspace, please follow the [dLocal integration setup guide](/docs/orchestration/integrations/dlocal) first.
+3. Enable PagoEfectivo as a payment method in your dLocal integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your dLocal integration instance, and enable the **PagoEfectivo** checkbox under Payment methods, then save the account.
+4. Enable PagoEfectivo as a [payment option](set-up-payment-methods) in your workflow.
+5. Make sure you're sending the PagoEfectivo-specific meta fields in your requests.
+
+## Ways to integrate PagoEfectivo
+
+### Payrails SDK
+
+The simplest way to use PagoEfectivo with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with PagoEfectivo except for handling success/failure screens for your users.
+
+For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#generic-redirect-element) for your client-side implementation.
+
+### Server-to-server integration
+
+You can integrate PagoEfectivo by completely managing your own client-side implementation, and using Payrails APIs with a server-to-server integration to process PagoEfectivo payments.
+
+#### Parse PagoEfectivo from lookup response
+
+With a server-to-server integration, you can call our [lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) endpoint to get available payment options. As shown in the example below, you can see `pagoEfectivo` returned as an option of the `paymentCompositionOptions`.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2026-03-26T12:00:00.000000000Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "redirect",
+        "paymentMethodCode": "pagoEfectivo",
+        "description": "PagoEfectivo"
+      }
+    ]
+  },
+  "links": {
+    "execution": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+    "authorize": {
+      "method": "POST",
+      "href": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
+    }
+  }
+}
+```
+
+#### Pass PagoEfectivo payment method in request to authorize payment with Payrails
+
+You can then make a request to our [authorize a payment endpoint](/reference/authorizeaction) with `pagoEfectivo` as the `paymentMethodCode`. See an example below:
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "10000",
+    "currency": "PEN"
+  },
+  "paymentComposition": [
+    {
+      "integrationType": "redirect",
+      "paymentMethodCode": "pagoEfectivo",
+      "amount": {
+        "value": "10000",
+        "currency": "PEN"
+      }
+    }
+  ],
+  "meta": {
+    "customer": {
+      "name": "Carlos Quispe",
+      "email": "carlos.quispe@email.com",
+      "identityCardNumber": "12345678",
+      "country": {
+        "code": "PE"
+      }
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+> **Note on amounts:** PEN uses 2 decimal places. Amounts should be provided in the smallest currency unit — e.g., `10000` for S/100.00.
+>
+>
+> **Note:** PagoEfectivo is a redirect-based, single-use payment method. After calling the authorize endpoint, the customer will be redirected to PagoEfectivo's hosted page where a CIP payment code is generated. The customer pays using this code at a bank or agent. Once confirmed, the customer will be redirected back to the `returnInfo.success` URL. Make sure to provide valid `returnInfo` URLs in your authorization request.
+
+#### Handle the redirect response
+
+After the customer completes the payment, they will be redirected back to your `success` or `error` URL. You should then verify the payment status by checking the workflow execution status via the Payrails API or by listening to webhook notifications.
+
+## Supported currencies
+
+PagoEfectivo via dLocal supports the following presentment currency:
+
+* PEN — Peruvian Sol
+
+## Supported regions / countries
+
+### Customer regions
+
+PagoEfectivo is available to customers based in:
+
+* Peru 🇵🇪
+
+### Merchant regions
+
+Merchants enabled for Peru can accept PagoEfectivo payments via dLocal.
+
+## Supported workflows and services
+
+| Workflow                             | Supported |
+| ------------------------------------ | --------- |
+| Available via Payrails SDK           | ✔️        |
+| Available via Payrails API           | ✔️        |
+| Delayed / Manual Capture             | ✖️        |
+| Instant Capture                      | ✔️        |
+| Cancel / Void                        | ✖️        |
+| Refund / Reverse                     | ✔️        |
+| Save Instruments                     | ✖️        |
+| Merchant Initiated Transaction (MIT) | ✖️        |

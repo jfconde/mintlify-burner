@@ -1,0 +1,149 @@
+---
+title: Using actionRequired event
+---
+
+The `actionRequired` event lets your application intercept moments when the SDK is about to navigate the buyer away — either to a 3DS challenge page or to a generic payment-method redirect (voucher, bank handoff, etc.). You can take over presentation (open in a tab, render in your own modal, push a route) instead of letting the SDK mount its popup or call `window.location.assign`.
+
+## When the event fires
+
+The SDK emits `actionRequired` immediately before its default redirect/popup action, in these cases:
+
+| `kind`              | Triggered by                                                                            |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| `'3ds'`             | Card or Google Pay authorize returns `authorizePending` with `actionRequired === '3ds'` |
+| `'genericRedirect'` | Any payment-method component that uses the new generic-redirect flow                    |
+
+If no listener is attached — or if attached listeners do **not** call `preventDefault()` — the SDK handles the user flow: it mounts a popup (or redirects, depending on the config).
+
+## Subscribing
+
+```ts
+import { Payrails, ACTION_REQUIRED_KIND } from "@payrails/web-sdk";
+
+const payrails = await Payrails.init({ ...initOptions });
+
+const unsubscribe = payrails.on("actionRequired", (event) => {
+  // event: ActionRequiredEvent
+  //   url: string                  — the URL the SDK would have navigated to
+  //   kind: '3ds' | 'genericRedirect'
+  //   paymentMethodCode: string    — e.g. 'card', 'googlePay', 'paypal'
+  //   executionId: string          — Payrails workflow execution id
+  //   preventDefault(): void       — call to suppress the SDK's default action
+});
+```
+
+`on()` returns an unsubscribe function. There is also `payrails.off(name, handler)` if you need to remove a specific handler.
+
+> **Lifetime note:** `Payrails.init` resets all registered listeners. Always subscribe **after** awaiting `Payrails.init`, and re-subscribe if you re-init.
+
+## Three integration patterns
+
+### 1. Observe only — don't change behavior
+
+Subscribe without calling `preventDefault`. Useful for analytics, logging, or showing your own toast before the popup opens.
+
+```ts
+payrails.on("actionRequired", (event) => {
+  analytics.track("payrails_action_required", {
+    kind: event.kind,
+    paymentMethodCode: event.paymentMethodCode,
+    executionId: event.executionId,
+  });
+  // No preventDefault() — SDK still opens its popup / redirects.
+});
+```
+
+### 2. Open the action URL in a new tab
+
+For merchants who don't want the buyer to leave the checkout page.
+
+```ts
+payrails.on("actionRequired", (event) => {
+  if (event.kind !== ACTION_REQUIRED_KIND.THREE_DS) return;
+
+  event.preventDefault(); // suppress the SDK popup
+  window.open(event.url, "_blank", "noopener,noreferrer");
+
+  // You are now responsible for resolving the payment.
+  // Poll your backend (which polls Payrails) for the final authorize status,
+  // or wait for a webhook to surface the result to your UI.
+});
+```
+
+### 3. Render the URL inside your own modal / SPA route
+
+```ts
+payrails.on("actionRequired", async (event) => {
+  event.preventDefault();
+
+  // Show your in-house modal with an iframe pointing at event.url.
+  // (You control sizing, branding, close behavior, focus trap, etc.)
+  await myChallengeModal.open(event.url);
+
+  // When your modal detects 3DS completion (postMessage from your own
+  // return page, or backend polling), close it and reconcile the order.
+});
+```
+
+Handlers may be `async` — the SDK awaits each one before deciding whether to fall back to its default action. `preventDefault()` only needs to be called synchronously if you want to suppress the default; calling it later in an `await` chain still works as long as it happens before your handler resolves.
+
+## Handler contract & gotchas
+
+- **`preventDefault()` is sticky.** Once called by any handler, the SDK skips its default action for that emission. Other handlers still run.
+- **Errors thrown inside handlers are caught.** They are logged via `PayrailsLogger.error` and do **not** prevent other handlers from running, nor do they implicitly call `preventDefault`. If a handler throws, the SDK will still perform its default action unless another handler suppressed it.
+- **`executionId` ties back to the Payrails workflow execution** — use this to correlate with backend polling or webhooks.
+
+## UI state when you intercept
+
+When you call `preventDefault()`, the SDK considers its UI obligation discharged. Concretely, in the current release the `CardPaymentButton` loading spinner is **not** automatically reset after interception.
+
+## Unsubscribing
+
+```ts
+const unsubscribe = payrails.on("actionRequired", handler);
+
+// later
+unsubscribe();
+// or
+payrails.off("actionRequired", handler);
+```
+
+Always unsubscribe in your component teardown (React `useEffect` cleanup, Vue `onUnmounted`, etc.) to avoid double-firing if the host component remounts.
+
+## Minimal end-to-end example (React)
+
+```jsx
+import { useEffect, useRef } from 'react';
+import { Payrails, ACTION_REQUIRED_KIND } from '@payrails/web-sdk';
+
+export function Checkout() {
+  const payrailsRef = useRef<Payrails | null>(null);
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    (async () => {
+      const payrails = await Payrails.init({ /* ... */ });
+      payrailsRef.current = payrails;
+
+      unsubscribe = payrails.on('actionRequired', (event) => {
+        if (event.kind !== ACTION_REQUIRED_KIND.THREE_DS) return;
+
+        // Take over from the SDK — no popup, no top-level redirect.
+        event.preventDefault();
+
+        // Handle it yourself — here, open the challenge in a new tab.
+        window.open(event.url, '_blank', 'noopener,noreferrer');
+      });
+
+      // ... mount card form / buttons against `payrails`
+    })();
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, []);
+
+  return <>{/* your checkout UI */}</>;
+}
+```

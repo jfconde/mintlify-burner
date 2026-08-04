@@ -1,0 +1,26 @@
+---
+title: Holders
+description: Learn what holders are in Payrails and how they relate to instruments, tokens, and accounts.
+---
+
+The holder is a term defining a single user who is part of a merchant's payment ecosystem by paying in or being paid out a monetary value. The holder term derives from the same root as Cardholder and Account holder which are commonly used terms in banking and payments industries. Examples of Holders in Payrails vary from an end user who is buying the goods and services of the merchant to a sub-merchant who is selling on the merchant's marketplace, a rider who is working for the delivery of the goods, or a vendor who is being paid for its participation in the merchant's business value chain.
+
+Holders own payment instruments which are specific instances of payment methods such as cards, alternative payment methods, or bank accounts. An instrument can be a previously stored card, a new card that was typed in a payment form, a phone number, an IBAN, or some way to fetch an account in a provider (like PayPal or Apple Pay) depending on the payment method.
+
+### Holder's Entities
+
+The holder entity has relations with instruments, tokens, and accounts. The below diagram represents the relation of Holders with the other key concepts that Payrails uses in its APIs which are execution, payment and transfer.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/resources/dfd768d-Holders.png"
+  width="80%"
+/>
+
+To explain these relations concretely, let's take an example of a payment acceptance flow. When an end user is on the checkout page of the merchant, they are given the choice of payment methods, instruments, and accounts they can use for paying.
+
+- **Instruments**: When a payment method is chosen for payment, the holder can choose to use a new instrument that they will create at that moment or use a previously stored one. When choosing to pay using a new instrument, the way to create it will depend on its type. For example, in order to store a card, the card number, expiration date, and security code are needed. In order to store an alternative payment method, the user is usually redirected to an external site to log in or authenticate its usage.
+  - **Tokens:** An instrument may have one-to-many tokens linked to it. The tokens are identifiers of the instrument in the Payrails Vault or a PSP Vault.
+- **Accounts:** Holders may also have accounts with which they are allowed to pay, according to their type and the rules that apply to the Workflow. For example, Payrails allows you to compose a card payment with the balance from a Refund Account of the same Holder.
+
+Examples can vary for other use cases such as pay-out, splitting payments, or cash collection.

@@ -1,0 +1,146 @@
+---
+title: Amex
+---
+
+<Note>
+**Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as a payment orchestrator
+- Use **Amex Payments**
+- Are approved to process **raw card data**
+
+_We use a server-to-server integration with Amex, so your account must be enabled to process raw card data. If this isn't enabled, payments won't work in production. Please contact your Amex account manager or support team to activate it._
+
+</Note>
+
+> #### If you accept American Express through another PSP (for example Adyen or Checkout.com), no special setup is required — Amex is supported by default as part of that provider's card schemes. This guide covers **Amex Direct** only.
+
+## Create and Configure an American Express Integration in Payrails
+
+1. Log in to the Payrails portal
+2. Go to **Settings → Integrations**
+3. Select **Add instance** to create a new American Express integration configuration
+4. Select the **Workspaces** where this integration should be available
+
+> **About Workspaces**
+> Workspaces determine where this integration is available. They let you isolate provider setups by region or business line, or share the same configuration across multiple Workspaces.
+
+## Step 1: Choose the Integration Type
+
+- Select **Payment&#x20;**&#x61;n&#x64;**&#x20;**&#x63;ontinue to the next step
+  <img
+    src="/images/docs/amex-image-01.png"
+    alt=""
+    className="mx-auto block rounded-lg object-cover"
+    width="80%"
+  />
+
+## Step 2: Choose the Provider
+
+- Select **Amex&#x20;**&#x61;n&#x64;**&#x20;**&#x63;ontinue to the next step
+  <img
+    src="/images/docs/amex-image-02.png"
+    alt=""
+    className="mx-auto block rounded-lg object-cover"
+    width="80%"
+  />
+
+## Step 3: Configure Your American Express Integration
+
+<Tip>
+  ### What You'll Need from American Express
+
+American Express provides your affiliation configuration values directly. Because Payrails is already certified as a gateway to American Express, there is **no API key, client secret, or bearer token** — the credentials are the merchant and terminal identifiers below.
+
+Before beginning, ensure you have:
+
+- Merchant ID (SE number)
+- Merchant Category Code (MCC)
+- Acquirer Country Code
+- Merchant Terminal ID
+- Contact info (Merchant's telephone number, email, or web (URL) address)
+- Card acceptor (business) name and address details (found on cardholder statement)
+
+</Tip>
+
+### Integration Instance Name
+
+An integration instance is a specific payment provider setup in Payrails. Multiple instances can be created per provider based on region, currency, or business needs (for example, one per entity or region). Choose a clear, consistent name for routing purposes.
+
+**In Payrails:**
+
+- Enter an **Instance name** for your integration
+  <img
+    src="/images/docs/amex-image-03.png"
+    alt=""
+    className="mx-auto block rounded-lg object-cover"
+    width="80%"
+  />
+
+### Account Details
+
+**In Payrails:**
+
+- Enter the following values, provided by American Express:
+
+| Field                                      | Required | Description                                                                                                                |
+| ------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Merchant ID                                | Required | Merchant ID (SE number) provided by American Express                                                                       |
+| Merchant Category Code                     | Required | Amex-specific MCC for the merchant (minimum 4 digits)                                                                      |
+| Acquiring Institution Identification Code  | Optional | Not required for Amex-acquired processing. Leave blank.                                                                    |
+| Acquirer Country Code                      | Required | 3-digit ISO numeric code for the acquirer / merchant country - (see the American Express Global Codes & Information Guide) |
+| Forwarding Institution Identification Code | Optional | Not required for Amex-acquired processing. Leave blank.                                                                    |
+| Merchant Terminal ID                       | Required | Terminal identifier for the e-commerce point of sale -assigned by the processor                                            |
+| Contact Info                               | Required | Merchant's telephone number, email, or web (URL) address (max 40 characters)                                               |
+
+<img
+  src="/images/docs/amex-image-04.png"
+  alt=""
+  className="mx-auto block rounded-lg object-cover"
+  width="80%"
+/>
+### Acceptor Details
+
+**In Payrails:**
+
+- Enter the card acceptor (business) details that appear on the cardholder's statement:
+
+| Field                      | Required | Description                                                                                     |
+| -------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| Card Acceptor Name         | Required | Alphanumeric, upper case. Becomes part of the descriptive bill on the cardholder's statement    |
+| Card Acceptor Street Name  | Required | Street address of the card acceptor                                                             |
+| Card Acceptor City Name    | Required | Associated with the SE number for the market                                                    |
+| Card Acceptor Country Code | Required | Must correspond to the Country code (see the American Express Global Codes & Information Guide) |
+| Card Acceptor Region Code  | Required | Must correspond to the Region code (see the American Express Global Codes & Information Guide)  |
+| Card Acceptor Postal Code  | Optional | Associated with the SE number for the market                                                    |
+| Submitter Code             | Required | Configured by Payrails; used to capture payments. Merchants do not need to provide this.        |
+
+<img
+  src="/images/docs/amex-image-05.png"
+  alt=""
+  className="mx-auto block rounded-lg object-cover"
+  width="80%"
+/>
+### Payment Methods
+
+**In Payrails:**
+
+- Select **Card** to enable American Express card payments for this integration
+
+## Enable the Integration
+
+**In Payrails:**
+
+- Select **Save account** to enable the integration
+
+The **Enabled** status indicates that the American Express integration is active. Your American Express integration is now ready to process payments.
+
+## Next Steps
+
+1. Run a test payment using a supported American Express <a href="https://gateway-na.americanexpress.com/api/documentation/integrationGuidelines/supportedFeatures/testAndGoLive.html?locale=en_US" target="_blank" rel="noreferrer">test card</a>
+2. Verify that:
+   - The payment appears in your American Express reporting
+   - The payment status updates correctly in Payrails
+3. Once verified in test mode, repeat the setup in live mode

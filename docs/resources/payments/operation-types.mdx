@@ -1,0 +1,52 @@
+---
+title: Operation Types
+description: Review Payrails operation types and how they map to payment actions.
+---
+
+There are many possible payment operation types in our system and even more to come.
+
+The first group is the **basic financial operations** for payments:
+
+| Type         | Description                                                                                                                                                                                                                             |
+| :----------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authorize    | An authorization request, also known as reserve or hold. Can be **one-step** payment authorization process containing final authorization and capture or a **two-step** payment authorization process containing two separate requests. |
+| Capture      | Capture request of a two-step payment authorization process.                                                                                                                                                                            |
+| Refund       | Refund request of a Captured payment. Can be full or partial.                                                                                                                                                                           |
+| Cancel       | Void or Refund request depending on the status of the payment (Authorized or Captured).                                                                                                                                                 |
+| Credit       | Move funds outside our system, e.g. payouts, external transfers.                                                                                                                                                                        |
+| StartSession | Starts a payment session in a provider. Usually to handle the payment flow with many steps in the frontend.                                                                                                                             |
+
+The next group is related to **notification to and from providers**.
+
+| Type                  | Description                                                                                                                                                            |
+| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SendNotification      | Send a notification to a provider related to a payment.                                                                                                                |
+| HandleNotification    | Process generic notification from a provider. This value should only be set if the event type doesn't correspond to the more specific ones (authorize, capture, etc.). |
+| AuthorizeNotification | Process notification about an authorize operation in the provider.                                                                                                     |
+| CaptureNotification   | Process notification about a capture operation in the provider.                                                                                                        |
+| RefundNotification    | Process notification about a refund operation in the provider.                                                                                                         |
+| CancelNotification    | Process notification about a cancel operation in the provider.                                                                                                         |
+
+The next group, equally important, is for **querying external services** about payments. These operations are usually key for reconciliation processes.
+
+| Type   | Description                                                                                 |
+| :----- | :------------------------------------------------------------------------------------------ |
+| Get    | Check the status of a payment by ID in a provider.                                          |
+| Search | Search for payments in a provider with specified criteria, e.g. date range, merchant, card. |
+
+Next, we have operations related to **tokenization** of payment instruments.
+
+| Type         | Description                                                |
+| :----------- | :--------------------------------------------------------- |
+| GetToken     | Get information related to a token, e.g. card public data. |
+| Tokenize     | Create a token from the attached parameters.               |
+| DisableToken | Disable (or delete) a token in the provider's system.      |
+| Register     | Register an account in an external system or wallet.       |
+
+Finally, we have operations related to 3DS, **redirection**, and Payer Authentication processes.
+
+| Type        | Description                                                                                                                 |
+| :---------- | :-------------------------------------------------------------------------------------------------------------------------- |
+| Generate3DS | The initial call to start a standalone 3DS 1.0 process, usually generating or obtaining the necessary HTML form to display. |
+| Validate3DS | The second call to validate a previously generated 3DS process.                                                             |
+| Confirm     | Call to confirm a payment in multiple steps. Usually, this adds more information for a payment after a redirection.         |

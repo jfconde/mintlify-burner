@@ -1,0 +1,109 @@
+---
+title: How to accept card payments
+---
+
+This guide shows you how to mount a PCI-compliant card form, wire it to a payment button, and handle the payment result.&#x20;
+
+The card form and the payment button are two separate elements created from the same `payrails` client. The client wires them together for you: the button stays disabled until the form is valid, and clicking it validates the form, encrypts the card data, and starts the authorization.
+
+## 1. Add containers to your page
+
+```html
+<div id="card-form"></div>
+<div id="pay-button"></div>
+```
+
+## 2. Mount the card form
+
+```js
+const cardForm = payrails.cardForm({
+  showCardHolderName: true,
+});
+
+cardForm.on("ready", () => console.log("Card form rendered"));
+cardForm.on("change", ({ isValid, cardNetwork }) => {
+  console.log("Form valid:", isValid, "network:", cardNetwork);
+});
+
+cardForm.mount("#card-form");
+```
+
+By default the form renders a card number field, separate expiry month and expiry year fields, and a CVV field. The most commonly used `CardFormOptions`:
+
+| Option                        | Effect                                                                                                                                                      |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `showCardHolderName`          | Adds a cardholder name field (off by default).                                                                                                              |
+| `showSingleExpiryDateField`   | Replaces the separate month/year fields with a single `MM/YY` field.                                                                                        |
+| `showStoreInstrumentCheckbox` | Renders a "save this card" checkbox; its state is sent as `storeInstrument` with the payment.                                                               |
+| `translations`                | Per-field `placeholders` and `labels`, plus default error messages.                                                                                         |
+| `appearance`                  | CSS rules keyed by the SDK's stable class names — see [customize the appearance](how-to-customize-the-checkouts-appearance). |
+| `layout`                      | Custom field arrangement as rows of field names, e.g. `[['CARD_NUMBER'], ['EXPIRATION_DATE', 'CVV']]`.                                                      |
+| `fonts`                       | Custom font descriptors for the secure fields.                                                                                                              |
+
+For the full option and event list see the [`payrails` reference](/docs/orchestration/checkout-sdks/web/api-references/payrails-api-reference) and the [events reference](/docs/orchestration/checkout-sdks/web/api-references/event-api-reference).
+
+## 3. Mount the payment button
+
+```js
+const paymentButton = payrails.paymentButton({
+  translations: { label: "Pay now" },
+  appearance: {
+    rules: {
+      ".payrails-button": { backgroundColor: "#1a1a1a", color: "#ffffff" },
+      ".payrails-button--disabled": { opacity: "0.5" },
+    },
+  },
+});
+
+paymentButton.mount("#pay-button");
+```
+
+The button starts disabled and enables automatically once the card form is valid. Pass `disabledByDefault: false` if you want it clickable immediately (the form is still validated on click). While the payment is in flight the button shows a loading indicator and carries the `.payrails-button--loading` class.
+
+## 4. Handle the payment result
+
+Payment outcomes are instance events — subscribe on the `payrails` client:
+
+```js
+payrails.on("success", () => {
+  // payment authorized — show your confirmation page
+});
+payrails.on("failed", (e) => {
+  // e.data: { code?: string, message?: string }
+  console.error(`Payment failed (${e.data?.code}): ${e.data?.message}`);
+});
+payrails.on("pending", () => {
+  // authorization accepted but not final yet — show a pending state
+});
+```
+
+- `success` — the payment was authorized.
+- `failed` — the payment failed. `e.data?.code` is one of the `AuthorizationFailureReasons` values (`VALIDATION_FAILED`, `AUTHORIZATION_ERROR`, `AUTHENTICATION_ERROR`, `USER_CANCELLED`, `UNKNOWN_ERROR`), importable from `@payrails/web-sdk`.
+- `pending` — the authorization is still processing and no further shopper action is required.
+
+One listener fires for every payment method in the session; if your page mounts other payment elements too, filter with `e.paymentMethodCode === 'card'`.
+
+3D Secure challenges are handled by the SDK automatically; to observe or take over the challenge, subscribe to `payrails.on('actionRequired', ...)` - see the [events reference](/docs/orchestration/checkout-sdks/web/api-references/event-api-reference).
+
+## 5. React to form and button state (optional)
+
+Two button-specific events help you build custom UI around the flow:
+
+```js
+paymentButton.on("stateChanged", ({ state }) => {
+  // 'enabled' | 'disabled' — mirror the button state elsewhere in your UI
+});
+paymentButton.on("validate", ({ isValid, error, fieldErrors }) => {
+  // fires after a click validates the card form
+});
+```
+
+To gate the payment right before it starts (e.g. run a last check and cancel), use the cancelable instance events:
+
+```js
+payrails.on("buttonClicked", async (event) => {
+  if (!(await lastCheckPasses())) event.preventDefault();
+});
+```
+
+To move focus to the first invalid field yourself (for example from your own "Pay" flow), call `cardForm.focus()`. `cardForm.isValid` exposes the current validity synchronously.

@@ -1,0 +1,209 @@
+---
+---
+
+<Note>
+  **Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as a payment orchestrator
+- Use **Amazon Payment Service (APS)** for payments
+- Are approved to process **raw card data**
+
+We use a server-to-server integration with Amazon, so your account must be enabled to process raw card data. If this isn't enabled, payments won't work in production. Please contact your Amazon account manager or support team to activate it.
+
+</Note>
+
+---
+
+## Create and configure an Amazon Payment Service integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **Add instance** to create a new integration configuration.
+4. Select the **workspaces** where this integration should be available.
+
+> **About workspaces**  
+> Workspaces determine where this integration can be used. They allow you to isolate provider setups by region or business line, or share a single configuration across multiple environments.
+
+---
+
+## Step 1: Choose the integration type
+
+- Select **Payment** and continue to the next step.
+
+<PayrailsSelectIntegrationType />
+
+---
+
+## Step 2: Choose the provider
+
+- Select **Amazon Payment Service** and continue to the next step.
+
+<img
+  src="/images/docs/amazon-image-01.png"
+  alt="A screenshot showing the Amazon integration selected."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+## Step 3: Configure your Amazon Payment Service integration
+
+<Tip>
+  ### What you'll need from Amazon Payment Service
+
+Before you begin, make sure you have access to:
+
+- APS **Merchant identifier**
+- APS **Access code**
+- APS **SHA request phrase** and **SHA response phrase** (SHA256)
+
+      <a href="https://paymentservices.amazon.com/ap/signin?openid.return_to=https%3A%2F%2Fpaymentservices.amazon.com%3A443%2Fget-started%2Fdashboard&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=amzn_paymentservices_website_uk&openid.mode=checkid_setup&language=en_US&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&pageId=amzn__paymentservices&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0" target="_blank" rel="noreferrer">Sign in</a> to your Amazon Payment Service dashboard to complete this step.
+
+</Tip>
+
+---
+
+### Integration instance name
+
+<PayrailsIntegrationInstanceNameInfo />
+
+**In Payrails**
+
+- Enter a clear and descriptive **Instance name**.
+
+<PayrailsChooseAnIntegrationInstanceName />
+
+---
+
+### Account details
+
+**In Amazon**
+
+1. <a
+     href="https://paymentservices.amazon.com/ap/signin?openid.return_to=https%3A%2F%2Fpaymentservices.amazon.com%3A443%2Fget-started%2Fdashboard&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=amzn_paymentservices_website_uk&openid.mode=checkid_setup&language=en_US&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&pageId=amzn__paymentservices&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0"
+     target="_blank"
+     rel="noreferrer"
+   >
+     Sign in
+   </a>
+   to the **Amazon Payment Service (APS) merchant dashboard**.
+2. Navigate to **Merchant management** → **Integration settings** → **Security settings**.
+3. Copy the **Merchant identifier**.
+
+**In Payrails**
+
+- Paste the **Merchant identifier** into the **Merchant ID** field.
+
+<img
+  src="/images/docs/amazon-image-02.png"
+  alt="A screenshot showing the Klarna account fields."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+### Credentials
+
+<Tip>
+  Start by testing your integration using Amazon's sandbox credentials. When you finish testing, switch to production credentials and go live.
+
+Make sure the credentials you enter in Payrails match the environment you are configuring (test or live).
+
+</Tip>
+
+**In Amazon**
+
+1. On **Security settings**, copy the **Access code** value.
+
+**In Payrails**
+
+- Paste the value into the **Access code** field.
+
+**In Amazon**
+
+1. Select **SHA256**.
+2. Copy the **SHA Request phrase** and **SHA Response phrase**.
+
+**In Payrails**
+
+- Paste the values into the corresponding **SHA Request phrase** and **SHA Response phrase** fields.
+
+---
+
+### Payment methods
+
+**In Payrails**
+
+- Select the payment methods that should be enabled.
+
+<img
+  src="/images/docs/amazon-image-03.png"
+  alt="A screenshot showing the payment methods available on Amazon Payment Service (APS)."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+### Webhook (Direct Transaction Feedback)
+
+<Tip>
+  Payrails uses Amazon Payment Service **Direct Transaction Feedback** to receive asynchronous payment status updates.
+
+Configure the feedback URL in the same environment (test or production) as your Payrails integration.
+
+</Tip>
+
+**In Amazon**
+
+1. Navigate to **Merchant management** → **Integration settings** → **Technical settings**.
+2. Select **Trusted channel**.
+
+> Alternatively, you may be asked to select your activated integration and choose **Hosted Checkout**, **Custom Integration**, or **Mobile SDK**.
+
+**In Payrails**
+
+- Copy the **Notification URL**.
+
+<PayrailsChooseAnIntegrationInstanceName />
+
+**In Amazon**
+
+1. Paste the Payrails **Notification URL** into the **Direct Transaction Feedback URL** field.
+2. Choose **Yes** for the **Downgrade CVV 3DS** option.
+3. Select **Save changes**.
+
+---
+
+## Enable the integration
+
+**In Payrails**
+
+- Select **Save account** to enable the integration.
+
+The **Enabled** status confirms that the Amazon Payment Service integration is active and available for routing.
+
+<img
+  src="/images/docs/amazon-image-04.png"
+  alt="A screenshot showing the enabled Klarna integration."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+Your Amazon Payment Service integration is now ready to process payments in the selected environment.
+
+---
+
+## Next steps
+
+1. Run a test payment using an Amazon Payment Service <a href="https://paymentservices.amazon.com/docs/developer-resources/test-cards" target="_blank" rel="noreferrer">test card</a>.
+2. Verify that:
+   - The payment appears in Amazon Payment Service.
+   - The payment status updates correctly in Payrails.
+3. Once verified in test mode, repeat the setup in live mode.
+
+Continue to: [Test a payment](/docs/orchestration/payment-acceptance/test-payments)

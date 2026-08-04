@@ -1,0 +1,38 @@
+---
+title: Payment Status
+description: Reference the payment lifecycle statuses used across Payrails flows.
+---
+
+Once an operation of a specific [Operation Type](doc:operation-types) was executed, and we interpreted its [Result Code](operation-results), we are ready to change the status of the actual payment.
+
+In case the operation we executed on the payment wasn't successful, the status of the payment shouldn't be changed.
+
+However, if the result of the operation is `Unknown`, we must change the status of the payment to `Unknown` and act fast to solve the situation so that we are able to either move the payment back to the previous status or to the new one.
+
+In case the payment status is `Failed`, there will be more information about the reason in the operation result field.
+
+You can find more information on the [Result Codes](operation-results) page.
+
+| Code               | Description                                                                                                                                                                                                          |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Created            | Initial state. Payment is created but not yet executed.                                                                                                                                                              |
+| Pending            | An action is pending, either on the user, the provider, or us.                                                                                                                                                       |
+| Unknown            | There was a problem that left the payment in an unknown state. This situation should be resolved as soon as possible.                                                                                                |
+| Failed             | The payment failed because of a reason specified in another field.                                                                                                                                                   |
+| Expired            | The payment was waiting for an action for too long. Time should be configured per merchant.                                                                                                                          |
+| Preauthorized      | The payment was preauthorized successfully by the provider. Needs a subsequent Capture operation to move the funds.                                                                                                  |
+| Authorized         | The payment was authorized successfully by the provider.                                                                                                                                                             |
+| Canceled           | Two-step payment was canceled (or voided) successfully by the provider.                                                                                                                                              |
+| Captured           | Two-step payment was captured successfully in the provider.                                                                                                                                                          |
+| Settled            | Whenever a provider informed us that the payment is settled. Not all providers have a notification for this, so this status may be skipped.                                                                          |
+| Refunded           | The payment was successfully refunded by the provider. This status is only present if there was a full refund. For partial refunds, the status remains as it was before but refunds are found in the operation list. |
+| Chargeback         | Payment has a chargeback from the user.                                                                                                                                                                              |
+| ChargebackReversed | The payment was chargebacked, but we managed to reverse it after a dispute.                                                                                                                                          |
+
+The following is the state machine that illustrates how a payment status can evolve with time after many operations happen to it.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/resources/3a24609-payment_state_machine.png"
+  width="80%"
+/>

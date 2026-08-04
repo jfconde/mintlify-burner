@@ -1,0 +1,162 @@
+---
+title: Transacting with Network Tokens
+description: Learn how to use network tokens and cryptograms in payment transactions.
+---
+Once you provision a network token, it will be available to be used in transactions.
+
+Depending on whether you use Payrails as a payment orchestrator, or as a Vault Proxy, the flow and your integration differs. To read more about those two ways of integration, you can read this <a href="/docs/overview/vault#/how-to-use-payrails-token-vault" target="_blank">guide</a>.
+
+### 1. Use Network Tokens in Orchestration - Payment Acceptance
+
+#### Abstraction of providers and cryptogram handling
+
+In this flow, Payrails handles the complexity for each payment provider and payment type.
+
+When the payment provider to route the payment is defined based on your smart routing rules, Payrails orchestration will populate the necessary payload to make a payment with network tokens instead of a PAN or a PSP token.
+
+In addition, Payrails orchestration will populate the payment authorization payload based on the type of payment according to the context of the execution. As an example, a cryptogram which is a dynamic, one-time-use cryptographic value is needed for certain payment transactions. According to the network rules, cryptogram is needed:
+
+1. If your payment request is for a customer-initiated payment (CIT).
+2. If you are making the first payment with network token, regardless your payment is customer-initiated payment (CIT) or merchant-initiated payment (MIT).
+3. If you are making a payment with a card BIN that is updated by the network (i.e. updating a BIN from 6 digit to 8 digit).
+
+In orchestration module, Payrails handles all the network token service provider-specific requirements on behalf of the merchant and steers the merchant integration flow accordingly. As an example, we will handle when a fresh cryptogram is needed and run the necessary steps inside the workflow for you.
+
+#### When to use a network token over PAN or PSP tokens
+
+You can configure a default behavior if you want to use network tokens in every authorization request to Payrails or choose Payrails smart logic to decide it for each request.
+
+Payrails Token Vault will store network tokens and request a secure and one-time use cryptogram from the networks when a network token is decided to be used for payment authorization. Payrails will obtain a secure cryptogram for each particular transaction that a customer initiates, and remove the cryptogram after usage. For merchant-initiated payments, typically, the cryptogram will not be needed.
+
+### 2. Use Network Tokens in Proxy APIs
+
+**This feature is in beta mode and will soon be available.**
+
+Our proxy API allows you to use both the network token and the PAN (Vault) token of a payment instrument. In the case that both of those token types exist under one payment instrument you store, the default behavior of the API is that we will use the PAN token when forwarding your requests to the destination PSP.
+
+#### Generating a Cryptogram
+
+A network token cryptogram is a dynamic, one-time-use cryptographic value generated during a payment transaction that uses a network token instead of a primary account number (PAN).
+
+According to the network rules, a fresh cryptogram is needed:
+
+1. If your payment request is for a customer-initiated payment (CIT).
+2. If you are making the first payment with network token, regardless your payment is customer-initiated payment (CIT) or merchant-initiated payment (MIT).
+3. If you are making a payment with a card BIN that is updated by the network (i.e. updating a BIN from 6 digit to 8 digit).
+
+If your payment request is for a customer-initiated payment (CIT), you will need a cryptogram for the payment. In this case, you will pass one additional body parameter as generateCryptogram.
+
+When making the first payment with network token, regardless your payment is customer-initiated payment (CIT) or merchant-initiated payment (MIT), you will have to generate and pass a cryptogram to the payment provider alongside network token. After first payment with cryptogram, for merchant-initiated payments (MIT), typically, the cryptogram will not be needed.
+
+In order to generate a cryptogram, you can use **Generate Cryptogram** API endpoint by passing the details about the transactions to specify the details for the cryptogram generation. To generate a fresh cryptogram, use the API endpoint: `POST /instruments/{instrument_id}/generateCryptogram`
+
+**Parameters**:
+
+| Field    | Type   | Required | Description                                          |
+| :------- | :----- | :------- | :--------------------------------------------------- |
+| amount   | number | yes      | The transaction amount.                              |
+| currency | string | yes      | The transaction currency (ISO code).                 |
+| riskData | object | no       | Optional risk-related metadata for fraud assessment. |
+
+**Example Request and Responses**:
+
+```Text Request
+{
+  "amount": 100,
+  "currency": "EUR",
+  "riskData": {
+    "ip4address": "101.101.101.10",
+    "locationLatitude": "10.10",
+    "locationLongitude": "20.20",
+    "deviceScore": "10",
+    "accountScore": "10"
+  }
+}
+```
+```Text Success Response
+{
+  "success": true,
+  "cryptogramMeta": {
+    "eci": "08"
+  }
+}
+```
+```Text Error case 1
+{
+  "errors": [
+    {
+      "id": "a24bc325-3929-4d9d-9c08-b3aa532685b7",
+      "code": "request.malformed",
+      "detail": "This instrument does not have a network token provisioned",
+      "docUrl": "/docs/resources/error-codes#requestmalformed"
+    }
+  ]
+}
+```
+```Text Error case 2
+{
+  "errors": [
+    {
+      "id": "a24bc325-3929-4d9d-9c08-b3aa532685b7",
+      "code": "request.malformed",
+      "detail": "Amount is required",
+      "docUrl": "/docs/resources/error-codes#requestmalformed"
+    }
+  ]
+}
+```
+```Text Error case 3
+{
+  "errors": [
+    {
+      "id": "a24bc325-3929-4d9d-9c08-b3aa532685b7",
+      "code": "request.internal",
+      "detail": "Error generating network token from provider with reason 'test'",
+      "docUrl": "/docs/resources/error-codes#requestmalformed"
+    }
+  ]
+}
+```
+
+Since cryptogram is considered PCI-sensitive data, similar to a card security code, Payrails will generate the cryptogram, store in the Vault, however will not share it with the merchant.
+
+Once cryptogram in generated for a given instrument by the API endpoint, it is expected to use this instrument for a transaction shortly after cryptogram generation. Note that cryptogram cannot be stored permanently, and be stored in volatile memory for until authorization is completed.
+
+#### Sending a Proxy Request with Network Token
+
+Sending a payment with a network token works the same way with PAN (Vault) tokens. Given they are both PCI sensitive data, you will pass the necessary <a href="/docs/token-vault/vault-proxy/proxy-payment-instruments/proxy-payment-instruments#/dynamic-variable-substitution-during-proxying" target="_blank">dynamic placeholders</a> in your proxy request to Payrails, which then Payrails will replace with actual values before forwarding it to the downstream destination.
+
+Our proxy API allows you to use both the network token and the PAN (Vault) token of a payment instrument. In the case that both those token types exist under one payment instrument you store, the default behavior of the API is that we will use the PAN token when forwarding your requests to the destination PSP.
+If you want to use the network token that is stored under the instrument, you need to pass the correct body with the network token placeholder instead of the card placeholder, e.g., `{{networkTokenNumber}}` for replacing the network token number and `{{cardNumber}}` placeholder for replacing the card number. You can refer to all possible placeholders here.
+
+Dynamic variable substitution during proxying for network tokens:
+
+* For network token number, use `{{networkTokenNumber}}`
+* For cryptogram, use `{{networkTokenCryptogram}}`
+* Expiry month of the network token, use `{{networkTokenExpiryMonth}}`
+* For expiry year of the network token, if:
+  * 4-digit expiry year of the network token, use `{{networkTokenExpiryYear}}`
+  * 2-digit expiry year of the network token, use `{{networkTokenExpiryYear2Digits}}`.
+
+```Text Example request
+curl --request POST \
+     --url https://payrails-api.staging.payrails.io/payment/providers/d5454c2f-ae5e-44f3-8edf-f6dad64f005f/proxy \
+     --header 'accept: application/json' \
+     --header 'content-type: application/json' \
+     --data ' \
+{
+  "paymentInstrumentId": "eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "providerConfigId": "d9699acd-9361-4e11-8d06-b30f41fc6210",
+  "url": "https://checkout-test.adyen.com/v69/payments",
+  "body": {
+    "paymentMethod": {
+	    "networkToken": "{{networkTokenNumber}}",
+      "expiryMonth": "{{networkTokenExpiryMonth}}",
+			"expiryYear": "{{networkTokenExpiryYear}}",
+	    "cavv": "{{networkTokenCryptogram}}"
+    }
+  }
+}
+```
+
+

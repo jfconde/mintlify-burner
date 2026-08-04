@@ -1,0 +1,30 @@
+---
+title: Provision Network Tokens
+description: Learn how to provision network tokens to leverage its benefits in the most optimized way.
+---
+Once you successfully completed the onboarding step, now you are ready to start provisioning network tokens. 
+
+In Payrails, network tokens are created as a token under a payment instrument alongside the vault tokens and other token types that an instrument may have. If you are new to the concept of payment instruments and how they abstract multiple types of tokens, visit <a href="/docs/resources/manage-instruments#/" target="_blank">payment instruments guide</a> for more information.
+
+Once you can create instruments, you will be able to provision a network token. There are multiple ways to do that:
+
+1. Set your rules to selectively **provision network tokens automatically**. You can define rules based on:
+   1. Network (i.e. Visa, Mastercard)
+   2. BIN (i.e. 491345, 643242)
+   3. Issuing country (i.e. United States of America, Italy)
+   4. Card type (i.e. Credit, Debit)
+2. Use '**provision network token**' parameter when creating a new instrument. Use  [the API endpoint](/reference/createinstrument#/) to request network token provisioning for a particular instrument.
+3. Use '**provisioning network token**' [API endpoint](/reference/provisionnetworktokenpublic#/) to provision a network token for an existing payment instrument.
+
+When a Network Token provision is requested, card details will be sent to the network via Payrails, and the network token which is considered sensitive data will be stored securely in Payrails Token Vault. Payrails will generate a network token reference and attach it to the payment instrument.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/network-tokens/provision-network-tokens-1.png"
+  width="80%"
+/>
+
+<Note>
+  The service allows merchants to tokenize cards entered by consumers during checkout or existing card held on file. That means, you can start using network tokens anytime, and benefit for including the existing customer base.
+</Note>
+

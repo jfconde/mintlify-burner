@@ -1,0 +1,24 @@
+---
+title: Idempotent Requests
+---
+
+Our API offers idempotency features to ensure safe retries of requests without unintentional duplicate operations. Integrating an idempotency key can prove invaluable if you're working on actions like record creation or updates. This key allows you to re-initiate a request, especially in situations like connectivity disruptions, ensuring no unwanted duplications or repeated updates.
+
+## Making an idempotent request
+
+For an idempotent request, include an extra header: `X-Idempotency-Key: <key>`
+
+Upon receiving a request with a unique idempotency key, our system commits to memory the status code and the response body. This holds irrespective of whether the request was a success or a failure. Any subsequent requests with the same key will fetch identical responses, preserving this consistency even in case of server errors.
+
+## What is an idempotency key?
+
+This key is a unique marker, generated on the client side, which our server leans on to detect and avert potential repetitions stemming from retried requests. Key aspects include:
+
+- **Generation:** While the method for generating unique keys rests with you, we accept only UUIDs as idempotency keys. This ensures a low likelihood of overlapping keys.
+- **Storage considerations:** It's important to note that results are only stored if an API endpoint has started processing. Should the incoming parameters fail validation, or if another conflicting request is being processed simultaneously, no idempotent result will be stored. In such scenarios, it's safe to reinitiate these requests.
+
+## Idempotency in different HTTP Methods
+
+- **POST, PUT, PATCH:** All requests must be paired with idempotency keys to ensure safe retries.
+- **GET:** Attaching idempotency keys to GET requests is unnecessary and should be refrained from, given that it is inherently idempotent.
+- **DELETE:** We require an idempotency key in soft-delete operations. However, hard-delete operations cannot be idempotent because the previous record will not exist on subsequent calls.

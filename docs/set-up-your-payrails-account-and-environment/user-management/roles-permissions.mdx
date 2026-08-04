@@ -1,0 +1,210 @@
+---
+title: Roles & Permissions
+description: Find all assigned roles and permissions for each API service.
+---
+
+## User Roles
+
+There are dedicated roles for [workspace](/docs/set-up-your-payrails-account-and-environment/workspaces) and [organization](/docs/set-up-your-payrails-account-and-environment/organization) context within the portal.
+
+### Organization roles
+
+- **Admin** - Can access and manage everything, including all workspaces and their aggregated data. Will be Admin in all workspaces.
+- **Developer** - Can access workspaces they are added to and manage everything except users for the organization. Will have access to aggregated data from the workspaces they are added to.
+- **Viewer** - Can access workspaces they are added to and view data related to the organization. Will have access to aggregated data from the workspaces they are added to.
+- **None** - Can only access workspaces they are added to. Will not have access to the organization or an aggregated view.
+
+### Workspace roles
+
+- **Admin** - Can manage everything in the workspace, including users and access.
+- **Operator** - Can view data and trigger actions such as refunds, but has no access to configurations.
+- **Viewer** - Can only view data.
+
+## Roles & Permissions Matrix
+
+Visualize the roles and their corresponding permissions across various services with our comprehensive matrix. This tool illustrates the access levels of each role to specific actions within key service categories, including Auth, Ledger, Merchant, and Payment.
+
+Below, we present individual Role & Permissions Matrices for each service:
+
+### Portal
+
+| **Action description**    | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| ------------------------- | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| View organization context | ✓             | ✓                 | ✓              | ✗            | ✗               | ✗             |
+| List all workspaces       | ✓             | ✗                 | ✗              | ✗            | ✓               | ✗             |
+| List assigned workspaces  | ✗             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Create a workspace        | ✓             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Update a workspace        | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+
+<br />
+
+### User Management
+
+| **Action description**                           | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| ------------------------------------------------ | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| List users                                       | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| List external users                              | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| View user details                                | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| View user logged in info                         | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Export list of users                             | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Export list of external users                    | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Create users                                     | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Assign role                                      | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Assign/Unassign organization and workspace roles | ✓             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Assign/Unassign workspace roles                  | ✗             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Block a user                                     | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Unblock a user                                   | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Reset a user password                            | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Reset a user MFA                                 | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Sync a user or all users                         | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| List roles                                       | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| List organization and workspace roles            | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| View role details                                | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+
+<br />
+
+### Authentication
+
+| **Action description**    | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| ------------------------- | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| List clients              | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| View client details       | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Create a client           | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Delete a client           | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Rotate API secret         | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| List API secret           | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Create API secret         | ✓             | ✓                 | ✗              | ✓            | ✗               | ✗             |
+| List MTLS certificate     | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Read a MTLS certificate   | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Create a MTLS certificate | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Import a MTLS certificate | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Revoke a MTLS certificate | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+
+<br />
+
+### Executions & Payments & Actions
+
+| **Action description** | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| ---------------------- | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| List executions        | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| View execution details | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Lookup                 | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Authorize an execution | ✓             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Cancel an execution    | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| Capture an execution   | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| Confirm an execution   | ✓             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Create an execution    | ✓             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Refund an execution    | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| List payments          | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| View payment details   | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List actions           | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| View action details    | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+
+<br />
+
+### Alerts
+
+| **Action description**     | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| -------------------------- | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| Update a field             | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| List alert logs            | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| Evaluate an alert          | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| Update an alert            | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| View alert configs details | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| List alert configs         | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| Create an alert config     | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| Update an alert config     | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+| Delete an alert config     | ✓             | ✗                 | ✗              | ✓            | ✓               | ✗             |
+
+<br />
+
+### Notifications
+
+| **Action description**           | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| -------------------------------- | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| View notification config details | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| List notification configs        | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Create a notification config     | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Update a notification config     | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Delete a notification config     | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+
+<br />
+
+### Merchant Configuration
+
+| **Action description**                    | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| ----------------------------------------- | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| List workflows                            | ✓             | ✗                 | ✗              | ✓            | ✓               | ✓             |
+| View workflow details                     | ✓             | ✗                 | ✗              | ✓            | ✓               | ✓             |
+| Create a workflow                         | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| List rulesets                             | ✓             | ✗                 | ✗              | ✓            | ✓               | ✓             |
+| View ruleset details                      | ✓             | ✗                 | ✗              | ✓            | ✓               | ✓             |
+| Create ruleset                            | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| Consumercheckout read config (SDK)        | ✓             | ✗                 | ✗              | ✓            | ✓               | ✓             |
+| Consumercheckout write config (SDK)       | ✓             | ✗                 | ✗              | ✓            | ✗               | ✗             |
+| List frauds                               | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| View fraud details                        | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List holders                              | ✓             | ✓                 | ✓              | ✗            | ✗               | ✗             |
+| View holder details                       | ✓             | ✓                 | ✓              | ✗            | ✗               | ✗             |
+| Create Holder                             | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Read config (SDK)                         | ✓             | ✗                 | ✗              | ✓            | ✓               | ✓             |
+| View field details                        | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List fields                               | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Create a field                            | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Read BINs                                 | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List all currencies from current payments | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List raw notifications sent by providers  | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+
+<br />
+
+### Integrations
+
+| **Action description**               | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| ------------------------------------ | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| List providers active                | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List providers                       | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| View provider details                | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Update providers                     | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Proxy providers                      | ✓             | ✓                 | ✗              | ✓            | ✗               | ✗             |
+| List provider configuration          | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Get provider configuration by id     | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Create provider config               | ✓             | ✓                 | ✗              | ✓            | ✗               | ✗             |
+| Delete provider config               | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Update provider config               | ✓             | ✓                 | ✗              | ✓            | ✗               | ✗             |
+| Assign provider config to workspaces | ✓             | ✓                 | ✗              | ✓            | ✗               | ✗             |
+| List integrations                    | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+
+<br />
+
+### Tokenization
+
+| **Action description**              | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| ----------------------------------- | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| Get instrument details              | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List Instruments                    | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Create instrument                   | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Update instrument                   | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Delete instrument                   | ✓             | ✓                 | ✗              | ✗            | ✗               | ✗             |
+| Tokenize instrument                 | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| List tokens                         | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Get token details                   | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Create token                        | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Update token                        | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Delete token                        | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| Vault read config                   | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| View and select vault in the portal | ✗             | ✗                 | ✗              | ✗            | ✗               | ✗             |
+| List API logs                       | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Get API log details                 | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+
+<br />
+
+### Analytics
+
+| **Action description** | **Org-Admin** | **Org-Developer** | **Org-Viewer** | **WS-Admin** | **WS-Operator** | **WS-Viewer** |
+| ---------------------- | ------------- | ----------------- | -------------- | ------------ | --------------- | ------------- |
+| Get dataset details    | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List datasets          | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Get export details     | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| List exports           | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |
+| Create an export       | ✓             | ✓                 | ✗              | ✓            | ✓               | ✓             |
+| Read analytics         | ✓             | ✓                 | ✓              | ✓            | ✓               | ✓             |

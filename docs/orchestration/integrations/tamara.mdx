@@ -1,0 +1,147 @@
+---
+---
+
+Tamara is a Buy Now, Pay Later (BNPL) payment method. This guide covers adding Tamara as a payment method through Payrails.
+
+<Note>
+  
+**Who should use this guide**
+
+This guidance applies to merchants who:
+
+- Use Payrails as a payment orchestrator
+- Want to offer Tamara (Buy Now, Pay Later) as a payment method to their customers
+- Have an active Tamara merchant account with access to the Tamara Partner Portal
+
+</Note>
+
+> **Note:** Tamara is a Buy Now, Pay Later payment method, not a card scheme — no raw card processing is required. Tamara is available in supported markets in the region; confirm coverage for your market with your Tamara account manager.
+
+## Create and Configure a Tamara Integration in Payrails
+
+1. Log in to the Payrails portal
+2. Go to **Settings → Integrations**
+3. Select **Add instance** to create a new Tamara integration configuration
+4. Select the **Workspaces** where this integration should be available
+
+> **About Workspaces:** Workspaces determine where this integration is available. They let you isolate provider setups by region or business line, or share the same configuration across multiple Workspaces.
+
+## Step 1: Choose the Integration Type
+
+- Select **Payment and&#x20;**&#x63;ontinue to the next step
+  <img
+    src="/images/docs/tamara-image-01.png"
+    alt=""
+    className="mx-auto block rounded-lg object-cover"
+    width="80%"
+  />
+
+## Step 2: Choose the Provider
+
+- Select **Tamara and&#x20;**&#x63;ontinue to the next step
+  <img
+    src="/images/docs/tamara-image-02.png"
+    alt=""
+    className="mx-auto block rounded-lg object-cover"
+    width="80%"
+  />
+
+## Step 3: Configure Your Tamara Integration
+
+<Tip>
+  ### What You'll Need from Tamara
+
+Before beginning, ensure you have:
+
+- Access to the [Tamara Partner Portal](https://partners.tamara.co/)
+- The API credentials issued by Tamara for your merchant account
+
+</Tip>
+
+### Integration Instance Name
+
+An integration instance is a specific payment provider setup in Payrails. Multiple instances can be created per provider based on region, currency, or business needs. Choose a clear, consistent name for routing purposes.
+
+**In Payrails:**
+
+- Enter an **Instance name** for your integration
+  <img
+    src="/images/docs/tamara-image-03.png"
+    alt=""
+    className="mx-auto block rounded-lg object-cover"
+    width="80%"
+  />
+
+### API Credentials
+
+**In Tamara:**
+
+- Retrieve the API credentials issued for your merchant account from the Tamara Partner Portal
+
+**In Payrails:**
+
+- Enter the credentials into the corresponding fields
+  <img
+    src="/images/docs/tamara-image-04.png"
+    alt=""
+    className="mx-auto block rounded-lg object-cover"
+    width="80%"
+  />
+
+### Webhooks (Notifications)
+
+> **Note:** Payrails uses Tamara webhooks to receive asynchronous payment status updates.
+> **Warning:** Register the webhook in the same environment (test or live) as your Payrails integration.
+
+**In Tamara:**
+
+1. Log in to the [Tamara Partner Portal](https://partners.tamara.co/)
+2. Go to **Settings → General Settings → Webhooks**, then select **Add webhooks**
+   <img
+     src="/images/docs/tamara-image-05.png"
+     alt=""
+     className="mx-auto block rounded-lg object-cover"
+     width="80%"
+   />
+3. Enter the following, then select **Create Webhook**:
+   - **Type:** select **Order**
+   - **Events:** select the status changes you want to be notified about — the **Approved** event is **mandatory**
+   - **URL:** enter the Notification URL from Payrails (use HTTPS; maximum 255 characters)
+   - _(Optional)_ Add any headers your endpoint requires
+     <img
+       src="/images/docs/tamara-image-06.png"
+       alt=""
+       className="mx-auto block rounded-lg object-cover"
+       width="80%"
+     />
+4. The webhook is added successfully. Payloads are sent via HTTP POST to your registered notification URL.
+   <img
+     src="/images/docs/tamara-image-07.png"
+     alt=""
+     className="mx-auto block rounded-lg object-cover"
+     width="80%"
+   />
+
+### Payment Methods
+
+**In Payrails:**
+
+- Select **Tamara** to enable it as a payment method for this integration
+
+> **Note — capture mode:** Tamara supports **manual capture only**. Build your payment workflow with manual capture mode. If you prefer captures to happen automatically, you can enable auto-capture at the account level in Tamara.
+
+## Enable the Integration
+
+**In Payrails:**
+
+- Select **Save account** to enable the integration
+
+The **Enabled** status indicates that the Tamara integration is active. Your Tamara integration is now ready to process payments.
+
+## Next Steps
+
+1. Run a test payment using Tamara's <a href="https://docs.tamara.co/docs/testing-cards" target="_blank" rel="noreferrer">test flow</a>
+2. Verify that:
+   - The payment appears in the Tamara Partner Portal
+   - The payment status updates correctly in Payrails
+3. Once verified in test mode, repeat the setup in live mode

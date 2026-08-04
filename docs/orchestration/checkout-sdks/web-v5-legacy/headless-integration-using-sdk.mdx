@@ -1,0 +1,240 @@
+---
+title: Headless Integration using SDK
+description: The Payrails SDK provides a comprehensive set of API methods and query functions for integrating payment processing capabilities into your application. This documentation covers the headless API methods and configuration query functions available through the main `Payrails` class.
+---
+
+## API Methods
+
+The Payrails SDK provides REST API methods through the `api()` function for making calls to payrails backend directly from the client.
+
+### `api`
+
+| Parameter | Type                                          | Description                                       |
+| --------- | --------------------------------------------- | ------------------------------------------------- |
+| `config`  | `ApiConfig<TReq> & { operation: TOperation }` | Configuration object containing operation details |
+
+**Returns:** `Promise<Operations[TOperation]['responseType']>`
+
+### Available Operations
+
+| Operation          | Method | Description                                          | Required Parameters  |
+| :----------------- | :----- | :--------------------------------------------------- | :------------------- |
+| `deleteInstrument` | DELETE | Deletes a stored payment instrument                  | `resourceId`         |
+| `updateInstrument` | PATCH  | Updates properties of an existing payment instrument | `resourceId`, `body` |
+
+#### Delete Payment Instrument
+
+```typescript
+const result = await payrails.api({
+  operation: "deleteInstrument",
+  resourceId: "instrument_id_here",
+});
+```
+
+**Response:** `DeleteInstrumentResponse`
+
+| Field     | Type      | Description                              |
+| --------- | --------- | ---------------------------------------- |
+| `success` | `boolean` | Indicates if the deletion was successful |
+
+#### Update Payment Instrument
+
+```typescript
+const result = await payrails.api({
+  operation: "updateInstrument",
+  resourceId: "instrument_id_here",
+  body: {
+    status: "enabled",
+    default: true,
+    merchantReference: "your_reference",
+    networkTransactionReference: "network_ref",
+  },
+});
+```
+
+**Request Body Fields:**
+
+| Field                         | Type                                               | Required | Description                       |
+| :---------------------------- | :------------------------------------------------- | :------- | :-------------------------------- |
+| `status`                      | `'enabled'`\| `'disabled'`                         | No       | Enable or disable the instrument  |
+| `networkTransactionReference` | `string`                                           | No       | Network transaction reference     |
+| `merchantReference`           | `string`                                           | No       | Merchant reference identifier     |
+| `paymentMethod`               | `'applepay'` \|`'card'`\|`'googlepay'`\|`'paypal'` | No       | Payment Method Type               |
+| `default`                     | `boolean`                                          | No       | Set as default payment instrument |
+
+**Response Fields:**
+
+| Field           | Type                        | Description                  |
+| --------------- | --------------------------- | ---------------------------- |
+| `id`            | `string`                    | Unique instrument identifier |
+| `createdAt`     | `string`                    | Creation timestamp           |
+| `holderId`      | `string`                    | Holder identifier            |
+| `paymentMethod` | `PAYMENT_METHOD_CODES`      | Payment method type          |
+| `status`        | `PAYMENT_INSTRUMENT_STATUS` | Current status               |
+| `data`          | `INSTRUMENT_OBJECT`         | Payment method specific data |
+
+## Query Methods
+
+The query system allows you to retrieve configuration data and SDK state information without making external API calls.
+
+### `query`
+
+| Parameter | Type                                      | Required | Description                              |
+| --------- | ----------------------------------------- | -------- | ---------------------------------------- |
+| `key`     | `K extends keyof ConfigurationQueryTypes` | Yes      | The configuration key to query           |
+| `params`  | `Record<string, any>`                     | No       | Optional parameters for specific queries |
+
+**Returns:** `ConfigurationQueryTypes[K]['returnType'] | null`
+
+### Available Query Keys
+
+| Query Key                  | Parameters                                                            | Return Type                                                                            | Description                                            |
+| :------------------------- | :-------------------------------------------------------------------- | :------------------------------------------------------------------------------------- | :----------------------------------------------------- |
+| `holderReference`          |                                                                       | `string`                                                                               | Retrieves the holder reference for the current session |
+| `amount`                   |                                                                       | `PayrailsAmount`                                                                       | Gets the current payment amount configuration          |
+| `executionId`              |                                                                       | `string`\|`undefined`                                                                  | Retrieves the current workflow execution ID            |
+| `binLookup`                |                                                                       | `Links`\|`undefined`                                                                   | Gets the BIN lookup service endpoint                   |
+| `instrumentDelete`         |                                                                       | `Links`\|`undefined`                                                                   | Gets the instrument deletion endpoint                  |
+| `instrumentUpdate`         |                                                                       | `Links`\|`undefined`                                                                   | Gets the instrument update endpoint                    |
+| `paymentMethodConfig`      | `paymentMethodCode: PAYMENT_METHOD_CODES.CODE \| 'all' \| 'redirect'` | `StorablePaymentCompositionOption`\| `StorablePaymentCompositionOption[]`\|`undefined` | Retrieves configuration for a specific payment method  |
+| `paymentMethodInstruments` | `paymentMethodCode: string`                                           | `StoredPaymentInstrument<CardMetadata`\|`PayPalMetadata[]`\|`undefined`                | Gets stored instruments for a specific payment method  |
+
+<br />
+
+### Query Examples
+
+#### Basic Configuration Queries
+
+```typescript
+// Get holder reference
+const holderRef = payrails.query("holderReference");
+
+// Get current amount
+const amount = payrails.query("amount");
+
+// Get execution ID
+const executionId = payrails.query("executionId");
+```
+
+#### Link Queries
+
+```typescript
+// Get API endpoints
+const binLookupLink = payrails.query("binLookup");
+const deleteLink = payrails.query("instrumentDelete");
+const updateLink = payrails.query("instrumentUpdate");
+```
+
+#### Payment Method Queries
+
+```typescript
+// Get payment method configuration
+const cardConfig = payrails.query("paymentMethodConfig", {
+  paymentMethodCode: "card",
+});
+
+// Get payment method config for all available payment methods
+const cardConfig = payrails.query("paymentMethodConfig", {
+  paymentMethodCode: "all",
+});
+
+// Get payment method config for all redirect type payment methods
+const cardConfig = payrails.query("paymentMethodConfig", {
+  paymentMethodCode: "redirect",
+});
+
+// Get stored instruments for a payment method
+const cardInstruments = payrails.query("paymentMethodInstruments", {
+  paymentMethodCode: "card",
+});
+```
+
+<br />
+
+## Error Handling
+
+All API methods may throw `PayrailsError` exceptions. It's recommended to wrap API calls in try-catch blocks:
+
+```typescript
+try {
+  const result = await payrails.api({
+    operation: "deleteInstrument",
+    resourceId: "instrument_id",
+  });
+  console.log("Instrument deleted successfully:", result.success);
+} catch (error) {
+  if (error instanceof PayrailsError) {
+    console.error("Payrails API error:", error.message);
+    // Handle specific error codes
+  } else {
+    console.error("Unexpected error:", error);
+  }
+}
+```
+
+Query methods return `null` instead of throwing errors when data is not found:
+
+```typescript
+const amount = payrails.query("amount");
+if (amount === null) {
+  console.log("Amount not configured");
+} else {
+  console.log("Current amount:", amount);
+}
+```
+
+## Examples
+
+### Complete Instrument Management Example
+
+```typescript
+// Initialize Payrails client
+const payrails = Payrails.init(initResponse, options);
+
+// Query for stored card instruments
+const cardInstruments = payrails.query("paymentMethodInstruments", {
+  paymentMethodCode: "card",
+});
+
+if (cardInstruments && cardInstruments.length > 0) {
+  const instrument = cardInstruments[0];
+
+  // Update the instrument
+  try {
+    const updatedInstrument = await payrails.api({
+      operation: "updateInstrument",
+      resourceId: instrument.id,
+      body: {
+        status: "enabled",
+        default: true,
+      },
+    });
+
+    console.log("Instrument updated:", updatedInstrument);
+  } catch (error) {
+    console.error("Failed to update instrument:", error);
+  }
+}
+```
+
+<br />
+
+## Integration Notes
+
+| Aspect                   | Description                                                                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Authentication**       | All API calls are automatically authenticated using the SDK's internal token management                                                          |
+| **Resource IDs**         | When working with payment instruments, ensure you have the correct `resourceId` from previous queries or operations                              |
+| **Error Handling**       | Always implement proper error handling for API calls, as network issues or invalid requests can cause exceptions                                 |
+| **Query Performance**    | Query methods are fast local operations that don't make network requests, making them suitable for frequent calls                                |
+| **Parameter Validation** | Some queries require specific parameters (like `paymentMethodCode`). Missing required parameters will result in `null` returns with warning logs |
+
+## Best Practices
+
+| Practice                | Recommendation                                                                                            |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Cache Query Results** | For frequently accessed configuration data, consider caching query results to improve performance         |
+| **Handle Null Returns** | Always check for `null` returns from query methods before using the data                                  |
+| **Use TypeScript**      | Leverage the provided TypeScript types for better development experience and error prevention             |
+| **Error Recovery**      | Implement appropriate error recovery strategies for failed API operations                                 |
+| **Logging**             | Monitor API usage and errors through your application logging system for better debugging and maintenance |

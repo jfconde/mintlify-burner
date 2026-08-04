@@ -1,0 +1,145 @@
+---
+title: Fraud Score
+description: This document explains how you can request a Fraud Score/Check action to be performed within the authorization flow. Also how to get notified about Fraud Score results.
+---
+
+# Request format
+
+Executing a `fraudScore` action does not require extra effort from your side, it gets automatically invoked with authorization and gets invoked based on Workflow Configuration(s). Even the invocation context (whether pre or post authorization) is controlled by Workflow Configuration(s). You hit Payrails authorize end point normally and the workflow when designed to invoke fraud actions, will take care of the rest and notify you with the results.
+
+# Notification format
+
+### Case: Allow
+
+When the `fraudScore` action is executed in the workflow configuration, you'll receive the following notification in case of an allowed transaction by the defined risk management provider. This result can be expected for receipt on your side in both pre and post authorization contexts. Based on this result in pre-authorization you would typically proceed with a frictionless authorization attempt. When the context is post-authorization, you'd typically proceed with a capture.
+
+```json
+{
+  "event": "executionActionCompleted",
+  "time": "2025-03-26T09:55:07.098502Z",
+  "details": {
+    "action": "fraudScore",
+    "actionId": "d3e91eda-816e-4afb-a0b3-17647dcf2a91",
+    "actionMeta": {
+      ...
+    },
+    "execution": {
+      "holderId": "a135b581-8301-4694-be66-13135a9d5b69",
+      "holderReference": "a135b581-8301-4694-be66-13135a9d5b6a",
+      "id": "a135b581-8301-4694-be66-13135a9d5b6b",
+      "merchantReference": "a135b581-8301-4694-be66-13135a9d5b6c",
+      "meta": {
+        ...
+      },
+      "workflowCode": "payment-acceptance"
+    },
+    "paymentComposition": [
+      {
+        "amount": { "currency": "USD", "value": "1.00" },
+        "decision": "Allow",
+        "instrumentId": "86d37847-4ddb-41f6-927f-bb0803eb2243",
+        "operationProviderReference": "3c604e69-45dd-46c6-b486-a233badc3d17",
+        "operationResult": "Success",
+        "operationType": "FraudScore",
+        "providerConfigId": "561a0b1f-131d-4f8b-b59c-c6f32db3a180",
+        "providerId": "b9f1ecec-bea3-4eca-99d5-33b507fb3865",
+        "providerReference": "3c604e69-45dd-46c6-b486-a233badc3d17",
+        "success": true
+      }
+    ],
+    "success": true
+  },
+  "workspaceId": "7f9f1882-a103-408d-ac96-46a7021e537a",
+  "eventTrigger": "api"
+}
+```
+
+### Case: Challenge
+
+When the `fraudScore` action is executed in the workflow configuration, you'll receive the following notification in case of a challenged transaction by the defined risk management provider. In case the context is post-authorization, i.e you're executing the action after an authorize has been attempted, this notification would never be received on your end while a customer can no longer be challenged after authorization was attempted. In pre-authorization context, you'd typically proceed with authorization with a 3DS challenge, i.e authentication flow.
+
+```json
+{
+  "event": "executionActionCompleted",
+  "time": "2025-03-26T09:55:07.098502Z",
+  "details": {
+    "action": "fraudScore",
+    "actionId": "d3e91eda-816e-4afb-a0b3-17647dcf2a91",
+    "actionMeta": {
+      ...
+    },
+    "execution": {
+      "holderId": "a135b581-8301-4694-be66-13135a9d5b69",
+      "holderReference": "a135b581-8301-4694-be66-13135a9d5b6a",
+      "id": "a135b581-8301-4694-be66-13135a9d5b6b",
+      "merchantReference": "a135b581-8301-4694-be66-13135a9d5b6c",
+      "meta": {
+        ...
+      },
+      "workflowCode": "payment-acceptance"
+    },
+    "paymentComposition": [
+      {
+        "amount": { "currency": "USD", "value": "1.00" },
+        "decision": "Challenge",
+        "instrumentId": "86d37847-4ddb-41f6-927f-bb0803eb2243",
+        "operationProviderReference": "3c604e69-45dd-46c6-b486-a233badc3d17",
+        "operationResult": "Success",
+        "operationType": "FraudScore",
+        "providerConfigId": "561a0b1f-131d-4f8b-b59c-c6f32db3a180",
+        "providerId": "b9f1ecec-bea3-4eca-99d5-33b507fb3865",
+        "providerReference": "3c604e69-45dd-46c6-b486-a233badc3d17",
+        "success": true
+      }
+    ],
+    "success": true
+  },
+  "workspaceId": "7f9f1882-a103-408d-ac96-46a7021e537a",
+  "eventTrigger": "api"
+}
+```
+
+### Case: Prevent
+
+When the `fraudScore` action is executed in the workflow configuration, you'll receive the following notification in case of an allowed transaction by the defined risk management provider. This result can be expected for receipt on your side in both pre and post authorization contexts. Based on this result in pre-authorization you would typically not proceed an authorization attempt. When the context is post-authorization, you'd typically proceed with a refund in case of an instant capture or a cancel otherwise.
+
+```json
+{
+  "event": "executionActionCompleted",
+  "time": "2025-03-26T09:55:07.098502Z",
+  "details": {
+    "action": "fraudScore",
+    "actionId": "d3e91eda-816e-4afb-a0b3-17647dcf2a91",
+    "actionMeta": {
+      ...
+    },
+    "execution": {
+      "holderId": "a135b581-8301-4694-be66-13135a9d5b69",
+      "holderReference": "a135b581-8301-4694-be66-13135a9d5b6a",
+      "id": "a135b581-8301-4694-be66-13135a9d5b6b",
+      "merchantReference": "a135b581-8301-4694-be66-13135a9d5b6c",
+      "meta": {
+        ...
+      },
+      "workflowCode": "payment-acceptance"
+    },
+    "paymentComposition": [
+      {
+        "amount": { "currency": "USD", "value": "1.00" },
+        "decision": "Prevent",
+        "instrumentId": "873a421f-4fb0-4bb1-8837-d0d07df96885",
+        "operationProviderReference": "92beb721-3528-42ff-aa7b-9199da687d0b",
+        "operationResult": "Success",
+        "operationType": "FraudScore",
+        "providerConfigId": "561a0b1f-131d-4f8b-b59c-c6f32db3a180",
+        "providerId": "b9f1ecec-bea3-4eca-99d5-33b507fb3865",
+        "providerReference": "92beb721-3528-42ff-aa7b-9199da687d0b",
+        "success": true
+      }
+    ],
+    "success": true
+  },
+  "workspaceId": "7f9f1882-a103-408d-ac96-46a7021e537a",
+  "eventTrigger": "api"
+}
+```

@@ -1,0 +1,298 @@
+---
+title: Stripe
+excerpt: >-
+  A step-by-step guide for setting up your Stripe payments integration in the
+  Payrails portal.
+deprecated: false
+hidden: true
+link:
+  new_tab: false
+metadata:
+  title: How to Integrate Stripe with Payrails (Step-by-Step Setup Guide)
+  keywords:
+    - Stripe integration
+    - Payrails Stripe integration
+    - Stripe setup guide
+    - Integrate Stripe with Payrails
+    - Stripe payment provider setup
+  robots: index
+---
+
+<Note>
+  
+**Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as a payment orchestrator
+- Use **Stripe Payments** (with or without Stripe Connect)
+- Are approved to process **raw card data** (PCI DSS compliant)
+
+_Your Stripe account must be approved for raw card data processing. If this is not enabled, payments will fail in production. Request access from Stripe before continuing._
+
+</Note>
+
+<Accordion title="How to request access to raw card data processing">
+  1. Contact Stripe Support and provide:
+     1. A brief description of the card data management systems and services used in your application.
+
+        *We are starting a collaboration with Payrails as a payment orchestrator. While activating our Stripe account, we encountered the following error:*
+
+        *"Sending credit card numbers directly to the Stripe API is generally unsafe. To continue processing, use Stripe.js, the Stripe mobile bindings, or Stripe Elements. For more information, see the Stripe Dashboard. If you are qualified to handle card data directly, see Stripe Support."*
+
+        *Could you enable raw card data processing for our account so we can proceed with production?*
+
+     2. The Payrails PCI compliance document.
+
+2. Email your Stripe Account Manager, copying Payrails Support, for assistance in enabling this feature.
+   </Accordion>
+
+---
+
+## Create a Stripe integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **New integration**, then choose **Stripe Payments**.
+
+The Stripe integration setup page appears, showing the required configuration steps.
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/a7b1dc36e5c2da85184515c62ae1429ea124d7496b5e12fc4e7d24020cbbcaf0-Screenshot_2026-01-30_at_10.34.20.png"
+  className="border"
+/>
+
+---
+
+## Step 1: Name the integration and assign Workspaces
+
+1. Select **Set up** on the **Name and Workspaces** card.
+2. Enter a unique, descriptive integration name.
+   - **Merchant or brand + provider:** `stellartech-adyen`, `hotelspider-adyen`
+   - **Use case or scope:** `adyen-eu-high-risk`, `checkout-uk`
+3. Select the Workspaces where this integration applies.
+4. Return to the integration overview. Your changes are saved automatically.
+
+---
+
+## Step 2: Connect your Stripe account
+
+<Tip>
+  ### What you'll need from Stripe
+
+Before you begin, make sure you have access to:
+
+- Stripe account ID
+- (Optional) Service / platform account ID (Stripe Connect only)
+- Publishable API key
+- Restricted secret API key
+- Webhook signing secret
+
+Log in to your Stripe dashboard to complete this step.
+
+  <Anchor label="Log in" target="_blank" href="https://dashboard.stripe.com/login">Log in</Anchor>
+</Tip>
+
+### Stripe account details
+
+**In Payrails**
+
+- Select **Set up** on the **Account information** step.
+
+<Image
+  align="center"
+  border={false}
+  width="500px"
+  src="https://files.readme.io/82614f5d4ed18362b4c826a137bdf84ed744e59bb2cff3365aca711071226bde-Screenshot_2026-02-02_at_14.26.04.png"
+/>
+
+---
+
+### Service account (Stripe Connect only)
+
+<Tip>
+  Skip this section if you process payments directly on your own Stripe account.
+</Tip>
+
+**In Stripe**
+
+- Go to **Settings** → **Account details**.
+- Copy the **service account ID** (also called the platform account ID).
+
+**In Payrails**
+
+- Paste the value into the **Service account** field.
+
+---
+
+### Merchant Stripe account ID
+
+**In Stripe**
+
+- Go to **Settings** → **Business**.
+- On the **Account details** tab, copy the **account ID** (`acct_` followed by a 16-character alphanumeric string).
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/43345344e0df96909c617f7f557b461f9e43b2e9c5c24d2276978d091f648753-Stripe_business_settings.jpg"
+  className="border"
+/>
+
+**In Payrails**
+
+- Paste the value into the **Merchant Stripe account ID** field.
+
+---
+
+### Publishable API key
+
+**In Stripe**
+
+1. Select **Developers** from the bottom-left navigation.
+2. Open **Overview**.
+3. In **Workbench**, select **Manage API keys**.
+4. Under **Standard keys**, copy the **publishable key**.
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/4f367ec39eff5f6e5a4ad28596b7c2e0e1a00454183039d8674065501a531613-Developers.png"
+  className="border"
+/>
+
+**In Payrails**
+
+- Paste the value into the **Publishable API key** field.
+
+Continue to the **Stripe API credentials** section.
+
+<Image
+  align="center"
+  border={false}
+  width="500px"
+  src="https://files.readme.io/7ec544ff3f4c43952dfb72c5edf35b4cea29c17672f74fdb554e44fe773d7a13-Screenshot_2026-02-02_at_16.32.56.png"
+/>
+
+---
+
+### Secret API key
+
+<Tip>
+  Use a restricted API key to limit access scope and reduce blast radius if the
+  key is compromised.
+</Tip>
+
+**In Stripe**
+
+1. In **Developers**, locate **Restricted keys** and select **Create restricted key**.
+2. Choose **Providing this key to another website**.
+3. Grant the minimum required permissions:
+   - Payment Intents (read/write)
+   - Charges (read)
+   - Refunds (read/write)
+   - Webhooks (read)
+4. Name the key and add `https://www.payrails.com` as the destination URL.
+5. Copy the generated API key.
+
+**In Payrails**
+
+- Paste the value into the **Secret API key** field.
+
+---
+
+### HMAC key (webhook signing secret)
+
+<Tip>
+  Payrails uses Stripe webhooks to receive asynchronous payment status updates.
+</Tip>
+
+<Warning>
+  Create the webhook in the same mode (test or live) as your Payrails
+  integration.
+</Warning>
+
+**In Stripe**
+
+1. Go to **Developers** → **Webhooks**.
+2. Select **Add destination**.
+3. Choose **Your account**, then **Selected events**, and enable:
+   - `charge.refunded`
+   - `payment_intent.amount_capturable_updated`
+   - `payment_intent.canceled`
+   - `payment_intent.partially_funded`
+   - `payment_intent.payment_failed`
+   - `payment_intent.succeeded`
+4. Select **Webhook endpoint** and continue.
+5. Configure the destination and create it.
+6. Copy the **signing secret**.
+
+**In Payrails**
+
+- Copy the **Notification URL** from the Webhook section.
+
+**In Stripe**
+
+- Paste it into the **Endpoint URL** field.
+- Paste the **signing secret** into the **HMAC key** field.
+
+**In Payrails**
+
+- Return to the integration overview. Changes are saved automatically.
+
+---
+
+## Step 3: Select payment methods
+
+**In Payrails**
+
+1. Select **Set up** on the **Payment methods** step.
+2. Select at least one payment method from the list.
+3. Return to the integration overview. Changes are saved automatically.
+
+<Image
+  align="center"
+  border={false}
+  src="https://files.readme.io/33cc9f6ac748a2b114ba9d8e17de76699968f2d0ff0d0037379ff05351cb7d90-Screenshot_2026-02-02_at_19.58.40.png"
+/>
+
+---
+
+## Enable the integration
+
+**In Payrails**
+
+1. Confirm all required steps are marked **Done**.
+2. Select **Enable integration**.
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/083566d83cbe262df6a4a6b0fabf23e58ee9843cfb3114b1704eafd0e3220c4d-Screenshot_2026-02-02_at_20.48.36.png"
+  className="border"
+/>
+
+A confirmation message indicates that the Stripe integration is enabled.
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/202d25a969d08c42b4126a1be2c42185340aff754289c5ecd29c6a5b8459f71e-Screenshot_2026-02-09_at_11.15.39.png"
+  className="border"
+/>
+
+At this point, Payrails can create and manage payments through Stripe.
+
+---
+
+## Next steps
+
+1. Run a test payment using a Stripe test card.
+2. Verify that:
+   - The payment appears in Stripe.
+   - The payment status updates correctly in Payrails.
+3. Once verified in test mode, repeat the setup in live mode.
+
+→ Continue to: [Test a payment](/docs/orchestration/payment-acceptance/test-payments)

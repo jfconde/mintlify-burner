@@ -1,0 +1,173 @@
+---
+---
+
+<Note>
+  
+**Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as a payment orchestrator
+- Use **Unzer** for payments
+- Are approved to process **raw card data**
+
+_Payrails uses a server-to-server integration with Unzer. Your Unzer account must be enabled for raw card data processing. If this is not enabled, payments will fail in production. Contact your Unzer account manager or support team to activate this capability._
+
+</Note>
+
+---
+
+## Create and configure a Unzer integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **Add instance** to create a new integration configuration.
+4. Select the **workspaces** where this integration should be available.
+
+> **About workspaces** Workspaces determine where this integration is available. They let you isolate provider setups by region or business line, or share the same configuration across multiple workspaces.
+
+---
+
+## Step 1: Choose the integration type
+
+- Select **Payment**.
+- Continue to the next step.
+
+---
+
+## Step 2: Choose the provider
+
+- Select **Unzer**.
+- Continue to the next step.
+
+---
+
+## Step 3: Configure your Unzer integration
+
+<Tip>
+  ### What you'll need from Unzer
+
+Before you begin, make sure you have access to:
+
+- **Public key**
+- **Private key**
+
+Log in to the <a href="https://insights.unzer.com/signin?redirect_to=/" target="_blank" rel="noreferrer">Unzer dashboard</a> to complete this step.
+
+</Tip>
+
+---
+
+### Integration instance name
+
+> An integration instance is a specific payment provider setup in Payrails. You can create multiple instances for different regions, currencies, or business needs. Choose a clear, consistent name, as it is used in routing.
+
+**In Payrails**
+
+- Enter an **Instance name** for your integration.
+
+<img
+  src="/images/docs/dlocal-basic-information.png"
+  alt=""
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+### API credentials
+
+<Tip>
+  Use restricted or scoped credentials where possible to limit access and reduce
+  risk.
+</Tip>
+
+**In Unzer**
+
+1. Go to **Settings** → **Configuration** → **API Keys**.
+2. Copy the following values:
+   - **Public key**
+   - **Private key**
+     <img
+       src="/images/docs/unzer-image-02.png"
+       alt=""
+       className="mx-auto block rounded-lg object-cover"
+       width="80%"
+     />
+
+**In Payrails**
+
+- Paste the values into the corresponding fields.
+
+<img
+  src="/images/docs/unzer-image-01.png"
+  alt=""
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+### Payment methods
+
+**In Payrails**
+
+- Select the payment methods you want to enable (for example **Card**).
+
+---
+
+### Webhooks or notifications
+
+<Tip>
+  Payrails uses Unzer notifications to receive asynchronous payment status
+  updates.
+</Tip>
+
+<Warning>
+  Create notifications in the same environment (test or live) as your Payrails
+  integration.
+</Warning>
+
+**In Payrails**
+
+- Copy the **Notification URL** from the configuration screen.
+
+<img
+  src="/images/docs/dlocal-basic-information.png"
+  alt=""
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+**In Unzer**
+
+1. Go to **Settings** → **Configuration** → **Notifications**.
+2. Create a new notification endpoint.
+3. Paste the **Notification URL** from Payrails.
+4. Enable events for:
+   - **Authorization**
+   - **Charge**
+
+---
+
+## Enable the integration
+
+**In Payrails**
+
+- Save the configuration.
+- Confirm the integration shows as **Enabled**.
+
+The **Enabled** status indicates that your Unzer integration is active and ready to process payments in test mode.
+
+---
+
+## Next steps
+
+1. Run a test payment using a Unzer <a href="https://docs.unzer.com/reference/test-cards/" target="_blank" rel="noreferrer">test card</a>.
+2. Verify that:
+   - The payment appears in Unzer.
+   - The payment status updates correctly in Payrails.
+
+3. Once verified in test mode, repeat the setup using **live credentials**.
+
+→ Continue to: [Test a payment](/docs/orchestration/payment-acceptance/test-payments)

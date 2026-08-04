@@ -1,0 +1,52 @@
+---
+title: "Cards (old)"
+---
+# Introduction
+Accepting card payments is essential for any online business, as it allows customers to make transactions quickly and securely. Payrails simplifies the process of accepting card payments, providing a seamless experience for both you and your customers. This guide will walk you through the steps to integrate card payments into your app or website using Payrails, ensuring a smooth and reliable transaction process.
+
+# Pre-requisites
+
+Before you start accepting card payments with Payrails, there are a few requirements you must meet:
+
+* Sign up for a Payrails account and complete the onboarding process.
+* Obtain the necessary API keys and credentials for Payrails and your PSPs.
+* Configure your PSP connections in the Payrails Portal.
+
+# Integration Types
+
+Payrails offers two main integration types for accepting card payments, each with its own set of advantages:
+
+## Payrails SDK
+
+Payrails provides a hosted payment page, which is a fully customizable and responsive payment form hosted on our secure servers. This option is perfect for businesses that want to offer a seamless payment experience without the need to handle sensitive card information directly.
+
+### Benefits:
+
+* Reduces your PCI-DSS compliance scope.
+* Provides a customizable and responsive payment form.
+* Minimizes the need for complex front-end development.
+
+### Integration Steps:
+
+1. Configure the hosted payment page settings in your Payrails dashboard.
+2. Redirect customers to the hosted payment page URL when they initiate a payment.
+3. Handle the response from Payrails after the transaction is completed.
+
+## Direct API Integration
+
+Payrails also provides an API integration option, which allows you to build a fully custom payment form within your app or website. This option requires a higher level of PCI-DSS compliance but offers more flexibility and control over the payment experience.
+
+### Benefits:
+
+* Complete control over the payment form's design and functionality.
+* Enables seamless integration with your existing user interface.
+* Provides more flexibility in handling payment-related events and actions.
+
+### Integration Steps:
+
+1. Collect card information from the customer using a secure payment form on your app or website.
+2. Tokenize the card data using the Payrails SDK or API, which securely sends the data to Payrails and returns a token.
+3. Use the token to process the payment through the Payrails API, specifying the desired PSP and transaction details.
+4. Handle the response from Payrails to confirm the transaction's success or handle any errors.
+
+Choose the integration type that best suits your business needs and follow the appropriate steps to start accepting card payments with Payrails.

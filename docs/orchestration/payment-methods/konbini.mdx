@@ -1,0 +1,134 @@
+---
+description: "Konbini is Japan's widely used cash payment method, allowing customers to pay for online purchases at convenience store chains (konbini) such as 7-Eleven, FamilyMart, Lawson, and others. It is especially popular among customers who prefer to pay in cash or do not have a credit card."
+---
+## Introduction
+Konbini uses a **redirect-based payment flow**. When a customer selects Konbini at checkout, they are redirected to a hosted page where a payment code and instructions are generated. The customer then visits their nearest convenience store and pays using the code at the register or payment kiosk.
+
+This guide explains the process of integrating Konbini into your app or website using Payrails.
+
+## Pre-requisites
+
+Before you start accepting Konbini payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for Konbini via **dLocal** as a Payment Service Provider. If you do not have a dLocal integration already configured in your workspace, please follow the [dLocal integration setup guide](/docs/orchestration/integrations/dlocal) first.
+3. Enable Konbini as a payment method in your dLocal integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your dLocal integration instance, and enable the **Konbini** checkbox under Payment methods, then save the account.
+4. Enable Konbini as a [payment option](set-up-payment-methods) in your workflow.
+5. Make sure you're sending the Konbini-specific meta fields in your requests.
+
+## Ways to integrate Konbini
+
+### Payrails SDK
+
+The simplest way to use Konbini with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with Konbini except for handling success/failure screens for your users.
+
+For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#generic-redirect-element) for your client-side implementation.
+
+### Server-to-server integration
+
+You can integrate Konbini by completely managing your own client-side implementation, and using Payrails APIs with a server-to-server integration to process Konbini payments.
+
+#### Parse Konbini from lookup response
+
+With a server-to-server integration, you can call our [lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) endpoint to get available payment options. As shown in the example below, you can see `konbini` returned as an option of the `paymentCompositionOptions`.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2026-03-26T12:00:00.000000000Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "redirect",
+        "paymentMethodCode": "konbini",
+        "description": "Konbini"
+      }
+    ]
+  },
+  "links": {
+    "execution": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+    "authorize": {
+      "method": "POST",
+      "href": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
+    }
+  }
+}
+```
+
+#### Pass Konbini payment method in request to authorize payment with Payrails
+
+You can then make a request to our [authorize a payment endpoint](/reference/authorizeaction) with `konbini` as the `paymentMethodCode`. See an example below:
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "100000",
+    "currency": "JPY"
+  },
+  "paymentComposition": [
+    {
+      "integrationType": "redirect",
+      "paymentMethodCode": "konbini",
+      "amount": {
+        "value": "100000",
+        "currency": "JPY"
+      }
+    }
+  ],
+  "meta": {
+    "customer": {
+      "name": "Tanaka Yuki",
+      "email": "tanaka.yuki@email.com",
+      "country": {
+        "code": "JP"
+      }
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+> **Note on amounts:** JPY is a zero-decimal currency — amounts should be provided as whole numbers (e.g., `100000` for ¥100,000). Do not include decimal places.
+>
+>
+> **Note:** Konbini is a redirect-based, single-use payment method. After calling the authorize endpoint, the customer will be redirected to a hosted page showing their payment code and instructions. The customer then pays at a convenience store. Once confirmed, the customer will be redirected back to the `returnInfo.success` URL. Make sure to provide valid `returnInfo` URLs in your authorization request.
+
+#### Handle the redirect response
+
+After the customer completes the payment, they will be redirected back to your `success` or `error` URL. You should then verify the payment status by checking the workflow execution status via the Payrails API or by listening to webhook notifications.
+
+## Supported currencies
+
+Konbini via dLocal supports the following presentment currency:
+
+* JPY — Japanese Yen
+
+## Supported regions / countries
+
+### Customer regions
+
+Konbini is available to customers based in:
+
+* Japan 🇯🇵
+
+### Merchant regions
+
+Merchants enabled for Japan can accept Konbini payments via dLocal.
+
+## Supported workflows and services
+
+| Workflow                             | Supported |
+| ------------------------------------ | --------- |
+| Available via Payrails SDK           | ✔️        |
+| Available via Payrails API           | ✔️        |
+| Delayed / Manual Capture             | ✖️        |
+| Instant Capture                      | ✔️        |
+| Cancel / Void                        | ✖️        |
+| Refund / Reverse                     | ✔️        |
+| Save Instruments                     | ✖️        |
+| Merchant Initiated Transaction (MIT) | ✖️        |

@@ -1,0 +1,197 @@
+---
+title: Reports
+---
+Payrails Reports let you export financial and operational data as CSV files for reconciliation, accounting, and business analysis. Reports are generated asynchronously — you request a report run, and once it completes, you download the file via a pre-signed URL. You can generate reports through the Payrails Portal or programmatically via the API.
+
+## Available report types
+
+| Report code    | Description                                                                                                                                                          | Schema                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| `payments`     | Gain deep insights into your authorization funnel and processing efficiency with a unified breakdown of payment statuses, failure results, and card-level metadata.. | [View schema](/docs/report-payments)     |
+| `transactions` | This report provides details on all transactions which impact your account balance..                                                                                 | [View schema](/docs/report-transactions) |
+| `settlements`  | This report provides a comprehensive breakdown of all transaction-level movements and associated costs that impact your merchant settlement balance..                | [View schema](/docs/report-settlements)  |
+| `disputes`     | Chargeback and dispute data, linked back to the original disputed transaction where it was processed through Payrails.                                               | [View schema](/docs/report-disputes)     |
+
+You can list all reports available to your organization using the [Search & list reports](/reference/getreports) endpoint.
+
+***
+
+## Download reports via API
+
+Generating a report is an asynchronous process. Follow these steps:
+
+### Step 1: Get an access token
+
+Authenticate using your API credentials to obtain a bearer token. See [Authentication](/reference/getoauthtoken) for details.
+
+### Step 2: Create a report run
+
+Submit a `POST` request to `/analytics/reportRuns` with your desired report type and date range.
+
+When requesting `settlements` reports, please do not specify any Workspace Id as `settlements` report is only available on organization level.
+
+```json
+POST /analytics/reportRuns
+Authorization: Bearer <token>
+
+{
+  "reportCode": "payments",
+  "parameters": {
+    "intervalStart": "2026-04-01",
+    "intervalEnd": "2026-04-07",
+    "timezone": "Etc/UTC"
+  }
+}
+```
+
+The `workspaceId` field is optional. Include it only if you want to scope the report to a specific workspace. Omitting it returns data across all workspaces your credentials have access to.
+
+**Parameters**
+
+| Parameter                  | Type   | Required | Description                                                                                                                                             |
+| -------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reportCode`               | string | ✓        | One of `payments`, `transactions`, `settlements`, or `disputes`                                                                                         |
+| `parameters.intervalStart` | string | ✓        | Start date in `YYYY-MM-DD` format (inclusive)                                                                                                           |
+| `parameters.intervalEnd`   | string | ✓        | End date in `YYYY-MM-DD` format (inclusive)                                                                                                             |
+| `parameters.timezone`      | string |          | TZ database name (e.g. `Europe/Berlin`). Defaults to `UTC` if omitted. See [IANA Time Zone Database](https://www.iana.org/time-zones) for valid values. |
+| `workspaceId`              | uuid   |          | Scope the report to a specific workspace                                                                                                                |
+
+The API responds with `202 Accepted` and a report run object in `pending` status:
+
+```json
+{
+  "id": "cadb0015-3c26-4d7a-a9d3-2f8768b6d45a",
+  "createdAt": "2026-04-08T10:20:00.000Z",
+  "report": {
+    "code": "payments",
+    "name": "Payments"
+  },
+  "parameters": {
+    "intervalStart": "2026-04-01",
+    "intervalEnd": "2026-04-07",
+    "timezone": "Etc/UTC"
+  },
+  "status": "pending"
+}
+```
+
+### Step 3: Poll for completion
+
+Report generation runs asynchronously. Poll `GET /analytics/reportRuns/{id}` using the `id` from the previous response until `status` changes from `pending` to `successful`.
+
+```json
+GET /analytics/reportRuns/cadb0015-3c26-4d7a-a9d3-2f8768b6d45a
+Authorization: Bearer <token>
+```
+
+Most report runs complete within 2–3 minutes. We recommend polling every 5–10 seconds.
+
+Once complete, the response includes a `result` object with a pre-signed download URL:
+
+```json
+{
+  "id": "cadb0015-3c26-4d7a-a9d3-2f8768b6d45a",
+  "status": "successful",
+  "result": {
+    "fileName": "payments_2026-04-01_2026-04-07",
+    "fileType": "csv",
+    "url": "https://payrails-reports.s3.amazonaws.com/payments_2026-04-01_2026-04-07.csv",
+    "expiresAt": "2026-04-09T10:20:00.000Z"
+  },
+  "completedAt": "2026-04-08T10:21:00.000Z"
+}
+```
+
+### Step 4: Download the CSV
+
+Execute a `GET` request on `result.url` to download the file. This URL is pre-signed and expires at `result.expiresAt` — make sure to download the file before it expires.
+
+***
+
+## Download reports via Portal
+
+1. Log in to the [Payrails Portal](https://portal.payrails.com).
+2. Navigate to **Reports**.
+3. Select the report type and date range.
+4. Click **Download** to export a CSV file.
+
+***
+
+## Limitations
+
+- **File format**: Reports are only available as CSV files.
+- **File size**: Reports are capped at 5 GB per file. If your date range produces a report that exceeds this limit, the report run will fail. Reduce the date range and re-run the report.
+- **File expiry**: The pre-signed download URL expires after a fixed TTL. Download the file before `result.expiresAt`. If it has expired, calling the `GET /analytics/reportRuns/{id}`endpoint will generate a new pre-signed download URL.
+- **No webhook or push notification**: There is currently no callback or event mechanism to notify you when a report run is ready. Polling `GET /analytics/reportRuns/{id}` is the only way to check completion status. Build your integration to poll actively and handle both `Successful` and `Failed` terminal states.
+- **Report availability**: The report types available to your organization depend on your Payrails module configuration. Use the [Search & list reports](/reference/getreports) endpoint to confirm which report codes are enabled for your account.
+
+***
+
+## Error handling
+
+Report runs can complete with a `Failed` status. Your integration should handle this explicitly. Do not assume a run will always succeed.
+
+When a run fails, the response includes an `error` field with a code describing the reason.
+
+```json
+{
+  "id": "3c052d86-7f1d-44e2-b1b2-d331d492ebde",
+  "status": "Failed",
+  "error": "FILE_SIZE_EXCEEDED"
+}
+```
+
+| Error code                | Description                                                    | Resolution                                                                                                                 |
+| ------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `NO_RECORD_FOUND`         | No data was found for the requested date range and parameters. | Verify that your `intervalStart` and `intervalEnd` are correct and that data exists for this period.                       |
+| `FILE_SIZE_EXCEEDED`      | The report output exceeds the 5 GB file size limit.            | Reduce the date range and re-run the report. For high-volume exports, consider splitting into weekly or bi-weekly batches. |
+| `REPORT_UPLOAD_ERROR`     | The report was generated but failed to upload.                 | Retry the report run. If the issue persists, contact Payrails support.                                                     |
+| `REPORT_GENERATION_ERROR` | An internal error occurred during report generation.           | Retry the report run. If the issue persists, contact Payrails support.                                                     |
+
+***
+
+## FAQ
+
+<Accordion title="How long does it take for a report run to complete?">
+  Most report runs complete within 2–3 minutes. Polling every 5–10 seconds is recommended.
+</Accordion>
+
+<Accordion title="Is there a way to be notified when a report is ready, without polling?">
+  Not currently. There is no webhook or callback mechanism available — polling is the only way to check on a report run. Send a `GET` request to `/analytics/reportRuns/{id}` at a regular interval (every 5–10 seconds is recommended) until the status is `Successful` or `Failed`. Make sure your integration handles both terminal states explicitly.
+</Accordion>
+
+<Accordion title="What happens if my report exceeds the 5 GB file size limit?">
+  The report run will fail with an error. Reduce the date range in your request and re-run the report. If you regularly need to export large volumes of data, consider breaking your date range into smaller weekly or bi-weekly batches.
+</Accordion>
+
+<Accordion title="What timezone should I use?">
+  Use a [TZ database name](https://www.iana.org/time-zones) such as `Europe/Berlin` or `America/New_York`. If you omit the `timezone` parameter, it defaults to `UTC`. Choosing the right timezone ensures that day boundaries in the report align with your local business hours.
+</Accordion>
+
+<Accordion title="Can I re-download a report after the URL expires?">
+  Yes. If it has expired, calling the `GET /analytics/reportRuns/{id}`endpoint will generate a new pre-signed download URL.
+</Accordion>
+
+<Accordion title="Can I scope a report to a single workspace?">
+  Yes. Pass the `workspaceId` field in the request body to filter results to a specific workspace. Omit it to include data across all workspaces your credentials have access to.
+</Accordion>
+
+<Accordion title="What does the Search & list report runs endpoint return if I don't pass any parameters?">
+  The endpoint returns the most recent report runs in descending order by `createdAt`, with a default page size of 10. You can paginate using `page[after]`, `page[before]`, and `page[size]`, and filter by `filters[status]`, `filters[id]`, and `filters[workspaceId]`.
+</Accordion>
+
+<Accordion title="Why are some report codes unavailable to my organization?">
+  Report availability is tied to which Payrails modules are configured for your account. Contact your Payrails account manager if you need access to a report type that is not listed.
+</Accordion>
+
+<Accordion title="How do I match records across the different report types?">
+  Each report includes three reference fields you can use to link records:
+
+  | Field                 | Description                                                                                                        |
+  | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+  | `payrails_payment_id` | The ID generated by Payrails. Use this to link records across the Payments, Transactions, and Settlements reports. |
+  | `merchant_reference`  | Your own reference for the record. Use this to link report data back to records in your internal systems.          |
+  | `provider_reference`  | The payment service provider's reference for the record.                                                           |
+</Accordion>
+
+

@@ -1,0 +1,180 @@
+---
+---
+
+<Note>
+  
+**Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as a payment orchestrator
+- Use **Klarna** for payments
+- Are approved to process **raw card data**
+
+_We use a server-to-server integration with Klarna, so your account must be enabled to process raw card data. If this isn't enabled, payments won't work in production. Please contact your Klarna account manager or support team to activate it._
+
+</Note>
+
+---
+
+## Create and configure a Klarna integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **Add instance** to create a new integration configuration.
+4. Select the **Workspaces** where this integration should be available.
+
+> **About Workspaces**  
+> Workspaces determine where this integration can be used. They allow you to isolate provider setups by region or business line, or share a single configuration across multiple environments.
+
+---
+
+## Step 1: Choose the integration type
+
+- Select **Payment** and continue to the next step.
+
+<PayrailsSelectIntegrationType />
+
+---
+
+## Step 2: Choose the provider
+
+- Select **Klarna** and continue to the next step.
+
+<img
+  src="/images/docs/klarna-image-01.png"
+  alt="A screenshot showing the Klarna integration selected."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+## Step 3: Configure your Klarna integration
+
+<Tip>
+  ### What you'll need from Klarna
+
+Before you begin, make sure you have access to:
+
+- Klarna **API username**
+- Klarna **API password**
+
+      <a href="https://www.klarna.com/international/enterprise/the-merchant-portal/" target="_blank" rel="noreferrer">Log in</a> to your Klarna Merchant Portal to complete this step..
+
+</Tip>
+
+---
+
+### Integration instance name
+
+<PayrailsIntegrationInstanceNameInfo />
+
+**In Payrails**
+
+- Enter a clear and descriptive **Instance name**.
+
+<PayrailsChooseAnIntegrationInstanceName />
+
+---
+
+### Payment methods
+
+**In Payrails**
+
+- Select the Klarna payment method to enable it.
+
+<img
+  src="/images/docs/klarna-image-02.png"
+  alt="A screenshot showing the Klarna account fields."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+### Account details (region-specific processors)
+
+<Note>
+  Klarna payment offerings vary by region due to consumer preferences and regulatory requirements:
+
+- **Europe:** Pay in 30 days, Slice it (installments), Pay Now (Sofort / bank transfer), and Direct Debit  
+  Common markets include Germany, Sweden, and Austria.
+- **North America (US / Canada):** Pay in 4 (interest-free installments) and Financing
+- **Oceania (Australia / New Zealand):** Primarily Pay in 4, with limited Pay in 30 days support
+
+</Note>
+
+**In Payrails**
+
+- Select the Klarna **payment processors** you want to use:
+  - Europe
+  - North America
+  - Oceania
+
+Only select regions where your Klarna merchant account is approved.
+
+---
+
+### Credentials
+
+<Tip>
+  Klarna API credentials are sensitive. Store them securely and use separate
+  credentials for test and live environments.
+</Tip>
+
+**In Klarna**
+
+1. <a
+     href="https://www.klarna.com/international/enterprise/the-merchant-portal/"
+     target="_blank"
+     rel="noreferrer"
+   >
+     Log in
+   </a>
+   to the Klarna merchant portal.
+2. Navigate to **Settings** → **Klarna API keys**.
+3. Select **Generate new Klarna API key**.
+4. Save the generated **API username** and **API password** securely.
+
+<img
+  src="/images/docs/klarna-klarna-api-keys.png"
+  alt="A screenshot showing the Klarna API keys."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="80%"
+/>
+
+**In Payrails**
+
+- Enter the Klarna **API username** and **API password** into the corresponding **Username** and **Password** fields.
+
+---
+
+## Enable the integration
+
+**In Payrails**
+
+- Select **Save account** to enable the integration.
+
+The **Enabled** status confirms that the Klarna integration is active and available for routing.
+
+<img
+  src="/images/docs/amazon-image-04.png"
+  alt="A screenshot showing the enabled Klarna integration."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+Your Klarna integration is now ready to process payments in the selected environment.
+
+---
+
+## Next steps
+
+1. Run a test payment using a Klarna test card.
+2. Verify that:
+   - The payment appears in Klarna.
+   - The payment status updates correctly in Payrails.
+3. Once verified in test mode, repeat the setup in live mode.
+
+→ Continue to: [Test a payment](/docs/orchestration/payment-acceptance/test-payments)

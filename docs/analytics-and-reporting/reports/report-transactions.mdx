@@ -1,0 +1,61 @@
+---
+title: Transactions report
+---
+
+import { DownloadTransactionsCSV } from "/snippets/analytics/download-transactions-csv.mdx";
+
+This report can be used to reconcile individual transactions.
+
+### Sample report
+
+<DownloadTransactionsCSV />
+
+(CSV file).
+
+### Columns
+
+| Column                              | Type          | Description                                                                                 |
+| :---------------------------------- | :------------ | :------------------------------------------------------------------------------------------ |
+| workspace_id                        | VARCHAR       | Workspace identifier mapped from the merchant, used for Payrails reporting.                 |
+| merchant_id                         | VARCHAR       | Unique identifier of the merchant.                                                          |
+| payrails_payment_id                 | VARCHAR       | Unique identifier of the Payment in Payrails.                                               |
+| payrails_execution_id               | VARCHAR       | Unique identifier of the execution.                                                         |
+| action_id                           | VARCHAR       | Unique identifier of this execution action.                                                 |
+| merchant_reference                  | VARCHAR       | The merchant reference related to the transaction. For example, the order_id.               |
+| action                              | VARCHAR       | Type of action (authorize, refund, cancel).                                                 |
+| created_at                          | TIMESTAMP_NTZ | Timestamp at which the action was created.                                                  |
+| completed_at                        | TIMESTAMP_NTZ | Timestamp at which the action was completed.                                                |
+| timezone                            | VARCHAR       | Timezone in which the session happened.                                                     |
+| milliseconds_to_completion          | NUMBER        | Time from request to completion in milliseconds                                             |
+| is_success                          | BOOLEAN       | Whether execution action was succeeded                                                      |
+| is_completed                        | BOOLEAN       | Whether event action is completed.                                                          |
+| currency                            | VARCHAR       | Three-letter ISO currency code, in uppercase                                                |
+| amount                              | NUMBER        | Payment amount in local currency                                                            |
+| provider_name                       | VARCHAR       | Provider who processed the payment                                                          |
+| provider_account                    | VARCHAR       | Provider account display name.                                                              |
+| provider_reference                  | STRING        | The providers reference for the payment which this transaction relates to.                  |
+| error_reason_source                 | VARCHAR       | Source of the error reason (null if payment was successful).                                |
+| error_reason_detail                 | VARCHAR       | Details of the error reason (null if payment was successful)                                |
+| error_reason_result                 | VARCHAR       | End result of the error reason (null if payment was successful).                            |
+| error_reason_category               | VARCHAR       | Category of error reason (null if payment was successful).                                  |
+| error_detail                        | VARCHAR       | Details of the error (null if payment was successful).                                      |
+| has_threeds                         | BOOLEAN       | Whether payment went through 3ds.                                                           |
+| eci                                 | VARCHAR       | Electronic commerce indicator.                                                              |
+| payment_method_type                 | VARCHAR       | Payment method type, values: card, easypaisa, jazzCash, fawryPay, etc                       |
+| card_bin                            | VARCHAR       | 4-digit BIN of the card.                                                                    |
+| card_network                        | VARCHAR       | Card network that supports the card, e.g. Visa, Mastercard, American Express. Card only.    |
+| card_type                           | VARCHAR       | The type of card used for processing, values: credit, debit, notset, prepaid.               |
+| card_type_details                   | VARCHAR       | More information about the card type, e.g. personal, commercial. Card only.                 |
+| card_segment                        | VARCHAR       | Segment of the card, e.g. gold, black, business. Card only.                                 |
+| card_issuer                         | VARCHAR       | Card issuing bank.                                                                          |
+| card_issuer_country_code            | VARCHAR       | ISO alpha-2 country code of card issuer.                                                    |
+| card_issuer_country_name            | VARCHAR       | Full country name of card issuer.                                                           |
+| token_id                            | VARCHAR       | Instrument Token ID related to the payment                                                  |
+| token_type                          | VARCHAR       | Type of the token, values: network, vault, psp, networkOffers.                              |
+| authorization_code                  | VARCHAR       | Authorization code from issuing bank.                                                       |
+| retrieval_reference_number          | VARCHAR       | Retrieval Reference Number (RRN).                                                           |
+| network_transaction_reference       | VARCHAR       | Scheme-level transaction reference.                                                         |
+| provider_response_additional_fields | VARIANT       | PSP-specific additional response fields.                                                    |
+| mapped_psp_response                 | VARIANT       | Mapped/normalized PSP result details.                                                       |
+| meta                                | VARIANT       | Complete merchant's meta details.                                                           |
+| instrument_email                    | VARCHAR       | Customer email captured on the payment instrument. Wallet only, e.g. Apple Pay, Google Pay. |

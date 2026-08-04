@@ -1,0 +1,546 @@
+---
+title: Secure Fields
+description: Secure Fields provides developers with pre-built form fields to securely collect sensitive data from the client side. These fields are hosted by Payrails and injected into your web page as iFrames. This reduces your PCI compliance scope by not exposing your front-end application to sensitive data. Follow the steps below to collect data securely with Payrails Fields on your web page.
+---
+
+# Getting started
+
+Below is a four-step process to start using Secure Fields in your client.
+
+## Create a container
+
+First, create a container for the form fields using the `collectContainer()` method of the Payrails client.
+
+There are 2 types of containers:
+
+- `COMPOSABLE`: you call `mount()` directly on the container, you must define the form's layout, and the number of elements must match the sum of the numbers in the layout.
+- `COLLECT`: layout is not necessary. Secure fields are mounted separately.
+
+```javascript
+const container = payrailsClient.collectContainer({
+  containerType?: 'COMPOSABLE' || 'COLLECT'; // default composable
+  layout?: number[]; // required only for composable container type, layout for card form
+});
+```
+
+## Create a collectible field
+
+```javascript
+const collectField = {
+  type: Payrails.ElementType, //Payrails.FieldType enum
+  inputStyles: {}, //optional styles that should be applied to the form field
+  labelStyles: {}, //optional styles that will be applied to the label of the collect field
+  errorTextStyles: {}, //optional styles that will be applied to the errorText of the collect field
+  label: "string", //optional label for the form field
+  placeholder: "string", //optional placeholder for the form field
+  required: false, //optional, indicates whether the field is marked as required. Defaults to 'false'
+  enableCardIcon: true, //optional, indicates whether card icon should be enabled (only applicable for CARD_NUMBER FieldType)
+  format: String, //optional, format for the field (only applicable currently for EXPIRATION_MONTH and EXPIRATION_YEAR FieldType)
+};
+
+const field = payrailsContainer.createCollectElement(collectField);
+```
+
+A Payrails **CollectField** is defined as shown below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `type`
+      </td>
+
+      <td>
+        Payrails.FieldType (required)
+      </td>
+
+      <td>
+        Enum (`CARDHOLDER_NAME`, `CARD_NUMBER`, `EXPIRATION_DATE`, `EXPIRATION_MONTH`, `EXPIRATION_YEAR`, `CVV`).
+        Each type applies the appropriate regex and validations to the form field.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `inputStyles`
+      </td>
+
+      <td>
+        Object (optional)
+      </td>
+
+      <td>
+        Styles that should be applied to the form field
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `labelStyles`
+      </td>
+
+      <td>
+        Object (optional)
+      </td>
+
+      <td>
+        Styles that will be applied to the label of the collect field
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `errorTextStyles`
+      </td>
+
+      <td>
+        Object (optional)
+      </td>
+
+      <td>
+        Styles that will be applied to the `errorText` of the `collect` field.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `label`
+      </td>
+
+      <td>
+        String (optional)
+      </td>
+
+      <td>
+        Label for the form field
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `placeholder`
+      </td>
+
+      <td>
+        String (optional)
+      </td>
+
+      <td>
+        Placeholder for the form field
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `required`
+      </td>
+
+      <td>
+        Boolean
+      </td>
+
+      <td>
+        Indicates whether the field is marked as required or not. If not provided, it defaults to `false`.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `enableCardIcon`
+      </td>
+
+      <td>
+        Boolean
+      </td>
+
+      <td>
+        Indicates whether the icon is visible for the `CARD_NUMBER` field defaults to `true`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `format`
+      </td>
+
+      <td>
+        String
+      </td>
+
+      <td>
+        Indicates the format pattern applicable to the date types:
+
+        * `EXPIRATION_DATE`: `MM/YY` (default), `MM/YYYY`, `YY/MM`, or `YYYY/MM`.
+        * `EXPIRATION_YEAR`: `YY` (default), or `YYYY`.
+          Note: if not specified or an invalid value is passed to the `format` then it takes a default value.
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+## Mount fields to the DOM
+
+### Collect container
+
+To specify where the fields will be rendered on your page, create a placeholder `<div>` fields with unique `id` tags. For instance, the form below has 4 empty divs with unique IDs as placeholders for four Payrails fields.
+
+```html
+<form>
+  <div id="cardNumber" />
+  <br />
+  <div id="expireDate" />
+  <br />
+  <div id="cvv" />
+  <br />
+  <div id="pin" />
+  <button type="submit">Submit</button>
+</form>
+```
+
+Now, when the `mount(domField)` method of the Field is called, the Field will be inserted in the specified div. For instance, the call below will insert the Field into the `div` with the id `#cardNumber`.
+
+```javascript
+field.mount("#cardNumber");
+```
+
+You can use the unmount method to reset any collect field to its initial state.
+
+```javascript
+field.unmount();
+```
+
+### Composable container
+
+A composable container works similarly to a collect container but is mounted as a whole.
+
+```Text HTML
+<div id="card-form"></div>
+```
+
+```
+container.mount('#card-form')
+```
+
+## Extract data from secure fields
+
+### Collect raw data
+
+When the form is ready to be submitted, call the `container.collect()` method on the container object. This will collect the data from all the fields belonging to the container and save it to the vault.
+
+```javascript
+const data = await container.collect();
+console.log(data); // see the id and other details of the entered card
+```
+
+### Tokenize the card and create a payment instrument
+
+Alternatively, you can create a payment instrument.
+
+**Note**: you don't need to use this method in most cases as it might also break for some flows (e.g. when no holder reference is passed during client init). Instead, call `container.collect()` and use raw card data to authorize the payment.
+
+Call the `container.tokenize({storeInstrument: true})` method on the container object. This will collect the data from all the fields belonging to the container and save it to the vault. It will also create a payment instrument and return the payment instrument details.
+
+```javascript
+try {
+  const response = await container.tokenize({ storeInstrument: true });
+  console.log(response); // see the id and other details of your newly tokenized card
+} catch (e) {
+  console.log(e); // solve the case when something went wrong
+}
+```
+
+# Errors and validation
+
+Payrails Web provides two types of validation for collecting fields.
+
+## Default validations
+
+Every Collect Field has a set of default validations listed below:
+
+<Table align={["left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        type
+      </th>
+
+      <th>
+        validation
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `CARD_NUMBER`
+      </td>
+
+      <td>
+        Card number validation with checksum algorithm (Luhn algorithm).
+        Available card lengths for defined card types are \[12, 13, 14, 15, 16, 17, 18, 19].
+        A valid 16-digit card number will be in the format `XXXX XXXX XXXX XXXX`.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `CARD_HOLDER_NAME`
+      </td>
+
+      <td>
+        The name should be 2 or more symbols, and valid characters should match the pattern: `^([a-zA-Z\\ \\,\\.\\-\\']{2,})$`.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `CVV`
+      </td>
+
+      <td>
+        Card CVV can have 3-4 digits.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `EXPIRATION_DATE`
+      </td>
+
+      <td>
+        Any date starting from the current month. By default, the valid expiration date should be in the short-year format: MM/YY.
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+## UI errors
+
+Helps to display custom error messages on the Payrails Fields through the methods `setError` and `resetError` on the fields.
+
+```javascript
+const cardNumber = container.createCollectElement({
+  type: ElementType.CARD_NUMBER,
+});
+
+//Set custom error
+cardNumber.setError("custom error");
+
+//reset custom error
+cardNumber.resetError();
+```
+
+`setError(error: string)` method is used to set the error text for the field. When this method is triggered, all the current errors in the field will be overridden with the custom error message passed. This error will be displayed on the field until `resetError()` is triggered on the same field.
+
+`resetError()` method is used to clear the custom error message that is set using `setError`.
+
+# Event Listener
+
+Helps to communicate with Payrails fields by listening to an event:
+
+```javascript
+field.on(eventName: EventName, handler: function)
+```
+
+There are 4 events in `EventName`:
+
+| event    | description                                                  |
+| :------- | :----------------------------------------------------------- |
+| `CHANGE` | A change event is triggered when the Field's value changes.  |
+| `READY`  | A ready event is triggered when the Field is fully rendered. |
+| `FOCUS`  | A focus event is triggered when the Field gains focus.       |
+| `BLUR`   | A blur event is triggered when the Field loses focus.        |
+
+The handler `function(state) => void` is a callback function you provide that will be called when the event is fired with the state object, as shown below.
+
+```javascript
+state: {
+  fieldType: ElementType;
+  isEmpty: boolean;
+  isFocused: boolean;
+  isValid: boolean;
+  value: string;
+}
+```
+
+Here's a sample code snippet for using listeners:
+
+```javascript
+const cardNumber = container.createCollectElement({
+  type: ElementType.CARD_NUMBER,
+});
+
+cardNumber.mount("#cardNumberContainer");
+
+// Subscribing to CHANGE event, which gets triggered when field changes.
+cardNumber.on(EventName.CHANGE, (state) => {
+  // Your implementation when Change event occurs.
+  console.log(state);
+});
+```
+
+# Styling
+
+You can configure the style of the Secure Fields as you wish:
+
+```javascript
+const field = container.createCollectElement({
+  inputstyles: {},
+  labelStyles: {},
+  errorTextStyles: {},
+  type: ElementType.CARD_NUMBER,
+});
+```
+
+The `inputStyles` field accepts a style object that consists of CSS properties that should be applied to the form field in the following states:
+
+| object     | description                                                        |
+| :--------- | :----------------------------------------------------------------- |
+| `base`     | All other variants inherit from these styles.                      |
+| `complete` | Applied when the Field has valid input.                            |
+| `empty`    | Applied when the Field has no input.                               |
+| `focus`    | Applied when the Field has focus.                                  |
+| `invalid`  | Applied when the Field has invalid input.                          |
+| `cardIcon` | Applied to the card type icon in `CARD_NUMBER` Field.              |
+| `copyIcon` | Applied to copy icon in Fields when `enableCopy` option is `true`. |
+
+Styles are specified with [JSS](https://cssinjs.org/?v=v10.7.1).
+
+An example of a `inputStyles` object:
+
+```javascript
+inputStyles:{
+  base: {
+    border: "1px solid #eae8ee",
+    padding: "10px 16px",
+    borderRadius: "4px",
+    color: "#1d1d1d",
+  },
+  complete: {
+    color: "#4caf50",
+  },
+  empty: {},
+  focus: {},
+  invalid: {
+    color: "#f44336",
+  },
+  cardIcon:{
+    position: "absolute",
+    left:"8px",
+    bottom:"calc(50% - 12px)"
+  },
+  copyIcon:{
+    position: "absolute",
+    right:"8px",
+  }
+}
+```
+
+The states that are available for `labelStyles` are `base` and `focus`.
+
+An example of a `labelStyles` object:
+
+```javascript
+labelStyles: {
+  base: {
+    fontSize: "12px",
+    fontWeight: "bold"
+  },
+  focus: {
+    color: "#1d1d1d"
+  }
+}
+```
+
+The state that is available for `errorTextStyles` is only the `base` state, it shows up when there is some error in the `collect` field.
+
+An example of an `errorTextStyles` object:
+
+```javascript
+errorTextStyles: {
+  base: {
+    color: "#f44336";
+  }
+}
+```
+
+# Translations
+
+For the **Secure Fields**, translations are part of the container's `createCollectElement(collectField, options)` signature, inside the `collectField` object:
+
+```javascript
+const field = payrailsContainer.createCollectElement(
+  {
+    type: ElementType.CARD_NUMBER, //Payrails.FieldType enum
+    label: "localized label for the form field",
+    placeholder: "localized placeholder for the form field",
+  },
+  {},
+);
+```
+
+# End-to-end example
+
+Here's an end-to-end example of card collection with a secure field for a container of `COLLECT` type.
+
+```javascript
+//Step 1
+const container = payrailsClient.collectContainer({
+  containerType: "COLLECT",
+});
+
+//Step 2
+const field = container.createCollectElement({
+  inputstyles: {
+    base: {
+      color: "#1d1d1d",
+    },
+    cardIcon: {
+      position: "absolute",
+      left: "8px",
+      bottom: "calc(50% - 12px)",
+    },
+  },
+  labelStyles: {
+    base: {
+      fontSize: "12px",
+      fontWeight: "bold",
+    },
+  },
+  errorTextStyles: {
+    base: {
+      color: "#f44336",
+    },
+  },
+  placeholder: "Card Number",
+  label: "card_number",
+  type: ElementType.CARD_NUMBER,
+});
+
+// Step 3
+field.mount("#cardNumber"); //assumes there is a div with id="#cardNumber" in the webpage
+
+// Step 4
+container.collect();
+```

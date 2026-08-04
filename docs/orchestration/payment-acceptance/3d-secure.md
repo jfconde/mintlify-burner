@@ -1,0 +1,125 @@
+---
+title: 3D Secure
+---
+
+## Overview
+
+3D Secure (3DS) is an authentication protocol that adds an extra layer of security for online card transactions, reducing the risk of unauthorized card usage and mitigating fraud by requiring additional authentication from the cardholder.
+
+When a card authorization requires 3DS, Payrails returns the information needed to take the customer through the challenge as part of the authorization flow. This page covers:
+
+- The two integration patterns for handling the 3DS redirect
+- The `threeDS` response object you receive when authentication completes
+
+If you're using the Payrails Drop-in or any of our SDKs, 3DS is handled for you and you can skip to the [`threeDS` object reference](3d-secure#the-threeds-object).
+
+## Handling 3DS during authorization
+
+When you [authorize a card payment via API](authorize-a-payment), the response always includes a `links.consumerWait` URL. You can use it in one of two ways.
+
+### Managed redirect with `consumerWait`
+
+Redirect the customer to `links.consumerWait` after authorizing. Payrails handles the 3DS challenge if one is required, and returns the customer to your `returnInfo.success` URL when the session is complete. This is the integration pattern documented in our [accept payments via API](/docs/orchestration/checkout-sdks/accept-payments-via-api) and [authorize a payment](authorize-a-payment) guides.
+
+The customer sees a Payrails-hosted intermediate page while the execution resolves, followed by either the 3DS challenge or your return URL.
+
+### Manual redirect with `links.3ds`
+
+If you'd rather handle the 3DS redirect yourself (for example, to avoid showing a Payrails-hosted intermediate page on non-3DS payments), you can detect the 3DS step from the execution state and redirect to `links.3ds` directly.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/orchestration/payment-acceptance/3d-secure-manual-redirect-flow.svg"
+  width="80%"
+/>
+
+1. After calling [Authorize a payment](authorize-a-payment), long-poll the execution:
+
+   ```http
+   GET /merchant/workflows/{workflowCode}/executions/{executionId}?waitWhile[status]=authorizeRequested
+   ```
+
+2. When the request returns, check `actionRequired` on the execution:
+
+   ```json
+   {
+     "id": "99e2f33a-2d17-4c98-8242-6bf5a4a08016",
+     "actionRequired": "3ds",
+     "links": {
+       "3ds": "https://api.payrails.io/public/redirect/merchant/..."
+     }
+   }
+   ```
+
+   - If `actionRequired` is `"3ds"`, redirect the customer to `links.3ds`.
+   - If `actionRequired` is absent and the authorization has reached a terminal state, no challenge was required.
+
+3. After the 3DS challenge completes, Payrails redirects the customer to your `returnInfo.success` URL. The final authorization result arrives via webhook notification.
+
+<Note>
+  Note that this pattern handles 3DS only. If you use payment methods that require other types of redirects (such as APM hosted payment pages), the managed flow above handles those transparently while the manual flow does not.
+</Note>
+
+## The `threeDS` object
+
+The `threeDS` object encapsulates various parameters related to the 3DS authentication process. It provides detailed information about the authentication status, transaction identifiers, and relevant parameters. You can expect to receive the `threeDS` object in the [Notifications](doc:notifications) under `paymentComposition`. Below is a breakdown of the key components within the `threeDS` object:
+
+```json
+"threeDS": {
+  "authenticationValue": "AAABAVIREQAAAAAAAAAAAAAAAAA=",
+  "challenged": true,
+  "dsTransId": "5ed5d1d0-982f-45f4-97a1-68651ac429d0",
+  "eci": "05",
+  "enrolled": "Y",
+  "exemptionApplied": "none",
+  "exemptionIndicator": "none",
+  "transStatus": "Y",
+  "version": "2.2.0"
+}
+```
+
+<Note>
+  The structure of the object is based in the EMV 3DS 2.3.1.1 specification ([PDF](https://www.emvco.com/specifications/emv-3-d-secure-protocol-and-core-functions-specification-6/)). However, depending on the availability of those fields in the response from your payment provider, we may not have all of them for all cases. Please contact our team to make sure you will get all the information you need for your processing.
+</Note>
+
+## Parameters
+
+| Field                 | Description                                                                                                                             |
+| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| `authenticationValue` | The cryptographic value generated during the 3DS authentication process to verify the transaction's authenticity.                       |
+| `challenged`          | A boolean value indicating whether the transaction was challenged during the 3DS authentication process.                                |
+| `dsTransId`           | The unique transaction identifier generated by the 3DS system for tracking purposes.                                                    |
+| `eci`                 | Electronic Commerce Indicator (ECI) code indicating the outcome of the 3DS authentication process. Possible values [here](#eci-values). |
+| `enrolled`            | Indicates whether the cardholder's card is enrolled in the 3DS program.                                                                 |
+| `exemptionApplied`    | Specifies if any exemptions were applied during the 3DS authentication process.                                                         |
+| `exemptionIndicator`  | Additional information about the type of exemption applied, if any.                                                                     |
+| `transStatus`         | Indicates the outcome of the 3DS authentication process for the transaction. Possible values [here](#transstatus-values).               |
+| `version`             | Specifies the version of the 3DS protocol used for authentication.                                                                      |
+
+## `eci` values
+
+According to the 3DS specification, the following are the possible values for the `eci` field.
+
+| Value | Description                                 | Source                                          |
+| :---- | :------------------------------------------ | :---------------------------------------------- |
+| `00`  | Authentication Failed                       | Mastercard                                      |
+| `01`  | Authentication attempted, but not completed | Mastercard                                      |
+| `02`  | Authentication Successful                   | Mastercard                                      |
+| `05`  | Authentication Successful                   | Visa, American Express, Discover, JCB, UnionPay |
+| `06`  | Authentication attempted, but not completed | Visa, American Express, Discover, JCB, UnionPay |
+| `07`  | Authentication Failed                       | Visa, American Express, Discover, JCB, UnionPay |
+
+## `transStatus` values
+
+According to the 3DS specification, the following are the possible values for the `transStatus` field.
+
+| Value | Description                  | Next Action                                                                                                                                                                                                                                    |
+| :---- | :--------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Y`   | Authentication Successful    | The transaction achieved a Frictionless authentication. Continue to authorization using the `authenticationValue` from the Authenticate Response.                                                                                              |
+| `A`   | Authentication Attempted     | The cardholder was not authenticated, but proof of the authentication being attempted has been provided. Continue to authorization using the `authenticationValue` from the Authenticate Response.                                             |
+| `N`   | Authentication Failed        | Authentication has failed. Only proceed to authorization if authentication is not required, and this is within your risk appetite.                                                                                                             |
+| `U`   | Authentication Unavailable   | Authentication is unavailable. Only proceed to authorization if authentication is not required, and this is within your risk appetite.                                                                                                         |
+| `R`   | Authentication Rejected      | Authentication was rejected. Only proceed to authorization if authentication is not required, and this is within your risk appetite.                                                                                                           |
+| `C`   | Challenge Required           | A challenge is required, make a Challenge Request.                                                                                                                                                                                             |
+| `I`   | Information                  | Authentication for the transaction was not requested. The data was sent to the ACS for informational purposes only.                                                                                                                            |
+| `D`   | Decoupled Challenge Required | A challenge will be performed by the issuer without using a 3DS Challenge Request. Make a Result Request to learn the final outcome. You may need to wait the length of time set in the threeDSRequestorDecMaxTime Authenticate Request field. |

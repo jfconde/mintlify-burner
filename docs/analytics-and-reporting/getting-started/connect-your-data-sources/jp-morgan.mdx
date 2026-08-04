@@ -1,0 +1,65 @@
+---
+title: J.P. Morgan
+---
+This guide will help you enable the JP Morgan Reports integration and connect it as a data source in Payrails to ingest daily reports. With the self-serve flow you configure the integration yourself in the Payrails portal.
+
+### Prerequisites
+
+You will need:
+
+- An active JP Morgan merchant account
+- SFTP access: a dedicated SFTP username and password assigned to your account
+- Report delivery enabled for the required report codes (see Step 2)
+
+## Step-by-step instructions
+
+### Step 1: Gather SFTP credentials and connection details
+
+**1. SFTP host and port**
+
+Gather the following:
+
+- Hostname
+- Username
+- Password
+- Port (default `22`)
+- Root directory path (if applicable)
+
+**2. Verify data lifecycle and storage**
+
+Before integrating, confirm the file lifecycle logic on the JP Morgan SFTP server to ensure consistent data retrieval and support for backfills:
+
+- **Folder structure:** confirm where new reports land (root directory or a specific subdirectory).
+- **File format and naming:** Payrails expects files to follow JP Morgan’s standard naming convention `<company_id>.<activity_date>.<frequency>.<file_identification>.dfr.zip`. Only daily files are parsed; monthly or yearly files are still transferred but skipped by the parser.
+- **Compression:** files are expected to be compressed and password protected. The decryption password should match the SFTP password.
+- **Backfill availability:** ensure historical files are accessible for backfill, especially if you need to ingest past data during onboarding.
+
+### Step 2: Confirm report delivery
+
+Confirm that the following reports are enabled on the JP Morgan side:
+
+- `FIN0010` Deposit Activity Summary
+- `FIN0011` Service Charge Detail
+- `FIN0025` Financial Activity Summary
+- `ACT0002` Exception Detail
+- `ACT0010` Deposit Detail
+- `ACT0036` Authorization Detail
+
+For authorization reports, enable:
+
+- Interchange Detail Option
+- Debit Detail Option
+
+### Step 3: Add the J.P. Morgan integration in the Payrails portal (self-serve)
+
+1. Log in to the Payrails dashboard and open **Settings → Integrations → Data**.
+2. Click **Add instance** (top-right).
+3. In New instance, select provider: **JPMorgan** and click **Continue**.
+4. On the **Configure account** screen, fill in:
+   - **Integration instance name** — a unique label.
+   - **Start Date** — the date of today or tomorrow (currently we can not backfill over the sel-serve capability. In the need of backfilling, please reach out to your Payrails account manager).
+   - **SFTP host**, **username**, **password**, **port** (`22`), and **root directory path** (if applicable).
+   - _(Optional)_ **Additional data**.
+5. Click **Save account**. The instance appears in the Data integrations list and Payrails begins ingesting data.
+
+

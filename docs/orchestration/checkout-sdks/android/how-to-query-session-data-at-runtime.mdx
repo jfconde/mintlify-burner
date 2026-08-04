@@ -1,0 +1,170 @@
+---
+title: Query Session Data
+description: Read session information — such as the current amount, execution ID, or payment method configuration — from a Payrails `Session` at any point after `createSession()` completes.
+---
+
+## Prerequisites
+
+- An active Payrails session (see [Quick Start](/docs/android-sdk-1))
+- The `Session` reference returned by `Payrails.createSession(...)`
+
+## Query session data with `session.query()`
+
+Hold on to the `Session` returned by `createSession(...)` and call `query()` on it with
+a typed key from `PayrailsQuery`:
+
+```kotlin
+val session = Payrails.createSession(configuration)
+
+val executionId: String? = session.query(PayrailsQuery.ExecutionId)
+val amount: PayrailsAmount? = session.query(PayrailsQuery.Amount)
+```
+
+All keys return `null` when the queried data is not present. No exception is thrown.
+
+## Available keys
+
+### `PayrailsQuery.ExecutionId`
+
+The unique identifier for the active payment execution.
+
+```kotlin
+val executionId: String? = session.query(PayrailsQuery.ExecutionId)
+```
+
+Use this to tell your backend which execution to act on — for example, before calling
+the Payrails lookup action to update the checkout amount.
+
+---
+
+### `PayrailsQuery.HolderReference`
+
+The holder reference for the active session.
+
+```kotlin
+val holderReference: String? = session.query(PayrailsQuery.HolderReference)
+```
+
+---
+
+### `PayrailsQuery.Amount`
+
+The current checkout amount as a [`PayrailsAmount`](/docs/sdk-api-reference#payrailsamount).
+
+```kotlin
+val amount: PayrailsAmount? = session.query(PayrailsQuery.Amount)
+// amount?.value    → "54.99"
+// amount?.currency → "EUR"
+```
+
+---
+
+### `PayrailsQuery.BinLookup`
+
+The BIN lookup action link from the session config, as a
+[`PayrailsLink`](/docs/sdk-api-reference#payrailslink).
+
+```kotlin
+val binLookupLink: PayrailsLink? = session.query(PayrailsQuery.BinLookup)
+// binLookupLink?.href   → "https://..."
+// binLookupLink?.method → "POST"
+```
+
+---
+
+### `PayrailsQuery.InstrumentDelete`
+
+The stored instrument delete action link.
+
+```kotlin
+val deleteLink: PayrailsLink? = session.query(PayrailsQuery.InstrumentDelete)
+```
+
+---
+
+### `PayrailsQuery.InstrumentUpdate`
+
+The stored instrument update action link.
+
+```kotlin
+val updateLink: PayrailsLink? = session.query(PayrailsQuery.InstrumentUpdate)
+```
+
+---
+
+### `PayrailsQuery.PaymentMethodConfig`
+
+Configuration for a specific payment method, as a
+[`PayrailsPaymentMethodConfig`](/docs/sdk-api-reference#payrailspaymentmethodconfig).
+
+```kotlin
+val cardConfig: PayrailsPaymentMethodConfig? =
+    session.query(PayrailsQuery.PaymentMethodConfig("card"))
+
+// cardConfig?.displayName           → "Credit or Debit Card"
+// cardConfig?.flow                  → "inline"
+// cardConfig?.supportsSaveInstrument → true
+```
+
+Pass the payment method code (e.g. `"card"`, `"paypal"`) as the parameter. Returns
+`null` if the code is not present in the session config.
+
+---
+
+### `PayrailsQuery.PaymentMethodInstruments`
+
+Stored instruments for a specific payment method.
+
+```kotlin
+val instruments: List<StoredInstrument>? =
+    session.query(PayrailsQuery.PaymentMethodInstruments("card"))
+```
+
+Returns `null` if the payment method code is unrecognised or has no stored instruments.
+Never returns an empty list — use `null` as the "nothing available" signal.
+
+---
+
+## Discovering redirect-capable payment methods
+
+`PayrailsQuery.AvailableRedirectMethods` has been removed. To list redirect-based
+payment methods configured for the session, use
+[`session.getPaymentMethodConfig(PaymentMethodFilter.Redirect)`](/docs/sdk-api-reference#sessiongetpaymentmethodconfigfilter):
+
+```kotlin
+val redirectMethods = session.getPaymentMethodConfig(PaymentMethodFilter.Redirect)
+redirectMethods.forEach { option ->
+    // option.paymentMethodCode — e.g. "ideal", "bancontact"
+    // option.displayName       — backend-provided label, or null
+}
+```
+
+Returns an empty list (not `null`) when no redirect methods are configured. Use this to
+dynamically build your redirect payment UI rather than hardcoding method codes.
+
+See [How to Accept Redirect Payments](/docs/how-to-accept-redirect-payments) for the full
+integration guide.
+
+## Example: passing the execution ID to your backend
+
+```kotlin
+Payrails.createSession(configuration) { result ->
+    result.onSuccess { session ->
+        val executionId = session.query(PayrailsQuery.ExecutionId)
+
+        myApiClient.updateExecutionAmount(
+            executionId = executionId,
+            amount = newTotal,
+            currency = "EUR"
+        )
+
+        session.update(PayrailsUpdate(amount = AmountUpdate(newTotal, "EUR")))
+    }
+}
+```
+
+## See also
+
+- [How to update the checkout amount after session creation](/docs/update-checkout-amount)
+- [`Session.query()` API reference](/docs/sdk-api-reference#sessionquerykey)
+- [`Session.getPaymentMethodConfig()` API reference](/docs/sdk-api-reference#sessiongetpaymentmethodconfigfilter)

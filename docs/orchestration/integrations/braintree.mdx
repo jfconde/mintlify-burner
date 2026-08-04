@@ -1,0 +1,243 @@
+---
+title: Braintree (Paypal)
+---
+
+<Note>
+
+**Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as a payment orchestrator
+- Use **Braintree** for payments
+- Are approved to process **raw card data**
+
+We use a server-to-server integration with Braintree, so your account must be enabled to process raw card data. If this isn't enabled, payments won't work in production. Please contact your Braintree account manager or support team to activate it.
+
+</Note>
+
+---
+
+## Create and configure a Braintree integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **Add instance** to create a new integration configuration.
+4. Select the **Workspaces** where this integration should be available.
+
+> **About workspaces**  
+> Workspaces determine where this integration can be used. They allow you to isolate provider setups by region or business line, or share a single configuration across multiple environments.
+
+---
+
+## Step 1: Choose the integration type
+
+- Select **Payment** and continue to the next step.
+
+<PayrailsSelectIntegrationType />
+
+---
+
+## Step 2: Choose the provider
+
+- Select **Braintree** and continue to the next step.
+
+<img
+  src="/images/docs/braintree-image-01.png"
+  alt="A screenshot showing the Braintree integration selected."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+## Step 3: Configure your Braintree integration
+
+<Tip>
+  ### What you'll need from Braintree
+
+Before you begin, make sure you have access to:
+
+- **Merchant account ID**
+- **Acquirer Merchant IDs / BINs** (if applicable)
+- **API credentials** (Public Key and Private Key)
+
+      <a href="https://www.braintreegateway.com/login" target="_blank" rel="noreferrer">Log in</a> to your Braintree Control Panel to complete this step.
+
+</Tip>
+
+---
+
+### Integration instance name
+
+<PayrailsIntegrationInstanceNameInfo />
+
+**In Payrails**
+
+- Enter a clear and descriptive **Instance name**.
+
+<PayrailsChooseAnIntegrationInstanceName />
+
+---
+
+### Account details
+
+**In Braintree**
+
+1. <a
+     href="https://www.braintreegateway.com/login"
+     target="_blank"
+     rel="noreferrer"
+   >
+     Log in
+   </a>
+   to the Braintree Control Panel.
+2. Navigate to **Merchant Configuration** → **Integrations**.
+3. Select the Braintree integration you want to manage and choose **Manage Account**.
+4. Define the **Payrails account name** associated with the Provider ID.
+
+<img
+  src="/images/docs/braintree-image-02.png"
+  alt="A screenshot showing the Braintree account fields."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+> ℹ️ Acquirer Merchant IDs and BINs
+>
+> Acquirer Merchant IDs (sometimes referred to as BINs or SE numbers) are not always available directly in the Braintree dashboard.
+>
+> For example:
+>
+> - **American Express:** The Acquirer Merchant ID is provided directly by American Express or your acquiring bank during onboarding.
+>
+> Use the values provided by your acquirer when configuring Braintree in Payrails.
+
+---
+
+### API credentials
+
+<Tip>
+  API credentials are environment-specific. Use separate credentials for
+  **test** and **production**.
+</Tip>
+
+**In Braintree**
+
+1. Go to **Settings** → **API**.
+2. Generate or copy the **Public Key** and **Private Key**.
+
+**In Payrails**
+
+- Enter the **Public Key** and **Private Key** in the corresponding fields.
+- Select the **payment methods** that should be enabled for this account.
+
+---
+
+### Webhooks
+
+<Tip>
+  Webhooks allow Payrails to receive asynchronous payment status updates from
+  Braintree.
+</Tip>
+
+#### Configure webhooks in Braintree
+
+1. In the Braintree Control Panel, navigate to **Webhooks**.
+
+2. Add a new webhook endpoint using the Payrails notification URL.
+   - **Staging**
+     ```
+     https://<your-environment>-api-pub.staging.payrails.io/public/notification/provider/Braintree/accountName/<provider-account-name>
+     ```
+   - **Production**
+     ```
+     https://api-pub.<your-environment>.payrails.io/public/notification/provider/Braintree/accountName/<provider-account-name>
+     ```
+
+3. Select all required event types.
+
+4. Save and activate the webhook.
+
+#### Configure notifications in Payrails
+
+1. Navigate to **Notifications**.
+
+<img
+  src="/images/docs/braintree-image-03.png"
+  alt="A screenshot showing the Payrails settings menu."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="200px"
+/>
+
+2. Select **New URL**.
+
+<img
+  src="/images/docs/braintree-image-04.png"
+  alt="A screenshot showing the Payrails notifications."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="700px"
+/>
+
+3. Select the relevant **workspace**.
+4. Paste the webhook **URL**.
+5. Generate an **HMAC key**.
+6. Select **Create**.
+
+<img
+  src="/images/docs/braintree-image-05.png"
+  alt="A screenshot showing the new notification URL creation form."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="300px"
+/>
+
+#### Test webhooks
+
+- Use Braintree's webhook testing tools to send test events.
+- Confirm events are received and processed successfully in Payrails.
+
+---
+
+### Payment methods
+
+**In Payrails**
+
+- Select the Braintree payment methods you want to enable for this integration.
+
+<img
+  src="/images/docs/braintree-image-06.png"
+  alt="A screenshot showing the Braintree payment methods. "
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+---
+
+## Enable the integration
+
+**In Payrails**
+
+- Select **Save account** to enable the integration.
+
+The **Enabled** status confirms that the Braintree integration is active and available for routing.
+
+<img
+  src="/images/docs/braintree-image-07.png"
+  alt="A screenshot showing the enabled Braintree integration."
+  className="mx-auto block rounded-lg object-cover border border-gray-200"
+  width="500px"
+/>
+
+Your Braintree integration is now ready to process payments in the selected environment.
+
+---
+
+## Next steps
+
+1. Run a test payment using a Braintree test card.
+2. Verify that:
+   - The payment appears in Braintree.
+   - The payment status updates correctly in Payrails.
+3. Once verified in test mode, repeat the setup in live mode.
+
+→ Continue to: [Test a payment](/docs/orchestration/payment-acceptance/test-payments)

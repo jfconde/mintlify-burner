@@ -1,0 +1,58 @@
+---
+title: Adyen
+---
+This guide will help you generate Adyen API credentials and connect Adyen as a data source in Payrails to ingest transaction & settlement data. With the self-serve flow you configure the integration yourself in the Payrails portal.
+
+### Prerequisites
+
+- An Adyen account.
+- To be able to create API credentials, you must have one of the following user roles:
+  - **Merchant admin**
+  - **Manage API credentials**
+
+***
+
+### Step-by-step instructions
+
+### Step 1: Log into your Adyen account to configure a set of automatic reports
+
+1. Click the company name located in the top-left corner of the page, and choose the first merchant account from the dropdown menu. This step is crucial because these reports are configured per merchant account, allowing us to gather the most comprehensive details possible.
+2. Click **Reports** in the left-side navigation panel.
+3. Use the **search bar** to search for each of the following reports one at a time:
+   - **3D Secure authentication**
+   - **Aggregate settlement details**
+   - **Dispute transaction details**
+   - **Interchange and scheme fee report**
+   - **Payment accounting** (please select to generate **ALL** fields in the report)
+   - **Received payment details** (please select to generate **ALL** fields in the report)
+   - **Settlement details**
+4. Click **Generate** beside each report, then click **Automated (generate on schedule)**. Turn **Automatic generation** on and select **.CSV** for the File type.
+
+### Step 2: Create a Report User in Your Adyen Account
+
+1. Log in to your Customer Area, and go to **Developers > API credentials**. This opens a list with all API credentials linked to your company account.
+2. Select **Create new credential**.
+3. Under **Credential type**, select **Report service user**. You can add a description for the credential here.
+4. **Important:** Make sure you have provided the API key with the **Merchant Report Download role**.
+5. Select **Create credential**.
+6. To generate an API key select the API key tab under **Server settings > Authentication**. Select **Generate API key**, copy the API key using the copy icon and store your API key securely in your system.
+
+### Step 3: Add the Adyen integration in the Payrails portal (self-serve)
+
+1. Log in to the Payrails dashboard and open **Settings → Integrations → Data**.
+2. Click **Add instance** (top-right).
+3. In New instance, select provider: **Adyen** and click **Continue**.
+4. On **Configure Adyen account**, fill in:
+   - **Integration instance name** — a unique label that helps you identify this account.
+   - **Start Date** — the date of today or tomorrow (currently we can not backfill over the self-serve capability. In the need of backfilling, please reach out to your Payrails account manager).
+   - **Is Live** — enable for a production (live) account; leave off for test.
+   - Input required for (at least) one of the below items:
+     - **Company account** — your Adyen company account name.
+     - **Merchant accounts** — add each merchant account you want to ingest data for (use **+** to add more).
+   - **API key** — the report service user API key from Step 2. (If you use Adyen for Platforms, also provide the Balance Platform report API key as instructed by the form.)
+   - _(Optional)_ **Additional data**.
+5. Click **Save account**. The instance appears in the Data integrations list and Payrails begins ingesting data.
+
+###
+
+

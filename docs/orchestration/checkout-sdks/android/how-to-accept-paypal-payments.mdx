@@ -1,0 +1,157 @@
+---
+title: How to Accept PayPal Payments
+description: Accept PayPal payments in your Android app using `PayPalButton`. This guide covers new payments and charging previously saved PayPal accounts.
+---
+
+## Prerequisites
+
+- An active Payrails session (see [Quick Start](/docs/android-sdk-1))
+- A session init payload that includes a PayPal payment option (`paymentMethodCode: "payPal"`)
+- Kotlin + Jetpack Compose for rendering the button
+
+## New PayPal Payment
+
+### 1. Initialize a session
+
+```kotlin
+val configuration = Configuration(
+    initData = InitData(version = payload.version, data = payload.data),
+    option = Options(
+        redirectSessionLifecycle = RedirectSessionLifecycle(
+            onSessionExpired = {
+                // Fetch a fresh init payload from your backend after cancel/timeout
+                val refreshed = fetchInitPayloadFromBackend()
+                InitData(version = refreshed.version, data = refreshed.data)
+            }
+        )
+    )
+)
+val session = Payrails.createSession(configuration)
+```
+
+> `redirectSessionLifecycle.onSessionExpired` is optional here — `PayrailsPayPalButtonDelegate.onPaymentSessionExpired` is the primary hook for PayPal session refresh. Configure `onSessionExpired` if you also use 3DS or generic redirect payment methods in the same session.
+
+### 2. Create the PayPal button
+
+```kotlin
+val payPalButton = Payrails.createPayPalButton(
+    style = PayPalButtonStyle(height = 48.dp)
+)
+```
+
+### 3. Set the delegate
+
+```kotlin
+payPalButton.delegate = object : PayrailsPayPalButtonDelegate {
+    override fun onPaymentButtonClicked(button: PayPalButton) {
+        // Payment is starting — optionally show a loading overlay
+    }
+
+    override fun onAuthorizeSuccess(button: PayPalButton) {
+        navigateToConfirmation()
+    }
+
+    override fun onAuthorizeFailed(button: PayPalButton) {
+        showPaymentFailedMessage()
+    }
+
+    override fun onPaymentSessionExpired(button: PayPalButton) {
+        // The session is no longer usable after the user cancelled or a timeout occurred.
+        // Fetch a new init payload from your backend and reinitialize the session.
+        val refreshed = fetchInitPayloadFromBackend()
+        Payrails.createSession(
+            Configuration(initData = InitData(version = refreshed.version, data = refreshed.data))
+        )
+    }
+
+    override fun onCancelled(button: PayPalButton) {
+        // Optional — fires before onPaymentSessionExpired when the user explicitly cancels
+        showCancelMessage()
+    }
+}
+```
+
+`onPaymentSessionExpired` is **required**. After a PayPal cancellation or timeout the session cannot be reused — you must reinitialize before the user can attempt payment again.
+
+### 4. Render the button
+
+```kotlin
+@Composable
+fun CheckoutScreen() {
+    // ...
+    payPalButton.Render(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp))
+}
+```
+
+The button renders in PayPal's branded gold (`#ffc439`) with the PayPal wordmark. No additional styling configuration is required.
+
+### 5. Handle the payment result
+
+When the user taps the button, the SDK opens the PayPal authorization page in a Chrome Custom Tab. After the user approves or cancels, the Activity resumes and the SDK polls for the final execution status. Your delegate receives `onAuthorizeSuccess`, `onAuthorizeFailed`, or `onCancelled` + `onPaymentSessionExpired` accordingly.
+
+---
+
+## Storing a PayPal Account for Future Use
+
+To request that the PayPal account is saved for future payments, set `saveInstrument = true` before the user taps:
+
+```kotlin
+payPalButton.saveInstrument = true
+payPalButton.pay()  // or let the user tap the rendered button
+```
+
+After a successful payment with `saveInstrument = true`, the account appears in `session.getStoredInstruments(forType = PaymentMethod.payPal)`.
+
+---
+
+## Charging a Stored PayPal Account
+
+Stored PayPal accounts are charged directly without opening a browser. No user interaction in the browser is required.
+
+### 1. Retrieve stored instruments
+
+```kotlin
+val storedPayPalAccounts = session.getStoredInstruments(forType = PaymentMethod.payPal)
+```
+
+Each `StoredInstrument` exposes:
+
+- `id` — the instrument identifier
+- `email` — the PayPal account email
+- `displayName` — server-provided display name (typically the email)
+- `isDefault` — whether this is the holder's default instrument
+
+### 2. Build your instrument picker
+
+The SDK does not provide a pre-built instrument picker UI. Build your own and let the user select an account.
+
+### 3. Trigger payment with the stored instrument
+
+```kotlin
+val selectedInstrument = storedPayPalAccounts.first()
+payPalButton.pay(selectedInstrument.id)
+```
+
+The result is delivered through the same delegate: `onAuthorizeSuccess` or `onAuthorizeFailed`. `onCancelled` and `onPaymentSessionExpired` do not fire for stored instrument payments — there is no browser session to cancel.
+
+---
+
+## Troubleshooting
+
+**Button taps do nothing after a cancelled payment**
+
+The Payrails session is expired after a PayPal cancellation. Make sure your `onPaymentSessionExpired` implementation fetches fresh init data and calls `Payrails.createSession()` before the user retries.
+
+**`onAuthorizeFailed` fires immediately after the Custom Tab closes**
+
+If the user closes the Custom Tab before completing the PayPal flow (without pressing the PayPal cancel button), the SDK's grace reconciliation window applies. The polling resolves as `authorizeFailed` after a brief delay. This is expected — the session is still valid in this case and the user can retry without refreshing.
+
+**`IllegalStateException: session not initialized` on `createPayPalButton()`**
+
+`Payrails.createPayPalButton()` must be called after `Payrails.createSession()` completes successfully.
+
+## See Also
+
+- [SDK Concepts — PayPal Payment](/docs/sdk-concepts#paypal-payment) — How the PayPal redirect flow works
+- [API Reference — PayPalButton](/docs/sdk-api-reference#paypalbutton) — Complete `PayPalButton` API
+- [Quick Start](/docs/android-sdk-1) — Session initialization

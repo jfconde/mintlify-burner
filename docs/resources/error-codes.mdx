@@ -1,0 +1,377 @@
+---
+title: Error codes
+description: The full list of Payrails error codes and how to resolve them.
+---
+When integrating Payrails API, you can sometimes receive an error response. We make it easy to understand and fix those errors so that our systems can integrate smoothly.
+
+## HTTP status codes
+
+Our API replies with different HTTP status codes as the first layer of information on the results of your requests. However, always remember that it is important to dig deeper into the response body to understand the reason for the status code.
+
+> 📘 HTTP status code 200 is not always a success
+>
+> When requesting a payment authorization, an HTTP status code 200 doesn't mean that the payment was successful, but just that **the communication with the Payment Provider was done successfully**. However, their response could've been that the payment was declined, so you should analyze the response body to understand the result.
+
+The following is the list of HTTP status codes that our API can return.
+
+| Status | Summary                  | Description                                                                                                                                                              |
+| :----- | :----------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 200    | OK                       | Everything worked as expected.                                                                                                                                           |
+| 201    | Created                  | Your request was successful, and a new resource has been created.                                                                                                        |
+| 202    | Accepted                 | Your request was accepted for processing, but the processing has not been completed. Check our notifications documentation for how to handle these. |
+| 400    | Bad Request              | The server cannot process your request due to a client error (e.g., malformed syntax).                                                                                   |
+| 401    | Unauthorized             | Authentication is required, and your request lacks valid authentication credentials.                                                                                     |
+| 403    | Forbidden                | We understood your request but refused to authorize it with your current authentication.                                                                                 |
+| 404    | Not Found                | We cannot find the requested resource.                                                                                                                                   |
+| 405    | Method Not Allowed       | The method specified in your request is not allowed for the resource.                                                                                                    |
+| 408    | Request Timeout          | The request timed out.                                                                                                                                                   |
+| 409    | Conflict                 | Your request conflicts with the current state of the resource.                                                                                                           |
+| 413    | Request Entity Too Large | Your request size exceeds the max limit allowed for the resource.                                                                                                        |
+| 422    | Unprocessable Entity     | We are unable to process your request with the provider parameters or body. Check the response body for more details.                                                    |
+| 429    | Too Many Requests        | You've sent too many requests in a given amount of time.                                                                                                                 |
+| 499    | Request Canceled         | The request was canceled by the client before the server could process it.                                                                                               |
+| 500    | Internal Error           | You should never get this error, but in case you do, please contact our Support Team.                                                                                    |
+| 503    | Service Unavailable      | The request cannot be processed due to unavailability of service (e.g provider connection error).                                                                        |
+
+## Error structure
+
+All the `4xx` errors will specify details about the problem inside the response body. Those errors will have the structure explained in the following table.
+
+| Field    | Type   | Description                                                                                                                |
+| :------- | :----- | :------------------------------------------------------------------------------------------------------------------------- |
+| `id`     | UUID   | Identifier of the error request in Payrails system. Please share this value when working with our team to debug the error. |
+| `code`   | String | Machine-friendly code for the error. The next section contains a list of all possible values, meanings, and resolutions.   |
+| `detail` | String | Text explaining the error in Human readable format.                                                                        |
+| `docUrl` | URL    | Direct link to the documentation of the error.                                                                             |
+| `reason` | Object | Optional. Additional information about the context of this error.                                                          |
+
+When returned by our API, these errors look like this:
+
+```json json
+{
+  "errors": [
+    {
+      "id": "a24bc325-3929-4d9d-9c08-b3aa532685b7",
+      "code": "workflow.action.failed",
+      "detail": "The execution of the requested workflow action failed",
+      "docUrl": "error-codes#workflow.action.failed",
+      "reason": { /*This includes more details about the reason of the error and includes some optional values.*/ }
+    }
+  ]
+}
+```
+
+The optional `reason` section can look like this, for the case of a rejected payment attempt:
+
+```json
+"reason": {
+  "category": "Instrument",
+  "result": "BlockedInstrument",
+  "source": "Customer",
+  "detail": "LostInstrument"
+}
+```
+
+## List of error codes
+
+The following is a list of the possible values for the `code` field in Payrails errors, and some advice on how to fix them.
+
+### `request.malformed`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>The format or structure of your request does not adhere to the required specifications. It could be due to missing or incorrectly formatted parameters, invalid JSON, or other syntactical errors within the request payload.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Double-check your request payload, parameters, and structure against our API documentation.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.blocked`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request content was blocked by our content safety policy.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Review and revise your request content, then retry.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.unauthorized`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request lacks the necessary credentials to access the requested resource or perform the specified action.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check if your headers contain the necessary and valid access token. You can obtain a new one by calling the <a href="/reference/getoauthtoken">Access Token API</a>.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.forbidden`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request is properly authenticated, but your credentials lack the required permissions to perform the requested operation.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check the roles and permissions of your current credentials.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.not-found`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>The requested resource was not found in our system.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Double-check the URL or the resource identifier to ensure its correctness.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.timeout`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>The request timed out.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>You can retry the request, with the same idempotency key if the endpoint requires one.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.conflict`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your requested operation cannot be completed due to a conflict with the current state of the resource.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check for specific error details or additional information provided in the error response to understand the nature of the conflict.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.entity-too-large`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request size exceeds the max limit allowed for the resource.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Reduce the size of the request you are sending.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.header.missing`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request is missing a required header.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check the specific error in the response body to know which parameter is missing.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.header.invalid`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request contains a header that is not in the required format or its value is not the expected one.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check the specific error in the response body to know which header is invalid.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.param.missing`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request is missing a required parameter.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check the specific error in the response body to know which parameter is missing.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.param.invalid`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request contains a header that is not in the required format or its value is not the expected one.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check the specific error in the response body to know which parameter is invalid.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.method-not-allowed`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Your request method is not in the required format or its value is not the expected one.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Retry the request using the standard method for the operation.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.canceled`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>The request was canceled by the client before the server could process it.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Retry sending the request in case you want to complete it.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `request.rate-limit`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>You have sent too many requests in a short duration.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Retry sending the request after some time.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `workflow.action.not-allowed`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>The action you're requesting is not allowed for this workflow or for its current state. For example, you cannot execute a Capture action without a successful Authorize action before.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check your workflow configuration with the Payrails team.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `workflow.action.failed`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>There was a problem during the execution of a Workflow Action.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check the response body for more specific information about the problem under the reason field. There you will find result from <a href="payments/operation-results#/operation">Result Codes</a>, category, source and detail.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `workflow.rule.failed`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>There was a problem during the resolution of a Rule in your Workflow.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Check the response body for more specific information about the problem.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `internal`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>Something wrong happened inside Payrails system.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Contact Payrails Support Team.</td>
+  </tr>
+</table>
+`}</HTMLBlock>
+
+### `service.unavailable`
+
+<HTMLBlock>{`
+<table class="horizontal-table">
+  <tr>
+    <th>Description</th>
+    <td>The request cannot be processed due to unavailability of service, connection outage or timeout.</td>
+  </tr>
+  <tr>
+    <th>Resolution</th>
+    <td>Retry sending the request or contact Payrails Support Team.</td>
+  </tr>
+</table>
+`}</HTMLBlock>

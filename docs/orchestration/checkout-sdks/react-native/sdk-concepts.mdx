@@ -1,0 +1,96 @@
+---
+title: SDK Concepts
+---
+
+# How Drop-in Works
+
+Payrails Drop-in for React Native is a pre-built UI solution that renders all configured payment methods as a single list. It handles tokenization, 3D Secure authentication, and redirect flows without requiring additional integration work beyond mounting the component.
+
+## Integration Architecture
+
+A Drop-in integration has three parts:
+
+- **Server-side**: a single API call to `/client/init` that creates the payment session and returns the configuration object the Drop-in needs.
+- **Client-side**: the `PayrailsDropin` React Native component, which consumes the session data to render the payment method list, execute payment requests, and handle follow-up actions such as 3D Secure challenges and external redirects.
+- **Webhook server**: receives asynchronous payment outcome notifications from Payrails, independent of the client session.
+
+## What the Drop-in Manages Automatically
+
+- Rendering all payment methods enabled for the merchant in a single UI block.
+- Disabling the payment button during in-flight requests.
+- Launching 3D Secure authentication flows when required by the card issuer.
+- Opening redirect-based payment flows (e.g. PayPal, bank redirects) and detecting the result when the user returns.
+- Showing and hiding stored instruments for returning customers.
+
+## What the Drop-in Does Not Manage
+
+- Session refresh — if the session expires, the host app is responsible for obtaining a new one and re-mounting the provider. See `onSessionExpired` in the event callback reference.
+- Layout positioning — the Drop-in renders its own container; the host app controls where it appears in the screen hierarchy.
+- Backend webhook handling — payment outcomes must be confirmed server-side via webhook, not solely from client callbacks.
+
+---
+
+# Payment Completion Modes
+
+After a user initiates a payment through the Lean checkout dialog or a Generic Redirect flow, the SDK must determine the final payment result. Because redirect-based payments take the user outside the app, the SDK cannot rely on a simple synchronous response. Three mechanisms exist to handle this.
+
+## Foreground Polling (Default)
+
+The SDK polls the Payrails execution endpoint on a timer while the application is in the foreground. Polling stops automatically when the app moves to the background and resumes when the app returns to the foreground. On resumption, the SDK fetches the latest payment status.
+
+This is the default behaviour and requires no additional configuration. It covers most integrations where the user completes payment quickly and returns to the app.
+
+**Limitation**: if the payment provider redirects the user into an external banking app for an extended period, polling is suspended for that entire duration and the SDK only learns the result when the user manually returns.
+
+## Continuous Background Polling (Optional)
+
+Background polling keeps the execution endpoint poll running even while the app is in the background. This reduces the delay between payment completion and result delivery for flows that redirect into external banking apps.
+
+Requires the optional dependency:
+
+```typescript
+npm install react-native-background-actions
+```
+
+The SDK detects the presence of this library at runtime and activates background polling automatically when it is installed.
+
+**Trade-offs**: background tasks consume battery and are subject to OS-level restrictions on both iOS and Android. Use this option only when faster payment result detection is a product requirement.
+
+## Custom Return URLs
+
+Return URLs are sent to the payment provider as part of the authorization request. After the user completes or cancels the payment, the provider redirects them to the corresponding URL, which the OS maps back to the app via a deep link or universal link.
+
+The SDK detects this incoming link and resolves the payment result without waiting for a polling cycle.
+
+```typescript React Native
+<PayrailsProvider
+  config={config}
+  returnInfo={{
+    success: 'https://yourapp.com/payment/success',
+    error: 'https://yourapp.com/payment/error',
+    cancel: 'https://yourapp.com/payment/cancel',
+  }}
+>
+  <Lean onAuthorizeSuccess={() => {}} />
+  <GenericRedirect paymentMethodCode="iDeal" onAuthorizeSuccess={() => {}} />
+</PayrailsProvider>
+```
+
+Supported link types:
+
+- **Deep links** — custom URI schemes (e.g. `myapp://payment/success`)
+- **Universal links / App Links** — HTTPS URLs mapped to the app (e.g. `https://yourapp.com/payment/success`)
+
+Important notes:
+
+- The base return URLs must also be configured in the Payrails Admin Portal. Contact the Payrails team to set this up.
+- `returnInfo` only tells the payment provider where to redirect the user. Redirection to these URLs does not emit `onAuthorizeSuccess`, `onAuthorizeFailure`, or `onAuthorizeCancel`.
+- Your app must already be configured for the corresponding deep link or universal link handling.
+
+## Which Mode to Use
+
+| Situation                                                  | Recommended mode             |
+| ---------------------------------------------------------- | ---------------------------- |
+| Standard redirect flow, user returns quickly               | Foreground polling (default) |
+| External banking app redirect, fast result needed          | Background polling           |
+| Provider supports return URLs, deep link setup is feasible | Custom return URLs           |

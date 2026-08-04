@@ -1,0 +1,78 @@
+---
+title: How to Let Shoppers Choose a Card Network (Co-Branded Cards)
+---
+
+Some cards carry two networks — a local/domestic scheme (e.g. `mada`, `cartesbancaires`) and an international one (e.g. `visa`, `mastercard`). This guide shows how to let the shopper pick which network the payment routes over and submit that choice. Also known as **co-badged cards** or **card brand choice**.
+
+> Background: [Co-Branded Cards](/docs/sdk-concepts#co-branded-cards).
+
+## Prerequisites
+
+- An active Payrails session (see [Quick Start](/docs/android-sdk-1)) rendering a `CardForm` + `CardPaymentButton`.
+- Co-branded handling **enabled for the session**: the init response must include the `binLookup` link **and** `featureConfig.coBrandedCardsRollout` greater than 0 (configured by the Payrails backend — contact Payrails to enable it for your merchant account).
+- A genuinely co-branded test card (e.g. a mada/Mastercard dual-scheme card).
+
+## Steps
+
+### 1. Render the card form as usual
+
+The Card Brand selector appears **automatically** inside `CardForm` when a co-branded card is detected (two or more schemes). You do not add a separate component.
+
+### 2. Observe the shopper's choice
+
+```kotlin
+val config = CardFormConfig(
+    events = CardFormEvents(
+        onPreferredSchemeChanged = { change ->
+            // change.preferredScheme — selected canonical code (null when not co-branded)
+            // change.cardSchemes    — all detected schemes, each with .selected
+        }
+    )
+)
+val cardForm = Payrails.createCardForm(config)
+```
+
+`onPreferredSchemeChanged` fires when a co-branded card is detected (with the default selection), when the shopper taps a different tile, and once with an empty payload if the card stops being co-branded. It is de-duplicated, so recompositions do not re-fire it.
+
+### 3. (Optional) Localize and style the selector
+
+```kotlin
+val config = CardFormConfig(
+    translations = CardTranslations().apply {
+        labels.cardBrandSelectorTitle = "Choose your network"
+        labels.cardBrandSelectorSubtitle = "This card supports two networks"
+    },
+    styles = CardFormStylesConfig(
+        cardBrandSelector = CardBrandSelectorStyle(
+            selectedTileBorderColor = 0xFF0F63BD.toInt(),
+            selectedCheckColor = 0xFF0F63BD.toInt(),
+            tileCornerRadius = 12, // dp
+        )
+    ),
+)
+```
+
+See the [Card Brand Selector styling reference](/docs/styling-guide#card-brand-selector) for all tokens.
+
+### 4. Pay
+
+No extra work. When the shopper pays a co-branded card, the SDK submits the selected scheme as `paymentInstrumentData.preferredScheme` on the authorize request. For a single-brand card, no selector shows and no `preferredScheme` is sent.
+
+## (Optional) Look up a BIN directly
+
+To inspect card metadata yourself (without the form), call `Session.binLookup`:
+
+```kotlin
+val result = session.binLookup("529741") // suspend; returns null on failure
+if (result?.localNetwork != null) {
+    // co-branded card: result.network + result.localNetwork
+}
+```
+
+See [`Session.binLookup`](/docs/sdk-api-reference#co-branded-cards) for the full contract.
+
+## Related
+
+- [Co-Branded Cards (concept)](/docs/sdk-concepts#co-branded-cards)
+- [API Reference — Co-Branded Cards](/docs/sdk-api-reference#co-branded-cards)
+- [Styling Guide — Card Brand Selector](/docs/styling-guide#card-brand-selector)

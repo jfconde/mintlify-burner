@@ -1,0 +1,230 @@
+---
+title: Stripe
+---
+<Note>
+  ## Who should use this guide
+
+  This guide is intended for merchants who:
+
+  * Use **Payrails** as a chargeback
+  * Use **Stripe Disputes** (with or without Stripe Connect)
+</Note>
+
+***
+
+## Create and configure a Stripe integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **Add instance** to create a new Stripe integration configuration.
+4. Select the **workspaces** where this integration should be available.
+
+> **About workspaces**  
+> Workspaces determine where this integration is available. They let you isolate provider setups by region or business line, or share the same configuration across multiple workspaces.
+
+***
+
+## Step 1: Choose the integration type
+
+* Select **Dispute** and continue to the next step.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-1.png"
+  width="80%"
+/>
+
+## Step 2: Choose the provider
+
+* Select **Stripe** and continue to the next step.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-2.png"
+  width="500px"
+/>
+
+***
+
+## Step 3: Configure your Stripe integration
+
+<Tip>
+  ### What you’ll need from Stripe
+
+  Before you begin, make sure you have access to:
+
+  * (Optional) Service / platform account ID (Stripe Connect only)
+  * Stripe account ID
+  * Publishable API key
+  * Restricted secret API key
+  * Webhook signing secret
+
+  <a href="https://dashboard.stripe.com/login" target="_blank">Log in</a> to your Stripe dashboard to complete this step.
+</Tip>
+
+### Integration instance name
+
+**In Payrails**
+
+* Enter an **Instance name** for your integration.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-3.png"
+  width="500px"
+/>
+
+***
+
+### Service account (Stripe Connect only)
+
+<Tip>
+  Skip this section if you process disputes directly on your own Stripe account.
+</Tip>
+
+**In Stripe**
+
+* Go to **Settings** → **Account details**.
+* Copy the **Service account ID** (also called the platform account ID).
+
+**In Payrails**
+
+* Paste the value into the **Service account** field.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-4.png"
+  width="500px"
+/>
+
+***
+
+### Merchant Stripe account ID
+
+**In Stripe**
+
+* Go to **Settings** → **Business**.
+* On the **Account details** tab, copy the **account ID** (`acct_` followed by a 16-character alphanumeric string).
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-5.jpg"
+  width="80%"
+/>
+
+**In Payrails**
+
+* Paste the value into the **Merchant Stripe account ID** field.
+
+***
+
+### Secret API key
+
+<Tip>
+  Use a restricted API key to limit access scope and reduce blast radius if the key is compromised.
+</Tip>
+
+**In Stripe**
+
+1. In **Developers**, locate **Restricted keys** and select **Create restricted key**.
+2. Choose **Providing this key to another website**.
+3. Grant the minimum required permissions:
+   * Charges (read/write)
+   * Disputes (read/write)
+   * Files (read/write)
+   * Payment Intents (read/write)
+   * Refunds (read/write)
+   * Webhooks (read)
+4. Name the key and add `https://www.payrails.com` as the destination URL.
+5. Copy the generated API key.
+
+**In Payrails**
+
+* Paste the value into the **Secret API key** field.
+
+***
+
+### HMAC key (webhook signing secret)
+
+<Tip>
+  Payrails uses Stripe webhooks to receive asynchronous chargeback status updates.
+</Tip>
+
+<Warning>
+  If you are using Stripe Connect, skip this part.
+</Warning>
+
+<Warning>
+  Create the webhook in the same mode (test or live) as your Payrails integration.
+</Warning>
+
+**In Stripe**
+
+1. Go to **Developers** → **Webhooks**.
+2. Select **Add destination**.
+3. Choose **Your account**, then **Selected events**, and enable only the following events:
+
+   <img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-6.png"
+  width="80%"
+/>
+
+4. Select **Webhook endpoint** and continue.
+
+**In Payrails**
+
+* Copy the **Notification URL** from the **Account configuration** section.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-7.png"
+  width="500px"
+/>
+
+In **Stripe**
+
+1. Configure the destination:
+   1. Give the destination a descriptive name.
+   2. Paste the Payrails **Notification URL**  and
+   3. Select **Create destination**.
+2. Copy the **Signing secret**.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-8.png"
+  width="80%"
+/>
+
+In **Payrails**
+
+* Paste the **Signing secret** into the **HMAC key** field.
+
+***
+
+## Enable the integration
+
+**In Payrails**
+
+* Select **Save account** to enable the integration.
+
+The **Enabled** status indicates that the Stripe integration is active.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/stripe-chargeback-integration-9.png"
+  width="80%"
+/>
+
+Your Stripe integration is now ready to process chargebacks.
+
+***
+
+## Next steps
+
+1. Run a test payment triggering a chargeback using a Stripe <a href="https://docs.stripe.com/testing#disputes" target="_blank">test card</a>.
+2. Verify that:
+   * The dispute appears in Stripe.
+   * The chargeback status updates correctly in Payrails.
+3. Once verified in test mode, repeat the setup in live mode.
+

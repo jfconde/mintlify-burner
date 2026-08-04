@@ -1,0 +1,139 @@
+---
+description: "PicPay is Brazil's largest digital payments app, with over 60 million users. It enables customers to make purchases by completing a secure payment flow through their PicPay wallet via QR code. PicPay users can send and receive money, pay bills, store loyalty cards and discount coupons, and more."
+title: "PicPay"
+---
+## Introduction
+PicPay uses a **redirect-based payment flow**. When a customer selects PicPay at checkout, they are redirected to dLocal's hosted page where a QR code is displayed. The customer scans the QR code using the PicPay app to authenticate and confirm payment, then is returned to your site upon completion.
+
+PicPay is a single-use payment method where customers must authenticate each payment.
+
+This guide explains the process of integrating PicPay into your app or website using Payrails.
+
+## Pre-requisites
+
+Before you start accepting PicPay payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for PicPay via **dLocal** as a Payment Service Provider. If you do not have a dLocal integration already configured in your workspace, please follow the [dLocal integration setup guide](/docs/orchestration/integrations/dlocal) first.
+3. Enable PicPay as a payment method in your dLocal integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your dLocal integration instance, and enable the **PicPay** checkbox under Payment methods, then save the account.
+4. Enable PicPay as a [payment option](set-up-payment-methods) in your workflow.
+5. Make sure you're sending the PicPay-specific meta fields in your requests.
+
+## Ways to integrate PicPay
+
+### Payrails SDK
+
+The simplest way to use PicPay with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with PicPay except for handling success/failure screens for your users.
+
+For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#generic-redirect-element) for your client-side implementation.
+
+### Server-to-server integration
+
+You can integrate PicPay by completely managing your own client-side implementation, and using Payrails APIs with a server-to-server integration to process PicPay payments.
+
+#### Parse PicPay from lookup response
+
+With a server-to-server integration, you can call our [lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) endpoint to get available payment options. As shown in the example below, you can see `picPay` returned as an option of the `paymentCompositionOptions`.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2026-03-26T12:00:00.000000000Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "redirect",
+        "paymentMethodCode": "picPay",
+        "description": "PicPay"
+      }
+    ]
+  },
+  "links": {
+    "execution": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+    "authorize": {
+      "method": "POST",
+      "href": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
+    }
+  }
+}
+```
+
+#### Pass PicPay payment method in request to authorize payment with Payrails
+
+You can then make a request to our [authorize a payment endpoint](/reference/authorizeaction) with `picPay` as the `paymentMethodCode`. See an example below:
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "1500",
+    "currency": "BRL"
+  },
+  "paymentComposition": [
+    {
+      "integrationType": "redirect",
+      "paymentMethodCode": "picPay",
+      "amount": {
+        "value": "1500",
+        "currency": "BRL"
+      }
+    }
+  ],
+  "meta": {
+    "customer": {
+      "name": "Pedro Gomes",
+      "email": "pedro.gomes@email.com",
+      "identityCardNumber": "09996352986",
+      "country": {
+        "code": "BR"
+      }
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+> **Note on amounts:** BRL uses 2 decimal places. Amounts should be provided in the smallest currency unit — e.g., `1500` for R$15.00.
+>
+> Response
+>
+> **Note:** PicPay is a redirect-based, single-use payment method. After calling the authorize endpoint, the customer will be redirected to a hosted page displaying a QR code. The customer scans this with the PicPay app to confirm payment. Once confirmed, the customer will be redirected back to the `returnInfo.success` URL. Make sure to provide valid `returnInfo` URLs in your authorization request.
+
+#### Handle the redirect response
+
+After the customer completes the payment on PicPay's side, they will be redirected back to your `success` or `error` URL. You should then verify the payment status by checking the workflow execution status via the Payrails API or by listening to webhook notifications.
+
+## Supported currencies
+
+PicPay via dLocal supports the following presentment currency:
+
+* BRL — Brazilian Real
+
+## Supported regions / countries
+
+### Customer regions
+
+PicPay is available to customers based in:
+
+* Brazil 🇧🇷
+
+### Merchant regions
+
+Merchants enabled for Brazil can accept PicPay payments via dLocal.
+
+## Supported workflows and services
+
+| Workflow                             | Supported |
+| ------------------------------------ | --------- |
+| Available via Payrails SDK           | ✔️        |
+| Available via Payrails API           | ✔️        |
+| Delayed / Manual Capture             | ✖️        |
+| Instant Capture                      | ✔️        |
+| Cancel / Void                        | ✖️        |
+| Refund / Reverse                     | ✔️        |
+| Save Instruments                     | ✖️        |
+| Merchant Initiated Transaction (MIT) | ✖️        |

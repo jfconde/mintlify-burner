@@ -1,0 +1,139 @@
+---
+title: Payrails Web Fraud SDK
+---
+
+## Payrails Fraud SDK provides abstraction on different fraud client SDKs.
+
+The SDK should be initialized as soon as possible to enable data collection as soon as possible. The SDK will then pass all the information needed to the Payrails Web SDK without additional work on the merchant client.
+
+## Including the SDK
+
+```typescript
+import { FraudSDK } from "@payrails/fraud-sdk";
+```
+
+## Loading specific fraud providers
+
+The load function accepts an array of providers with merchant specific configurations.
+
+```typescript
+import { FraudSDK } from "@payrails/fraud-sdk";
+
+// Pass an array of providers
+FraudSDK.load([
+  {
+    provider: "provider name",
+    // specific provider options
+  },
+]);
+```
+
+## Supported providers
+
+### Cybersource
+
+To initialize the Cybersource provider, `merchantId` and `orgId` needs to be passed.
+
+```typescript
+import { FraudSDK, FraudProvider } from "@payrails/fraud-sdk";
+
+// Pass an array of providers
+FraudSDK.load([
+  {
+    provider: FraudProvider.CYBERSOURCE,
+    merchantId: "merchantId",
+    orgId: "orgId",
+  },
+]);
+```
+
+### Forter
+
+To initialize the Forter provider, `siteId` needs to be passed.
+
+```typescript
+import { FraudSDK } from "@payrails/fraud-sdk";
+
+// Pass an array of providers
+FraudSDK.load([
+  {
+    provider: FraudProvider.FORTER,
+    siteId: "siteId",
+  },
+]);
+```
+
+### Ravelin
+
+To initialize the Ravelin provider, `key` needs to be passed.
+
+```typescript
+import { FraudSDK } from "@payrails/fraud-sdk";
+
+// Pass an array of providers
+FraudSDK.load([
+  {
+    provider: FraudProvider.RAVELIN,
+    key: "ravelinPublicKey",
+  },
+]);
+```
+
+### Airwallex
+
+Requires `environment` parameter. `orderSessionId` is optional and auto-generated if omitted:
+
+```typescript
+import { FraudSDK, FraudProvider } from "@payrails/fraud-sdk";
+
+FraudSDK.load([
+  {
+    provider: FraudProvider.AIRWALLEX,
+    environment: "LIVE", // use 'TEST' for sandbox
+    orderSessionId: "orderSessionId", // optional
+  },
+]);
+```
+
+### Stripe Radar
+
+To initialize the Stripe Radar provider, `publishableKey` needs to be passed:
+
+```typescript
+import { FraudSDK, FraudProvider } from "@payrails/fraud-sdk";
+
+FraudSDK.load([
+  {
+    provider: FraudProvider.STRIPE_RADAR,
+    publishableKey: "pk_test_xxx",
+  },
+]);
+```
+
+### Signifyd
+
+To initialize the Signifyd provider, no required fields are needed. Optionally, pass `orderSessionId` — a merchant-generated session id (fewer than 128 characters, \[a-zA-Z0-9\_-]). If omitted, a UUID is auto-generated. This value is sent to the backend as `device.sessionID`.
+
+```typescript
+FraudSDK.load([
+  {
+    provider: FraudProvider.SIGNIFYD,
+    orderSessionId: "optional-merchant-session-id", // optional, auto-generated if omitted
+  },
+]);
+```
+
+### Riskified
+
+To initialize the Riskified provider, `storeDomain` needs to be passed (your Riskified shop domain, matching the `X-RISKIFIED-SHOP-DOMAIN` header on backend API calls). Riskified's Beacon auto-generates the session id, which is sent to the backend as the order's cart_token.
+
+```typescript
+FraudSDK.load([
+  {
+    provider: FraudProvider.RISKIFIED,
+    storeDomain: "my-store.myshopify.com",
+  },
+]);
+```
+
+<br />

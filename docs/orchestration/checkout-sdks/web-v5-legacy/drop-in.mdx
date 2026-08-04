@@ -1,0 +1,543 @@
+---
+title: Drop-in
+---
+
+Payrails Drop-in is our pre-built UI solution for accepting payments on your application. Drop-in shows all payment methods as a list, in the same block.
+
+Tokenizing new cards, adding new payment methods, and managing 3D-Secure or APM redirect flows usually don't require more development work than simply integrating our drop-in into your user journey.
+
+# How it works
+
+From an implementation perspective, a Drop-in integration contains:
+
+- **Server-side**: a single API call that creates the payment session.
+- **Client-side**: frontend component, which uses the payment session data to make the payment request and to handle any other actions like redirects or 3D Secure authentication.
+- **Webhook server**: receives notifications that inform you about the outcome of each payment.
+
+# Getting started
+
+Below is a two-step process for starting drop-in for your client.
+
+## Create the Drop-in component
+
+First, create a Drop-in using the `dropin(configuration)` method of the Payrails client as shown below:
+
+```typescript JavaScript
+const configuration = {
+  paymentMethodsConfiguration?: Object,
+  events?: Object,
+  styles?: Object,
+  translations?: Object
+};
+
+const dropin = payrailsClient.dropin(configuration);
+```
+
+The Drop-in **configuration** is defined as shown below:
+
+| property                      | type   | description                                                                                                                                                                            |
+| :---------------------------- | :----- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `paymentMethodsConfiguration` | Object | Payment method configurations that are needed to customize the drop-in behavior. Read more [here](/docs/orchestration/checkout-sdks/web/drop-in#payment-methods-behavior-and-configurations). |
+| `events`                      | Object | Attach your callables to the events emitted by the Drop-in. Read more [here](/docs/orchestration/checkout-sdks/web/drop-in#event-listener).                                                   |
+| `styles`                      | Object | Styles that should be applied to the Drop-in. Read more [here](/docs/orchestration/checkout-sdks/web/drop-in#styling).                                                                        |
+| `translations`                | Object | Translations to localize the Drop-in. Read more [here](/docs/orchestration/checkout-sdks/web/drop-in#translations).                                                                           |
+
+## Mount the Drop-in to the DOM
+
+Now, when the `mount(containerId)` method of the Drop-in is called, the Drop-in will be inserted in the specified `div`. For instance, the call below will insert the Drop-in into the div with the id `#dropin-container`.
+
+### HTML
+
+```html
+<div id="dropin-container" />
+```
+
+### JavaScript
+
+```javascript
+dropin.mount("#dropin-container");
+```
+
+You can use the `unmount` method to reset the Drop-in to its initial state.
+
+```javascript
+dropin.unmount();
+```
+
+# Payment methods behavior and configurations
+
+```javascript
+const configuration = {
+paymentMethodsConfiguration?: {
+    cards?: {
+      showCardHolderName?: boolean;
+      showStoreInstrumentCheckbox?: boolean;
+      showStoredInstruments?: boolean;
+      showExistingCards?: boolean;
+      alwaysStoreInstrument?: boolean;
+  		layout?: cardFormField[][] // [['CARDHOLDER_NAME'],['CARD_NUMBER'],['EXPIRATION_DATE', 'CVV']],
+			disablePaymentButton?: boolean;
+    };
+  };
+};
+
+const dropin = container.dropin(configuration);
+```
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `preselectFirstPaymentOption`
+      </td>
+
+      <td>
+        boolean
+      </td>
+
+      <td>
+        Automatically preselects the first payment option.
+        Defaults to `false`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `cards`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        * _card_* element configurations:
+        * `showCardHolderName` to display the cardholder name input
+        * `showStoreInstrumentCheckbox` to display a checkbox for customers to save their card for later
+        * `showStoredInstruments` to show existing holder payment instruments
+        * `alwaysStoreInstrument`to always store instruments
+        * `layout` to customize cad form layout
+        * `disablePaymentButton` to set the default state of the payment button
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `googlePay`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        * _googlePay_ element configurations:
+        * `showStoredInstruments` to show existing holder payment instruments
+        * `showStoreInstrumentCheckbox` to display a checkbox for customers to save their instrument for later
+        * `merchantInfo?`: \{
+          `merchantId: string;`  to set merchant id
+          `merchantName?: string;`  to set merchant name on payment sheet
+          }
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `applePay`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        * _applePay_* element configurations:
+        * `showStoredInstruments` to show existing holder payment instruments
+        * `showStoreInstrumentCheckbox` to display a checkbox for customers to save their Apple Pay method for later
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `payPal`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        * _payPal_* element configurations:
+        * `showStoredInstruments` to show existing holder payment instruments
+        * `showStoreInstrumentCheckbox` to display a checkbox for customers to save their PayPal method for later
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `lean`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        * lean_* element configurations:
+
+        * `showStoredInstruments` Instruments are not supported for Lean yet.
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+# Event Listener
+
+Attach your callables to the events emitted by the Drop-in:
+
+```javascript
+const configuration = {
+  events: {
+    onAuthorizeSuccess: () => {
+      console.log("yay!");
+    },
+    onAuthorizeFailed: () => {
+      console.log("nah :(");
+    },
+  },
+};
+
+const dropin = container.dropin(configuration);
+```
+
+| property             | type     | description                                                   |
+| :------------------- | :------- | :------------------------------------------------------------ |
+| `onAuthorizeSuccess` | Callable | This event is triggered when the Authorization is successful. |
+| `onAuthorizeFailed`  | Callable | This event is triggered when the Authorization failed.        |
+
+The handler `function() => void` is a callback function you provide, that will be called when the event is fired.
+
+# Styling
+
+You can configure the style of the Drop-in and individual elements inside with this configuration object:
+
+```typescript Typescript
+interface DropInStyles {
+  // DropIn wrapper specific styles
+  container?: {
+  	style?: Partial<CSSStyleDeclaration>;
+    className?: string;
+  };
+  // Basic styles for each drop-in component wrapper
+  element?: {
+    base?: Partial<CSSStyleDeclaration>;
+    active?: Partial<CSSStyleDeclaration>;
+    className?: string;
+  };
+
+  // Lean specific styles
+  leanButton?: {
+    button?: {
+     base?: Partial<CSSStyleDeclaration>;
+     loading?: Partial<CSSStyleDeclaration>;,
+     hover?: Partial<CSSStyleDeclaration>;,
+    },
+    dialog?: {
+      themeColor?: string; //'#00B67A',
+      overlayColor?: string; // 'rgba(0, 0, 0, 0.5)',
+    },
+  };
+
+  // Google pay specific styles
+  googlePayButton?: {
+    buttonColor?: google.payments.api.ButtonColor;
+    buttonType?: google.payments.api.ButtonType;
+    buttonSizeMode?: google.payments.api.ButtonSizeMode;
+    buttonLocale?: string;
+    storeInstrumentCheckbox?: Partial<CSSStyleDeclaration>;
+    storeInsrtumentCheckboxClassName?: string;
+  };
+  // PayPal specific styles
+  paypalButton?: {
+    color?: 'gold' | 'blue' | 'silver' | 'white' | 'black';
+    height?: number;
+    label?:
+      | 'paypal'
+      | 'checkout'
+      | 'buynow'
+      | 'pay'
+      | 'installment'
+      | 'subscribe'
+      | 'donate';
+    shape?: 'rect' | 'pill';
+    tagline?: boolean;
+    storeInstrumentCheckbox?: Partial<CSSStyleDeclaration>;
+    storeInsrtumentCheckboxClassName?: string;
+  };
+  // Apple pay specific styles
+  applePayButton?: {
+    type?:
+      | 'plain'
+      | 'buy'
+      | 'addMoney'
+      | 'book'
+      | 'checkout'
+      | 'continue'
+      | 'contribute'
+      | 'donate'
+      | 'inStore'
+      | 'order'
+      | 'reload'
+      | 'rent'
+      | 'setUp'
+      | 'subscribe'
+      | 'support'
+      | 'tip'
+      | 'topUp';
+    style?: 'white' | 'white-outline' | 'black' | 'automatic';
+    storeInstrumentCheckbox?: Partial<CSSStyleDeclaration>;
+    storeInsrtumentCheckboxClassName?: string;
+  };
+  // Card form specific styles
+  cardForm?: {
+    wrapper?: Partial<CSSStyleDeclaration>;
+    base?: Partial<CSSStyleDeclaration>;
+    storeCardCheckbox?: Partial<CSSStyleDeclaration>;
+    storeInstrumentCheckbox?: Partial<CSSStyleDeclaration>;
+    storeInsrtumentCheckboxClassName?: string;
+    errorTextStyles?: {
+      base: Partial<CSSStyleDeclaration>;
+    };
+    inputFields?: {
+      // Please see the ElementType enum for the available options
+      [key in ElementType | 'all']?: {
+        complete?: Partial<CSSStyleDeclaration>;
+        empty?: Partial<CSSStyleDeclaration>;
+        focus?: Partial<CSSStyleDeclaration>;
+        invalid?: Partial<CSSStyleDeclaration>;
+        cardIcon?: Partial<CSSStyleDeclaration>;
+      };
+    };
+    labels?: {
+      // Please see the ElementType enum for the available options
+      [key in ElementType | 'all']?: Partial<CSSStyleDeclaration>;
+    };
+  };
+  cardPaymentButton?: {
+    base?: Partial<CSSStyleDeclaration>;
+    disabled?: Partial<CSSStyleDeclaration>;
+    loading?: Partial<CSSStyleDeclaration>;
+    hover?: Partial<CSSStyleDeclaration>;
+  };
+  mercadoPago: {
+    base?: Partial<CSSStyleDeclaration>;
+    active?: Partial<CSSStyleDeclaration>;
+    className?: string;
+  };
+  authSuccess?: Partial<CSSStyleDeclaration>;
+  authFailed?: Partial<CSSStyleDeclaration>;
+	loadingScreen:{
+  	loader: Partial<CSSStyleDeclaration>;
+    overlay:Partial<CSSStyleDeclaration>;
+  }
+}
+
+enum ElementType {
+  CARD_NUMBER = 'CARD_NUMBER',
+  CARDHOLDER_NAME = 'CARDHOLDER_NAME',
+  CVV = 'CVV',
+  EXPIRATION_MONTH = 'EXPIRATION_MONTH',
+  EXPIRATION_YEAR = 'EXPIRATION_YEAR',
+}
+```
+
+## Styling non sensitive elements
+
+Drop-in config allows you to pass custom classnames for non-sensitive elements. Allowing to easily change the styling of the entire drop-in form to match your branding. You can customize:
+
+- Radio buttons
+- Store instrument checkboxes
+- Button styles
+- Custom font families
+- Custom spacing and animations
+
+**Additional information:**
+
+- [CSSStyleDeclaration interface](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleDeclaration)
+- [GooglePay API interface](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/7f801fd9eeed78c5ccddff7694702b04d54842e7/types/googlepay/index.d.ts#L4)
+
+What is not customizable:
+
+- Animations after successful/failed payments
+- Animation on Payment button
+- If you would like to add some possibilities, please contact the Payrails team.
+
+## Show payment options logo
+
+Payrails dropin also allows you to optionally show payment method logo alongside each payment method name.
+You can pass the `showPaymentMethodLogo` as true for the payment methods you would want to show this.
+By default this is false.
+
+```
+  paymentMethodsConfiguration: {
+    preselectFirstPaymentOption: true,
+    cards: {
+      showCardHolderName: true
+      showExistingCards: true
+      showPaymentMethodLogo: true,
+    },
+    payPal: {
+      showPaymentMethodLogo: true,
+    },
+    googlePay: {
+      showPaymentMethodLogo: false,
+    },
+    applePay: {
+      showPaymentMethodLogo: false,
+    },
+    mercadoPago: { // hpp integration
+      showPaymentMethodLogo: true,
+    },
+    [paymentmethod]: {
+    	showPaymentMethodLogo: true
+    }
+  },
+}
+```
+
+# Translations
+
+For the Drop-in, translations are part of the `dropin(options)` signature, inside the `translations`. here's the complete interface:
+
+```javascript
+enum ElementType {
+  CARD_NUMBER = 'CARD_NUMBER',
+  CARDHOLDER_NAME = 'CARDHOLDER_NAME',
+  CVV = 'CVV',
+  EXPIRATION_MONTH = 'EXPIRATION_MONTH',
+  EXPIRATION_YEAR = 'EXPIRATION_YEAR',
+}
+
+interface Translations {
+  leanButton?: {
+      label?: string; //The Lean payment button must use the label "Pay by bank with Al Tareq."
+  },
+  googlePayButton?: {
+    labels?: {
+      label?: string;
+      storeInstrument?: string;
+    };
+  };
+  cardPaymentButton?: {
+    label: string;
+  };
+  cardForm?: {
+    placeholders?: {
+      // please see the ElementType enum for the possible values of key
+      [key in ElementType]?: string;
+    };
+    labels?: {
+      // please see the ElementType enum for the possible values of key
+      [key in ElementType | 'saveCreditCard']?: string;
+    } & {
+      storeInstrument?: string;
+    };
+  };
+  paymentResult?: {
+    success?: string;
+    fail?: string;
+    pending?: string;
+  };
+  paypalButton?: {
+    labels?: {
+      saveInstrument?: string;
+      label?: string;
+    };
+  };
+    mercadoPago: {
+    label: 'dropin item label',
+    button: {
+      label: 'button label'
+    }
+  };
+  errorMessages?:{
+    'Unknown'?: string;
+    'UnexpectedProviderResponse'?: string;
+    'ProviderUnknownError'?: string;
+    'ProviderConnectionError'?: string;
+    'Timeout'?: string;
+    'ProviderTimeout'?: string;
+    'GenericRejection'?: string;
+    'DuplicateOperation'?: string;
+    'OperationNotAllowed'?: string;
+    'NetworkTransactionReferenceRejected'?: string;
+    'PayerCanceled'?: string;
+    'LimitExceeded'?: string;
+    'InstrumentNotAllowed'?: string;
+    'InvalidInstrument'?: string;
+    'InsufficientBalance'?: string;
+    'BlockedInstrument'?: string;
+    'ExpiredInstrument'?: string;
+    'ValidationError'?: string;
+    'ParamsError'?: string;
+    'ProviderConfigError'?: string;
+    'InvalidSignature'?: string;
+    'InternalServerError'?: string;
+    'AuthenticationError'?: string;
+    'PaymentMethodNotSupported'?: string;
+    'PayerAuthenticationRequired'?: string;
+    'PayerAuthenticationFailed'?: string;
+    'FraudRisk';?: string;
+  }
+}
+
+```
+
+# Handling 3DS
+
+We have 2 modes for handling 3ds -
+
+1. **Iframe based flow** - In this flow the user sees the iframe as a popup to validate 3DS. We would recommend this flow to maximise conversion.
+2. **Redirection based flow** - In this flow the user is redirected to the new page to validate 3DS. If you have very strong CSP settings which cannot be relaxed to acoomodate for 3DS, then we would recommend this flow.
+
+The DropIn integration be default comes with the iframe based flow. In order to switch to redirection based flow, the payrails SDK needs to be initialized with `redirectFor3DS` to true.
+
+```typescript TypeScript
+Payrails.init(initResult.res, {
+  redirectFor3DS: true,
+});
+```
+
+<br />
+
+# Authorization failure dialog configuration
+
+Failure message can be hidden automatically after given amount of time.
+
+```typescript
+Payrails.init(initResult.res, {
+  configuration: {
+    authFailMsg?: {
+      autoHideTTL: number. //time in miliseconds
+    }
+  }
+});
+```

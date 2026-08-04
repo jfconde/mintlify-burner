@@ -1,0 +1,86 @@
+This guide from Payrails explains how we enable **Apple Pay Express Checkout** for your store, and what your team needs to build to go live. It assumes you already have standard Apple Pay working with us.
+**What Express gives your shoppers:** they check out in a single tap, and Apple's payment sheet collects their delivery address — so they never fill in an address form on your site. Your code then decides whether you deliver to that address.
+
+## **What we support today**
+
+Please review this before planning your integration, so expectations are clear:
+
+| Capability                                                 | Supported |
+| ---------------------------------------------------------- | --------- |
+| The sheet collects the shopper's delivery address          | ✅ Yes     |
+| Your code validates / rejects an address                   | ✅ Yes     |
+| Updating the sheet **total** based on the selected address | ❌ No      |
+| Showing **shipping-method options** (standard / express …) | ❌ No      |
+
+If your use case needs the Apple Pay sheet to recalculate shipping cost or tax when the shopper picks an address, that is **not available today** and would require new platform work on our side. Please raise it with your Payrails contact before committing to a timeline.
+
+## **How enablement works**
+
+Turning on Express is a shared effort between our teams. There is **no self-service toggle in the merchant portal** — the setting that activates Express lives in your Apple Pay configuration, which we manage for you. Here is the full picture:
+
+| # | Step                                                      | Who      |
+| - | --------------------------------------------------------- | -------- |
+| 1 | Confirm standard Apple Pay is live and domain-verified    | You      |
+| 2 | Tell us which address fields Express should collect       | You      |
+| 3 | Enable Express on your Apple Pay configuration            | Payrails |
+| 4 | Register the `deliveryAddressChanged` listener in the SDK | You      |
+| 5 | Test in the sandbox and confirm the behavior together     | Both     |
+
+The sections below walk through each step.
+
+## **Step 1 — Confirm standard Apple Pay (Merchant)**
+
+Express builds on your existing Apple Pay setup, so before starting, make sure you can complete a normal Apple Pay payment end to end on your checkout domain. If you are not there yet, or you need to register an additional domain, work through [Apple Pay setup](/docs/apple-pay) first — Express cannot work without it.
+
+## **Step 2 — Tell us which fields to collect (Merchant)**
+
+Let us know **which shipping contact fields** the Apple Pay sheet should require from the shopper. Common choices are the postal address and email; typical values include `postalAddress`, `email`, `phone`, and `name`.
+
+If you rely on `billingAddress` or `holderName` in your payment notifications, ask us for billing contact fields too — Apple only returns a billing contact when one is explicitly requested, so enabling shipping fields alone makes both of those drop out.
+
+## **Step 3 — We enable Express on your configuration (Payrails)**
+
+Once you send us the field list from Step 2, **we** set the required shipping contact fields on your Apple Pay configuration.
+
+This is the change that activates Express: as soon as those fields are in place, the Apple Pay sheet starts collecting the shopper's address and the SDK begins forwarding address changes to your listener. Step 4 is required alongside it — until your code registers a listener, the sheet will collect an address but nothing will validate it. When the list is empty, Apple Pay continues to behave as standard (non-express) checkout. There is no separate "express" flag — this field list _is_ the switch, and applying it is a Payrails-side change we make per merchant.
+
+We will confirm with you once it is applied in the sandbox.
+
+## **Step 4 — Register the address listener (Merchant)**
+
+Register a `deliveryAddressChanged` listener with `payrails.on(...)`. The SDK calls it whenever the shopper selects or changes an address in the sheet. To reject an address, call `event.preventDefault()` — the sheet then shows "Delivery to this address is not supported." and prompts the shopper to choose another. To accept it, do nothing.
+
+```javascript
+payrails.on('deliveryAddressChanged', (event) => {
+  const address = event.deliveryAddress;
+  // While the shopper is still choosing, Apple only exposes redacted
+  // fields: city, postalCode, state, and country.code.
+  if (!isServiceableRegion(address?.postalCode, address?.country?.code)) {
+    event.preventDefault();
+  }
+});
+```
+
+This is the only code change Express needs. Your existing button, mount call, and `success` / `failed` handlers stay exactly as they are. For the wider wallet integration see [How to add Apple Pay and Google Pay](/docs/how-to-add-apple-pay-and-google-pay), and for the full event payload see the [Event API Reference](/docs/event-api-reference).
+
+Things to keep in mind:
+
+- **Keep the handler fast.** Apple aborts the sheet if it is not answered within roughly 30 seconds. Use it for region / postal-code checks, not a full cart recalculation or a slow remote lookup.
+
+## **Step 5 — Test together, then go live (Both)**
+
+In the sandbox, please verify that:
+
+- Tapping the Apple Pay button opens a sheet that asks for a delivery address.
+- Selecting a serviceable address lets the shopper continue to pay.
+- Selecting a non-serviceable address shows the "not supported" message and blocks payment.
+- A completed payment goes through end to end.
+
+Once this passes in the sandbox, we will coordinate with you to apply the same configuration in production.
+
+## **Who does what**
+
+- **Payrails** enables Express by setting the required shipping contact fields on your Apple Pay configuration (Step 3), and supports you through domain verification and sandbox setup.
+- **You** choose the fields to collect (Step 2), register the `deliveryAddressChanged` validation listener (Step 4), and test the flow with us (Step 5).
+
+For the underlying event and option definitions, see the [Event API Reference](/docs/event-api-reference) and the [Payrails API Reference](/docs/payrails-api-reference). For anything not covered here — especially dynamic shipping totals — reach out to your Payrails contact.

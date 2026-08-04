@@ -1,0 +1,135 @@
+---
+title: Onboarding to Networks
+description: Learn how to get onboarded to networks as a Token Requestor to start provisioning network tokens.
+---
+### Introduction
+
+The first step is for Payrails to set up the configuration between the merchant and the networks. Payrails works as an on-behalf-of token requestor and handles the heavy lifting of the integrations with the networks for the merchants. Meanwhile, Payrails merchants become the Token Requestor, to whom the ownership of the tokens belongs to.
+
+Each network has a different onboarding process, requiring a different set of information. Payrails handles this complexity and provides a network-agnostic onboarding process to its merchants.
+
+The consolidated set of fields that we will need is presented below.
+
+1. **Legal Entity Name**
+2. **Legal Entity Address**
+3. **Legal Entity Email Address**
+4. **Legal Entity Website URL**
+5. **Branded Name of the Merchant's App**
+6. **Business Identification Value (only for Visa)**
+7. **Service Establishment Number (only for AmEx)**
+
+You can also see the network-specific fields in detail below for your reference and to see details and examples of the information required.
+
+### Onboarding To Visa
+
+The information that needs to be provided to Visa is stated below.
+
+| Information                   | Details                                                                                                                                                                       | Example                                                                                                                                                                                                                                                                                                                                                     |
+| :---------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Business Identification Type  | The Identifier associated with the business type.                                                                                                                             | Some examples are ABN (Australian business number), which has the format of 11 numeric digits, BID (Business identification number for all countries, which has the format of 8 numeric digits, and NID (South Africa national identification number), which has the format of 13 numeric digits. See the **next section** after the list for more details. |
+| Business Identification Value | The value associated with the business identification type.                                                                                                                   | Values vary based on the identification type. See the **next section** after the list for more details.                                                                                                                                                                                                                                                     |
+| Address City                  | City in the token requestor's primary address. A string between 1-100 characters with alphabetic, numeric, or the following characters: spaces, ' (single quote), . (period). | Berlin                                                                                                                                                                                                                                                                                                                                                      |
+| Address Country               | ISO 3166-1 alpha-2 two-letter country code.                                                                                                                                   | DE                                                                                                                                                                                                                                                                                                                                                          |
+| Address Legal Name            | Legal name of Token Requestor. Alphanumeric, excepting semi-colon, percent sign, and parentheses.                                                                             | Cool Technologies Ltd                                                                                                                                                                                                                                                                                                                                       |
+| Primary Contact Email         | Official Standard Email Address of the Token Requestor.                                                                                                                       | [cooltechnologies@email.com](mailto:cooltechnologies@email.com)                                                                                                                                                                                                                                                                                             |
+| Primary Website URL           | The URL of the Token Requestor's (merchant’s) website related to the payment transaction. It should include "https://".                                                       | [https://www.merchant.com](https://www.merchant.com)                                                                                                                                                                                                                                                                                                        |
+| VTS Profile Name              | Profile name under which the payment application is registered in the Visa Tokenization Service system. It can be identical to the VTS Client App ID.                         | Cool Tech                                                                                                                                                                                                                                                                                                                                                   |
+| VTS Client App ID             | Unique identifier for the payment application, which is the branded name of the payment app.                                                                                  | Cool Tech                                                                                                                                                                                                                                                                                                                                                   |
+
+#### Business Identification Type and Value
+
+When onboarding a merchant to VTS (Visa Token Service), Visa requires one or more official identifiers that uniquely identify the merchant’s legal business entity.
+
+* Business Identification Type: Defines what kind of identifier it is. Examples: VAT ID, Tax ID, Company Registration Number, LEI, ABN, etc.
+* Business Identification Value: The actual identifier string. Examples: DE123456789 (German VAT ID), GB987654321 (UK VAT ID), etc.
+
+<Accordion title="How I can find my company's Business Identification Type and Value?" icon="fa-questionmark-circle">
+  Below is a practical table showing common identifier types you would use in different countries/regions.
+
+  | Country / Region          | Recommended Type                        | Notes for Merchants                         |
+  | :------------------------ | :-------------------------------------- | :------------------------------------------ |
+  | **Australia**             | ABN                                     | Primary identifier for most businesses      |
+  | **Australia (companies)** | ACN                                     | Can be used in addition to ABN              |
+  | **United States**         | EIN                                     | Use SSN only for individual merchants       |
+  | **Canada**                | BN                                      | SIN only for individuals                    |
+  | **European Union**        | VAT                                     | Most common and preferred                   |
+  | **United Kingdom**        | VAT                                     | If VAT-registered                           |
+  | **UK (non-VAT)**          | Company Number (via VAT not applicable) | VAT preferred if available                  |
+  | **Brazil**                | CNPJ                                    | Mandatory for businesses                    |
+  | **Mexico**                | RFC                                     | Format differs for individuals vs companies |
+  | **India**                 | PAN                                     | Mandatory for businesses                    |
+  | **Japan**                 | CORPORATE\_NUMBER                       | National corporate identifier               |
+  | **Singapore**             | UEN                                     | Covers businesses and entities              |
+  | **New Zealand**           | NZBN                                    | Official business number                    |
+  | **South Korea**           | BRN                                     | Business registration number                |
+  | **China**                 | USCI                                    | Unified Social Credit Code                  |
+  | **UAE**                   | VAT                                     | Mandatory for VAT-registered merchants      |
+  | **Saudi Arabia**          | VAT or CR                               | VAT preferred if available                  |
+  | **South Africa**          | VAT or NID                              | VAT preferred for businesses                |
+
+  When businessIdentificationType = VAT, the businessIdentificationValue must follow the exact country format shown below.
+
+  | Country                   | VAT Format                                     | Example         |
+  | :------------------------ | :--------------------------------------------- | :-------------- |
+  | Austria (AT)              | `ATU` + 8 digits                               | ATU12345678     |
+  | Belgium (BE)              | `BE` + 10 digits (prefix with `0` if needed)   | BE0123456789    |
+  | Bulgaria (BG)             | `BG` + 9 or 10 digits                          | BG123456789     |
+  | Croatia (HR)              | `HR` + 11 digits                               | HR01234567891   |
+  | Cyprus (CY)               | `CY` + 8 digits + 1 letter                     | CY12345678X     |
+  | Czech Republic (CZ)       | `CZ` + 8–10 digits                             | CZ123456789     |
+  | Denmark (DK)              | `DK` + 8 digits                                | DK12345678      |
+  | Estonia (EE)              | `EE` + 9 digits                                | EE123456789     |
+  | Finland (FI)              | `FI` + 8 digits                                | FI12345678      |
+  | France (FR)               | `FR` + 11 characters                           | FR12345678901   |
+  | Germany (DE)              | `DE` + 9 digits                                | DE123456789     |
+  | Greece (EL)               | `EL` + 9 digits                                | EL123456789     |
+  | Hungary (HU)              | `HU` + 8 digits                                | HU12345678      |
+  | Iceland (IS)              | 5–6 digits                                     | 12345           |
+  | Ireland (IE)              | `IE` + 8 alphanumeric characters               | IE1234567X      |
+  | Israel (IL)               | 9 digits                                       | 123456789       |
+  | Isle of Man (GB)          | `GB` + 9 or 12 digits (first two must be `00`) | GB003456789     |
+  | Italy (IT)                | `IT` + 11 digits                               | IT12345678901   |
+  | Latvia (LV)               | `LV` + 11 digits                               | LV12345678901   |
+  | Lithuania (LT)            | `LT` + 9 or 12 digits                          | LT123456789     |
+  | Luxembourg (LU)           | `LU` + 8 digits                                | LU12345678      |
+  | Malta (MT)                | `MT` + 8 digits                                | MT12345678      |
+  | Netherlands (NL)          | `NL` + 12 characters (10th = `B`)              | NL123456789B01  |
+  | Norway (NO)               | `NO` + 9 digits + `MVA`                        | NO123456789MVA  |
+  | Poland (PL)               | `PL` + 10 digits                               | PL1234567890    |
+  | Portugal (PT)             | `PT` + 9 digits                                | PT123456789     |
+  | Romania (RO)              | `RO` + 2–10 digits                             | RO12345678      |
+  | Saudi Arabia (SA)         | 15 digits                                      | 123456789012345 |
+  | Slovak Republic (SK)      | `SK` + 10 digits                               | SK1234567890    |
+  | Slovenia (SI)             | `SI` + 8 digits                                | SI12345678      |
+  | South Africa (ZA)         | 10 or 11 digits                                | 1234567890      |
+  | Spain (ES)                | `ES` + 9 digits                                | ES123456789     |
+  | Sweden (SE)               | `SE` + 12 digits                               | SE123456789012  |
+  | Switzerland (CH)          | `CH` + 9 digits + `MWST` / `TVA` / `IVA`       | CH123456789MWST |
+  | Thailand (TH)             | 13 digits                                      | 1234567890123   |
+  | Turkey (TR)               | `TR` + 10 digits                               | TR1234567890    |
+  | Ukraine (UA)              | 9 or 12 digits                                 | 123456789       |
+  | United Arab Emirates (AE) | 15 digits                                      | 123456789012345 |
+  | United Kingdom (GB)       | `GB` + 9 digits                                | GB123456789     |
+
+  Note that Visa supports a predefined set of business identification types for specific countries and regions. This list does not cover every country in the world, because Visa only accepts identifier schemes that are standardized and validated for use with their tokenization service.
+
+  If a merchant operates in a country that is not explicitly listed, a country-specific identifier type may not be available. In such cases, Visa may require the use of a generic Business Identification Number (BID); however, BID can only be used with prior approval from Visa. Merchants should use the primary tax or business registration identifier applicable in their country and consult their acquirer or Visa representative if their country is not listed.
+</Accordion>
+
+### Onboarding To Mastercard
+
+The information that needs to be provided to Mastercard is stated below.
+
+| Information           | Details                                                                                                                                                                       | Example                                              |
+| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------- |
+| Program Name          | The program name represents an entity’s consumer-facing name (e.g. merchant name), where the consumer has stored their card on file.                                          | Cool Tech                                            |
+| DPA Name              | Legal name of registered DPA (Data Processing Agreement).                                                                                                                     | Cool Technologies Ltd                                |
+| DPA Presentation Name | Merchant company name associated with the DPA to be used for presentation purposes within the user experience.                                                                | Cool Tech                                            |
+| Address City          | City in the token requestor's primary address. A string between 1-100 characters with alphabetic, numeric, or the following characters: spaces, ' (single quote), . (period). | Berlin                                               |
+| Address Country       | ISO 3166-1 alpha-2 two-letter country code.                                                                                                                                   | DE                                                   |
+| Address Legal Name    | Legal name of Token Requestor. Alphanumeric, excepting semi-colon, percent sign, and parentheses.                                                                             | Cool Technologies Ltd                                |
+| Primary Website URL   | The URL of the Token Requestor's (merchant’s) website related to the payment transaction. It should include "https://".                                                       | [https://www.merchant.com](https://www.merchant.com) |
+
+Once the onboarding process is completed, your Payrails representative will inform you, and you will be able to start provisioning network tokens.
+
+

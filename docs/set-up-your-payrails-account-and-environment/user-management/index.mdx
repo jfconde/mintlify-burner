@@ -1,0 +1,79 @@
+---
+title: User Management
+description: Learn about user authentication, roles and permissions, and how to manage lifecycle of users.
+---
+
+## Role-Based Access Control (RBAC)
+
+Role-Based Access Control (RBAC) is a robust security model that organizes access permissions based on user roles. In RBAC, users are assigned specific roles, each with well-defined permissions. Rather than assigning permissions directly to individual users, access is governed through roles. This streamlined approach simplifies administration, enhances overall security, and ensures that users only possess the access necessary for their designated roles. This minimizes the risk of unauthorized actions, contributing to improved system management.
+
+There are two primary methods through which users interact with the Payrails system. Users can utilize the merchant portal for tasks such as configuring workflows or gaining insights into executions and reports. Alternatively, they can interact programmatically via API and SDK. In both scenarios, user roles are assigned to the individuals managing user accounts or to the machines involved in machine-to-machine communication.
+
+## Best Practices
+
+As part of our commitment to security and compliance with PCI DSS requirements, we provide the following guidelines to help customers create strong authentication credentials and protect their accounts from unauthorized access.
+
+- **Least Privilege Principle:** Assign the minimum necessary permissions to users based on their roles. This reduces the risk of unauthorized access and potential security breaches.
+- **Regular Audits:** Periodically review and update user roles and permissions to align with organizational changes. Remove unnecessary access for users who have changed roles or responsibilities.
+- **Training:** Provide training sessions for users on the assigned roles and the associated permissions. This ensures that everyone is aware of the actions they can perform within the system.
+
+### Guidance on Selecting Strong Authentication Factors
+
+A strong password is critical for securing your account. When creating a password, follow these best practices:
+
+- Use a minimum of 12 characters (longer is better).
+- Include a mix of uppercase and lowercase letters, numbers, and special characters.
+- Avoid dictionary words, common phrases, or easily guessable information (e.g., "password," "123456," "qwerty," your name, or birthdate).
+- Do not use variations of personal information, such as reversed spellings or adding numbers to familiar words.
+- Consider using passphrases (e.g., "Blue!Ocean&77\@Sunset") for enhanced security.
+
+### How to Protect Your Authentication Factors
+
+Your password is the key to your account. Take the following measures to keep it secure:
+
+- Do not share your password with anyone, including colleagues, friends, or customer support personnel.
+- Do not write down your password or store it in an easily accessible location.
+- Use a password manager to securely store and generate unique passwords.
+- Enable multi-factor authentication (MFA) whenever possible for added security.
+
+### Avoid Reusing Previously Used Passwords
+
+To prevent unauthorized access, never reuse passwords from other systems or previous credentials. Each account should have a unique password. This prevents attackers from using stolen passwords from one system to gain access to another.
+
+### Changing Your Password if Compromised
+
+If you suspect that your password has been compromised, take immediate action:
+
+1. **Change your password immediately** using the password reset feature.
+2. **Notify Payrails security team** at \[[security@payrails.com](mailto:security@payrails.com)] if you suspect unauthorized access.
+3. **Monitor your account activity** for any suspicious transactions.
+4. **Update any other accounts** that used the same password (if applicable).
+
+By following these guidelines, you can help protect your account and ensure the security of your authentication credentials. If you have any questions, please contact our security team.
+
+## FAQ
+
+**Q: How can I request additional permissions for my role?**\
+A: To request additional permissions, reach out to your administrator or the designated role manager. They can assess your request, considering the principle of least privilege, and make necessary adjustments if required.
+
+**Q: Can I have multiple roles assigned to my account?**\
+A: No, each account is assigned a single role to maintain clarity and adhere to the principle of least privilege. If your responsibilities change, contact the administrator to reassess and adjust your role accordingly.
+
+**Q: What should I do if I suspect unauthorized access?**\
+A: If you suspect unauthorized access or notice any unusual activity, immediately report it to your administrator. They will investigate the issue and take appropriate measures to secure the system. Additionally, change your password immediately and ensure that multi-factor authentication (MFA) is enabled.
+
+**Q: How often should I change my password?**\
+A: It is recommended to change your password periodically and immediately if you suspect it has been compromised. Avoid reusing previous passwords and use a password manager to generate and store secure passwords.
+
+**Q: Are role changes effective immediately?**\
+A: Yes, role changes take effect immediately upon assignment. However, it's recommended to log out and log back in to ensure the updated roles and permissions are applied consistently.
+
+**Q: How often should roles and permissions be audited?**\
+A. Roles and permissions should be audited regularly, at least quarterly, or whenever there are organizational changes. Regular audits help ensure that access levels align with current business requirements and reduce security risks.
+
+**Q: Can I customize roles based on specific business needs?**
+
+A: No, the roles are predefined to maintain consistency and security. If you have specific access requirements, discuss them with your administrator, and they can assess whether adjustments are necessary within the existing role structure.
+
+**Q: Why am I getting 405 Not Allowed when accessing the portal via SSO (e.g. Okta)?**\
+A: There is a known limitation with our portal which prevents direct connection from your SSO portal (e.g. Okta) to our portal. To access the portal with you SSO login, you need to access via the direct portal URL instead (e.g. `https ://yourcompany.payrails.io/`)

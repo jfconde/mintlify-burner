@@ -1,0 +1,1500 @@
+---
+title: Elements
+description: Payrails Elements are payment UI components you can assemble together to build a payment form.
+---
+
+# Getting started
+
+Although each Element (cards, Apple Pay, Google Pay, PayPal, etc) has its own signature, they follow a similar implementation.
+
+## Create the Element
+
+```javascript
+const options = {
+  /* object with Element configurations */
+};
+const myElement = payrailsClient.someElement(options);
+```
+
+## Mount the Element to your DOM
+
+When the `mount(containerId)` method of the Element is called, the Element will be inserted in the specified `div`. For instance, the call below will insert the Element into the `div` with the id `#element-container`.
+
+### HTML
+
+```html
+<div id="element-container" />
+```
+
+### JavaScript
+
+```javascript
+element.mount("#element-container");
+```
+
+You can use the `unmount` method to reset the Element to its initial state.
+
+```javascript
+element.unmount();
+```
+
+# Card Form Element
+
+The `cardForm` element is a secure card tokenization form.
+
+```javascript
+interface OnChange {
+  isValid?: boolean,
+  cardNetwork?: string,
+  bin?: string
+}
+
+const element = payrails.cardForm({
+  showCardHolderName: true,
+  showStoreInstrumentCheckbox: true,
+  showSingleExpiryDateField: true,
+  styles: {
+    inputFields: {
+      all: {
+        base: {
+          '&:hover': {
+            border: '1px solid black',
+          },
+        },
+        focus: {
+          border: '1px solid black',
+        },
+      },
+    },
+  },
+  translations: {
+    placeholders: {
+      CARDHOLDER_NAME: 'Customized card holder',
+      CARD_NUMBER: 'Custom card number',
+      CVV: 'CODE',
+      EXPIRATION_MONTH: 'MM',
+      EXPIRATION_YEAR: 'YY',
+    },
+    labels: {
+      saveCreditCard: 'Save card for future use',
+    },
+  },
+  events: {
+    onChange(e: OnChange) {
+      console.log('card form change', e);
+    },
+    onFocus() {
+      console.log('user set focus to input field');
+    }
+    onReady() {
+      console.log('triggered when form is rendered and ready')
+    }
+  }
+});
+
+element.mount('#card-form-container');
+```
+
+The Card Form **configuration** is defined as shown below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `showCardHolderName`
+      </td>
+
+      <td>
+        Boolean
+      </td>
+
+      <td>
+        To display the cardholder name input
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `layout`
+      </td>
+
+      <td>
+        cardField[][]
+      </td>
+
+      <td>
+        to customize card form layout
+        e.g. `[['CARDHOLDER_NAME'],['CARD_NUMBER'],['EXPIRATION_DATE', 'CVV']]`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `showSingleExpiryDateField`
+      </td>
+
+      <td>
+        Boolean
+      </td>
+
+      <td>
+        to only single expiry dat as `MM/YY`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `showStoreInstrumentCheckbox`
+      </td>
+
+      <td>
+        Boolean
+      </td>
+
+      <td>
+        To display a checkbox for customers to save their cards for later.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `styles`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        Styles that should be applied to the Element. Styles are specified with
+
+        [JSS](https://cssinjs.org/?v=v10.7.1)
+
+        .
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `translations`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        Translations to localize the Element.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `events`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        The below events can be emitted by the Card Form element. For more details about events, see the [SDK Events Glossary](sdk-events-glossary) .
+
+        * `onChange`
+        * `onFocus`
+        * `onReady`
+        * `onSaveInstrumentCheckboxChanged`
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+<br />
+
+### Card form functions
+
+Card form exposes the following functions
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        functions
+      </th>
+
+      <th>
+        description
+      </th>
+
+      <th>
+        params
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `mount`
+      </td>
+
+      <td>
+        used to add the card form into the DOM
+      </td>
+
+      <td>
+        location: string
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `unmount`
+      </td>
+
+      <td>
+        used to remove the card form from the DOM
+      </td>
+
+      <td>
+
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `show`
+      </td>
+
+      <td>
+        Used to show the card form
+      </td>
+
+      <td>
+
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `hide`
+      </td>
+
+      <td>
+        used to hide the card form.
+        Pass `{reset : true}` if you want to reset the card form values on hide.
+      </td>
+
+      <td>
+        ```json
+        {
+        reset: true | false // defaults to false
+        }
+        ```
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `update`
+      </td>
+
+      <td>
+        used to update the styles and translations for the element
+      </td>
+
+      <td>
+        ```javascript
+        {
+          styles: Object,
+          translations: Object
+        }
+        ```
+
+        <br />
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+<br />
+
+# Card List Element
+
+The `cardList` element is a radio button list of the customer's saved instruments.
+
+```javascript
+const element = payrails.cardList({
+  styles: {
+    border: "1px solid #eae8ee",
+    padding: "10px 16px",
+    borderRadius: "4px",
+    color: "#1d1d1d",
+  },
+});
+
+element.mount("#card-list-container");
+```
+
+The Card Form **configuration** is defined as shown below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `styles`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        Styles that should be applied to the Element. Styles are specified with
+
+        [JSS](https://cssinjs.org/?v=v10.7.1)
+
+        .
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `events`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        The below events can be emitted by the Card List element. For more details about events, see the [SDK Events Glossary](sdk-events-glossary) .
+
+        * `onCardChange`
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+# Payment Button Element
+
+The `cardButton` element is the card payment authorization button.
+
+The `cardButton`can collect the content of the `cardForm` and `cardList` Elements. So, it would typically be used:
+
+- alone if there are no payment instruments to decide.
+- with a `cardForm` if the user will provide a new card.
+- with a `cardList` if the user will pick an existing instrument.
+- with both `cardForm` and `cardList` if the customer can provide a new card or use an existing instrument.
+
+```javascript
+const element = payrails.paymentButton({
+  label: 'Pay',
+  disabledByDefault?: boolean;
+  events: {
+    onAuthorizeSuccess: () => {
+      console.log('yay!');
+    },
+    onAuthorizeFailed: (e) => {
+      console.log('nah :(', e);
+    },
+    onPaymentButtonClicked: (e) => {
+      console.log('clicked', e);
+      // If resolved to false authorization will not be triggered
+      return Promise.resolve(true);
+    },
+    onPaymentSessionExpired() {
+      console.log('session expired');
+      // dropin has to be initialized with new workflow execution, contact your backend
+    },
+    onThreeDSecureChallenge() {
+      console.log('3ds initiated');
+      // triggered when 3DS challenge starts
+    },
+    onStateChanged(state: 'enabled' | 'disabled') {
+      console.log(state);
+      //triggered when button change the state from enabled to disabled
+    }
+  },
+  styles: {
+    base: {
+      width: 'auto',
+      border: '1px solid transparent',
+      borderRadius: '12px',
+      backgroundColor: '#0096b2',
+      borderColor: 'transparent',
+      color: '#fff',
+      padding: '8px 24px',
+      fontSize: '16px',
+      minHeight: '48px',
+    },
+    disabled: {
+      backgroundColor: '#d8dfe6',
+      color: '#52667d',
+    },
+    hover: {
+      backgroundColor: '#22a2be',
+    },
+  },
+});
+
+element.mount('#payment-button-container');
+```
+
+The Payment Button **configuration** is defined as shown below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `label`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        Label for the form field.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `disabledByDefault`
+      </td>
+
+      <td>
+        boolean
+      </td>
+
+      <td>
+        set the default state for the payment button
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `events`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        The below events can be emitted by the payment button element. For more details about events, see the [SDK Events Glossary](sdk-events-glossary)
+
+        * `onPaymentButtonClicked`
+        * `onThreeDSecureChallenge`
+        * `onPaymentSessionExpired`
+        * `onAuthorizeSuccess`
+        * `onAuthorizeFailed`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `styles`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        Styles that should be applied to the Element. Styles are specified with
+
+        [JSS](https://cssinjs.org/?v=v10.7.1)
+
+        .
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+### `onAuthorizeFailed()` errors
+
+callback receives the object describing the error that happened
+
+```Text TypeScript
+enum AuthorizationFailureReasons {
+  VALIDATION_FAILED = 'VALIDATION_FAILED',
+  AUTHORIZATION_ERROR = 'AUTHORIZATION_ERROR',
+  AUTHENTICATION_ERROR = 'AUTHENTICATION_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+}
+
+interface AuthorizationError {
+  code: AuthorizationFauilureReasons
+  message: string
+  rawError?: any //if UNKNOWN_ERROR happens, raw error is available on the object
+}
+
+
+```
+
+#### Failure reasons explanation
+
+VALIDATION_FAILED: `onPaymentButtonClicked` wasn't resolved to true
+
+AUTHORIZATION_ERROR: authorization failed, no technical reason. Details are in the message (different for 3DS)
+
+AUTHENTICATION_ERROR: token used in SDK is invalid
+
+UNKNOWN_ERROR: all other errors
+
+### `onPaymentButtonClicked()` event
+
+Callback receives the object, containing:
+
+```Text TypeScript
+{
+  bin: '41111111' // optional, in case of card payment, returns the bin of the card
+}
+```
+
+<br />
+
+### Payment Button functions
+
+Payment Button exposes the following functions
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        functions
+      </th>
+
+      <th>
+        description
+      </th>
+
+      <th>
+        params
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `update`
+      </td>
+
+      <td>
+        used to update the styles and translations for the element
+      </td>
+
+      <td>
+        ```javascript
+        {
+          styles: Object,
+          translations: Object
+        }
+        ```
+
+        <br />
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+<br />
+
+# Google Pay Element
+
+The `googlePayButton` element is an authorization button for Google Pay.
+
+```javascript
+const element = payrails.googlePayButton({
+  environment?: 'TEST' | 'PRODUCTION';
+  showStoreInstrumentCheckbox?: boolean,
+  merchantInfo?: {
+    merchantId: string;
+    merchantName?: string;
+  };
+  styles?: {
+    buttonColor: google.payments.api.ButtonColor,
+    buttonType: google.payments.api.ButtonType,
+    buttonSizeMode: google.payments.api.ButtonSizeMode,
+    buttonLocale: string, //@deprecated
+		locale: string,
+    storeInstrumentCheckbox: {
+      color: string,
+      fontWeight: string,
+    },
+  },
+  translations?: {
+    labels: {
+      storeInstrument: string,
+    },
+  },
+  events: {
+    onAuthorizeSuccess: () => {
+      console.log('yay!');
+    },
+    onAuthorizeFailed: () => {
+      console.log('nah :(');
+    },
+    onPaymentButtonClicked: async() => {
+      console.log('clicked');
+      // If resolved to false authorization will not be triggered
+      return Promise.resolve(true);
+    },
+    onPaymentSessionExpired() {
+      console.log('session expired');
+      // dropin has to be initialized with new workflow execution, contact your backend
+    },
+  }
+});
+
+element.mount('#google-pay-button-container');
+```
+
+The Google Pay button **configuration** is defined as shown below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `events`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        The below events can be emitted by the Google Pay element. For more details about events, see the [SDK Events Glossary](sdk-events-glossary) .
+
+        * `onPaymentButtonClicked`
+        * `onThreeDSecureChallenge`
+        * `onPaymentSessionExpired`
+        * `onAuthorizeSuccess`
+        * `onAuthorizeFailed`
+        * `onGooglePayAvailable`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `merchantInfo`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        * `merchantId: string;`  merchantId, not needed when in TEST
+        * `merchantName?: string;` merchant name displayed on payment sheet
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+# Google Pay availability
+
+Payrails client provides the method to check if Google Pay is available in the current browser/client session. This is only necessary if one needs to know in advance if the payment method is supported. The `GooglePayButton` element otherwise has this logic encapsulated and will not render if the browser is not supported.c
+
+```typescript
+const googlePay = isGooglePayAvailable(merchantInfo: google.payments.api.MerchantInfo)
+```
+
+<br />
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `merchantInfo`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        * `merchantId: string;`  merchantId, not needed when in TEST  - `merchantName?: string;` merchant name displayed on payment sheet
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+# Apple Pay Element
+
+The `applePayButton` element is an authorization button for Apple Pay.
+
+```javascript
+const element = payrails.applePayButton({
+  showStoreInstrumentCheckbox?: boolean,
+	abortAfterAuthorizeFailed?: boolean;
+  events: {
+    onAuthorizeSuccess: () => {
+      console.log('yay!');
+    },
+    onAuthorizeFailed: () => {
+      console.log('nah :(');
+    },
+    onPaymentButtonClicked: async() => {
+      console.log('clicked');
+      // If resolved to false authorization will not be triggered
+      return Promise.resolve(true);
+    },
+    onPaymentSessionExpired() {
+      console.log('session expired');
+      // dropin has to be initialized with new workflow execution, contact your backend
+    },
+    onApplePayAvailable() {
+      console.log('Apple Pay ready');
+      // event will fire when Apple Pay Button is initialized
+    },
+    styles?: {
+    	type?:
+      	| 'plain'
+      	| 'buy'
+        | 'addMoney'
+        | 'book'
+        | 'checkout'
+        | 'continue'
+        | 'contribute'
+        | 'donate'
+        | 'inStore'
+        | 'order'
+        | 'reload'
+        | 'rent'
+        | 'setUp'
+        | 'subscribe'
+        | 'support'
+        | 'tip'
+        | 'topUp',
+			style?: 'white' | 'white-outline' | 'black' | 'automatic',
+			locale: string,
+    }
+  }
+});
+
+element.mount('#apple-pay-button-container');
+```
+
+The Apple Pay button **configuration** is defined as shown below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `events`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        The below events can be emitted by the Apple Pay element. For more details about events, see the [SDK Events Glossary](sdk-events-glossary)  .
+
+        * `onPaymentButtonClicked`
+        * `onThreeDSecureChallenge`
+        * `onPaymentSessionExpired`
+        * `onAuthorizeSuccess`
+        * `onAuthorizeFailed`
+        * `onApplePayAvailable`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        abortAfterAuthorizeFailed
+      </td>
+
+      <td>
+        Boolean
+      </td>
+
+      <td>
+        Hide payment sheet if authorization fails.
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+# Apple Pay availability
+
+Payrails client provides the method to check if Apple Pay is available in the current browser/client session. This is only necessary if one needs to know in advance if to render the element. The `ApplePayButton` element otherwise has this logic encapsulated and will not render if the browser is not supported.
+
+```typescript
+const isAvailable = await payrails.isApplePayAvailable(); // returns boolean
+```
+
+<br />
+
+# PayPal Element
+
+The `paypalButton` element is an authorization button for PayPal.
+
+```javascript
+const element = payrails.paypalButton({
+  showStoreInstrumentCheckbox: boolean; // default false
+  alwaysStoreInstrument: boolean; // default false
+  styles: {
+    color: "'gold' | 'blue' | 'silver' | 'white' | 'black'",
+    height: 30,
+    label: "'paypal' | 'checkout' | 'buynow' | 'pay' | 'installment' | 'subscribe' | 'donate'",
+    shape: "'rect' | 'pill'",
+    tagline: "true | false",
+  	storeInstrumentCheckbox: Partial<CSSStyleDeclaration>,
+		locale: string,
+  },
+  events: {
+    onAuthorizeSuccess: () => {
+      console.log('yay!');
+    },
+    onAuthorizeFailed: () => {
+      console.log('nah :(');
+    },
+    onPaymentButtonClicked: async() => {
+      console.log('clicked');
+      // If resolved to false authorization will not be triggered
+      return Promise.resolve(true);
+    },
+    onPaymentSessionExpired() {
+      console.log('session expired');
+      // dropin has to be initialized with new workflow execution, contact your backend
+    },
+    onPaypalAvailable() {
+      // called when paypal is available in the browser
+    }
+  },
+  translations: {
+    labels: {
+      saveInstrument: string;
+    };
+  };
+});
+
+element.mount('#paypal-button-container');
+```
+
+The PayPal button **configuration** is defined as shown below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `events`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        The below events can be emitted by the PayPal element. For more details about events, see the [SDK Events Glossary](sdk-events-glossary)  .
+
+        * `onPaymentButtonClicked`
+        * `onThreeDSecureChallenge`
+        * `onPaymentSessionExpired`
+        * `onAuthorizeSuccess`
+        * `onAuthorizeFailed`
+        * `onPaypalAvailable`
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+# PayPal FraudNet integration
+
+Payrails SDK provides an easy way to integrate with PayPal FraudNet's solution.
+
+```typescript
+/**
+  | 'home-page'
+  | 'search-result-page'
+  | 'category-page'
+  | 'product-detail-page'
+  | 'cart-page'
+  | 'inline-cart-page'
+  | 'checkout-page';
+**/
+const page = "checkout-page";
+
+const fraudNet = payrails.fraudNet(page);
+fraudNet.mount();
+```
+
+# Generic Redirect Element
+
+The `genericRedirectButton` element is an authorization button for Generic Redirect payment methods.
+
+```typescript
+const element = payrails.genericRedirectButton({
+  paymentMethod: {
+		paymentMethodCode: 'mercadoPago' | 'pix' | 'bankAccount' | 'iDeal' | 'revolutPay' | 'yape'
+  };
+  openInNewTab: true | false ;
+  events: {
+    onAuthorizeSuccess: () => {
+      console.log('yay!');
+    },
+    onAuthorizeFailed: () => {
+      console.log('nah :(');
+    },
+    onPaymentButtonClicked: async() => {
+      console.log('clicked');
+      // If resolved to false authorization will not be triggered
+      return Promise.resolve(true);
+    },
+    onPaymentSessionExpired() {
+      console.log('session expired');
+      // dropin has to be initialized with new workflow execution, contact your backend
+    }
+  },
+  translations: {
+    // This value will be mapped to the payment button label
+    label: "Pay using Payment Method";
+  },
+  styles: {
+    background: "#474847",
+    fontSize: "16px",
+    color: "white",
+    padding: "5px"
+  },
+  returnInfo: {
+    success: "example.com/success",
+    error: "example.com/error",
+    pending: "example.com/pending",
+    cancel:"example.com/cancel"
+  }
+});
+
+element.mount('#genericRedirect-button-container');
+```
+
+The Generic Redirect button **configuration** is defined as shown below:
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        property
+      </th>
+
+      <th>
+        type
+      </th>
+
+      <th>
+        description
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `events`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        The below events can be emitted by the Generic Redirect element. For more details about events, see the [SDK Events Glossary](sdk-events-glossary)  .
+
+        * `onPaymentButtonClicked`
+        * `onThreeDSecureChallenge`
+        * `onPaymentSessionExpired`
+        * `onAuthorizeSuccess`
+        * `onAuthorizeFailed`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `translations`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        * `label`, the display label will be mapped to the payment button.
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `styles`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        Styling of the payment button. Follow the guidelines for styling
+
+        [buttons](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button)
+
+        <br />
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `paymentMethod`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        Payment Method for which the generic redirect button will be created
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `returnInfo`
+      </td>
+
+      <td>
+        Object
+      </td>
+
+      <td>
+        Object defining return urls after payment is finalized.
+
+        ```
+        {
+          success: "example.com/success",
+          error: "example.com/error",
+          pending: "example.com/pending",
+          cancel:"example.com/cancel"
+        }
+        ```
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+> Note: not all events are applicable for all generic redirect payment methods.
+
+### Styling config to match brand guidelines
+
+For the following payment methods, SDK provides look and feel for the button according to the brand guidelines.
+
+#### Revolut Pay
+
+| Property     | Type                                | Default        | Description                                                                                                                                  |
+| :----------- | :---------------------------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------- |
+| theme        | `dark` \| `light` \| `lightOutline` | `lightOutline` | Sets the button color scheme. 'dark' renders a dark background, 'light' a white background, 'lightOutline' a white background with a border. |
+| width        | `string`                            | `250px`        | Any valid CSS width value (e.g. '100%', '320px'). The button preserves its aspect ratio.                                                     |
+| borderRadius | `string`                            | -              | Any valid CSS border-radius value (e.g. '8px'). Optional                                                                                     |
+
+```typescript
+payrailsClient.genericRedirectButton(
+	paymentMethod: { paymentMethodCode: 'revolutPay' },
+  styles: {
+    theme: 'dark',
+    width: '320px',
+    borderRadius: '8px',
+  }
+)
+```
+
+### Generic Redirect functions
+
+Generic Redirect exposes the following functions
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        functions
+      </th>
+
+      <th>
+        description
+      </th>
+
+      <th>
+        params
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `update`
+      </td>
+
+      <td>
+        used to update the styles and translations for the element
+      </td>
+
+      <td>
+        ```javascript
+        {
+          styles: Object,
+          translations: Object
+        }
+        ```
+
+        <br />
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+<br />
+
+# Dynamic Element
+
+The `dynamicElement` element is an embedded form element for different payment methods.
+
+```typescript
+interface OnChange {
+  isValid?: boolean;
+  fieldName?: string;
+  value?: any;
+}
+
+const element = payrails.dynamicElement({
+  paymentMethod: {
+    paymentMethodCode: "bankAccount", // required
+  },
+  styles: {
+    all: {
+      base: {
+        // base field styles
+      },
+      focus: {
+        // focused field styles
+      },
+      invalid: {
+        // invalid field styles
+      },
+    },
+    fields: {
+      "bankaccount.account.number": {
+        // Specific bank account number styling
+      },
+    },
+  },
+  translations: {
+    fields: {
+      "bankaccount.account.number": {
+        label: "Account Number",
+        placeholder: "Enter your account number",
+      },
+    },
+  },
+  events: {
+    onReady() {
+      console.log("triggered when form is rendered and ready");
+    },
+    onValidationChange(e) {
+      console.log("dynamic element form state changed", e);
+    },
+  },
+});
+
+element.mount("#dynamic-element-container");
+```
+
+The dynamic element **configuration** is defined as shown below:
+
+| property      | type   | description                                                                                                                                                                                          |
+| ------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| paymentMethod | Object | Configuration for the payment method to collect                                                                                                                                                      |
+| styles        | Object | Styles that should be applied to the Element. Styles are specified with [JSS](https://cssinjs.org/?v=v10.7.1).                                                                                       |
+| translations  | Object | Translations to localize the Element.                                                                                                                                                                |
+| events        | Object | The below events can be emitted by the Dynamic Element. For more details about events, see the [SDK Events Glossary](sdk-events-glossary). onReady onValidStateChange |
+
+### Field types
+
+The Dynamic Element automatically generates different field types based on the JSON schema, supported field types are:
+
+1. **Input Fields**
+2. **Select Fields**
+3. **Tab Fields**
+
+#### Field specific styling configuration
+
+```typescript
+const config = {
+  styles: {
+    all: {
+      // Styles applied to all field types
+      input: {
+        base: {}, // Default input styles
+        focus: {}, // Focused input styles
+        invalid: {}, // Invalid input styles
+        complete: {}, // Completed input styles
+        empty: {}, // Empty input styles
+      },
+      select: {
+        base: {}, // Default select styles
+        focus: {}, // Focused select styles
+        invalid: {}, // Invalid select styles
+        complete: {}, // Completed select styles
+      },
+      tabs: {
+        container: {
+          base: {}, // Tab container styles
+        },
+        tab: {
+          base: {}, // Default tab styles
+          active: {}, // Active tab styles
+        },
+      },
+      errors: {}, // Error message styles
+    },
+  },
+  fields: {
+    // Field-specific styling (overrides 'all' styles)
+    "bankAccount.holder.firstName": {
+      label: {}, // Label styles
+      input: {
+        base: {}, // Field-specific input styles
+      },
+      errors: {}, // Field-specific error styles
+    },
+  },
+};
+```
+
+### Dynamic element functions
+
+Dynamic element exposes the following functions
+
+| functions | description                                     | params             |
+| --------- | ----------------------------------------------- | ------------------ |
+| mount     | used to add the dynamic element into the DOM    | `location`: string |
+| unmount   | used to remove the dynamic element from the DOM |                    |
+| tokenize  | used to tokenize the collected payment data     |                    |
+
+# Lean Element
+
+Lean enables users in the UAE to pay via bank transfer using a checkout dialog powered by the Lean SDK. The payment method is available as both a standalone **Element** and within the **Drop-in** integration.
+
+<Callout icon="⚠️" theme="warn">
+  #### **Important**
+
+The Lean payment button must use the label **"Pay by bank with Al Tareq."**
+</Callout>
+
+### How to Use
+
+```typescript
+const payrailsClient = await Payrails.init({
+  data: initResponse.data,
+  version: initResponse.version,
+});
+
+const leanButton = payrailsClient.leanButton({
+  translations: {
+    label: "", //
+  },
+  styles: {
+    button: {
+      base: {
+        backgroundColor: "#00B67A",
+        borderRadius: "8px",
+        height: "48px",
+      },
+      loading: { opacity: "0.7" },
+      hover: { backgroundColor: "#009960" },
+    },
+    dialog: {
+      themeColor: "#00B67A",
+      buttonTextColor: "#FFFFFF",
+      buttonBorderRadius: "8px",
+      linkColor: "#007AFF",
+      overlayColor: "rgba(0, 0, 0, 0.5)",
+    },
+  },
+  events: {
+    onAuthorizeSuccess: () => console.log("Payment succeeded"),
+    onAuthorizeFailed: (e) => console.log("Payment failed", e),
+  },
+});
+
+leanButton.mount("#lean-container");
+```
+
+<br />
+
+### Configuration
+
+The Lean Elements **configuration** is defined as shown below. All properties are optional configure them based on your requirements.
+
+| Property                | Type                           | Description                                         |
+| ----------------------- | ------------------------------ | --------------------------------------------------- |
+| `translations.label`    | `string`                       | Button text. Default: `"Pay by bank with Al Tareq"` |
+| `styles.button.base`    | `Partial<CSSStyleDeclaration>` | Default button styles                               |
+| `styles.button.loading` | `Partial<CSSStyleDeclaration>` | Styles applied while processing                     |
+| `styles.button.hover`   | `Partial<CSSStyleDeclaration>` | Styles applied on hover                             |
+| `styles.dialog`         | `LeanCustomization`            | Lean checkout dialog theming                        |
+| `events`                | `PaymentEvents`                | Event callbacks                                     |
+
+---
+
+### Dialog Customization
+
+The `styles.dialog` object controls the appearance of the Lean checkout modal.
+
+| Property             | Type     | Description                                 |
+| -------------------- | -------- | ------------------------------------------- |
+| `themeColor`         | `string` | Primary color for the dialog UI             |
+| `buttonTextColor`    | `string` | Text color on dialog buttons                |
+| `buttonBorderRadius` | `string` | Border radius of dialog buttons (CSS value) |
+| `linkColor`          | `string` | Color of links inside the dialog            |
+| `overlayColor`       | `string` | Overlay backdrop colo                       |
+
+### Event Callbacks
+
+You can read details of event callbacks [here](sdk-events-glossary).
+
+<br />

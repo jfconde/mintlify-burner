@@ -1,0 +1,228 @@
+---
+description: "PayTM is an alternative payment method in India. With PayTM, customers can enjoy a seamless checkout experience, with a choice of fulfilling their payments directly from their wallet balance."
+title: "PayTM"
+---
+# Introduction
+PayTM is an alternative payment method in India that offers a convenient way for customers to pay for goods and services. Integrating PayTM with Payrails allows you to provide a fast, easy-to-use payment option for your customers while leveraging our platform to route the payment to any Payment Service Provider (PSP). This guide will explain the process of integrating PayTM into your app or website using Payrails.
+
+# Pre-requisites
+
+Before you start accepting PayTM payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for PayTM via one of the following Payment Service Providers: [dLocal](/docs/orchestration/integrations/dlocal) and [Pinelabs](/docs/orchestration/integrations/index).
+3. Enable PayTM as a [payment option](set-up-payment-methods).
+4. Make sure you're sending the PayTM specific meta fields (found under Merchant configurations -> Meta fields on your Payrails dashboard and in the examples below) in your requests.
+
+# Ways to integrate PayTM
+
+## Payrails SDK
+
+The simplest way to use PayTM with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional development work is required to accept payments with PayTM.
+
+## Server-to-server integration
+
+The simplest way to use PayTM is by completely managing your own client-side implementation, and using Payrails APIs with a server-to-server integration to process payments with PayTM. With this approach, follow the documentation below to build PayTM into your applications:
+
+#### Parse PayTM from lookup response
+
+With a server-to-server integration, you can call our [lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) endpoint to get available payment options and relevant configurations for each payment method. As the example below, you can see `paytmWallet` returned as an option of the `paymentCompositionOptions`. You can use this value later to authorize payments with Payrails as you can see in the next sections.
+
+```json
+{
+    "name": "lookup",
+    "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+    "executedAt": "2024-05-08T12:33:21.527395295Z",
+    "data": {
+        "paymentCompositionOptions": [
+            {
+                "integrationType": "api",
+                "paymentMethodCode": "paytmWallet",
+                "description": "PaytmWallet"
+            }
+        ]
+    },
+    "links": {
+        "execution": "http://payrails-api.staging.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+        "authorize": {
+            "method": "POST",
+            "href": "http://payrails-api.staging.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
+        }
+    }
+}
+```
+
+#### Pass PayTM payment method in request to authorize payment with Payrails
+
+You can then make a request to our [authorize a payment endpoint](/reference/authorizeaction) with `paytmWallet` as the `paymentMethodCode`. See an example below:
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "1000",
+    "currency": "INR"
+  },
+  "paymentComposition": [{
+    "integrationType": "api",
+    "paymentMethodCode": "paytmWallet",
+    "amount": {
+      "value": "1000",
+      "currency": "INR"
+    }
+  }],
+  "meta": {
+    "order": {
+      "lines": [{
+        "id": "UUID",
+        "name": "Order Name",
+        "quantity": 1,
+        "unitPrice": {
+          "currency": "INR",
+          "value": "1000"
+        }
+      }]
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+# Supported regions / countries
+
+<Table align={["left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        Region(s)
+      </th>
+
+      <th>
+        Countries
+      </th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        Asia
+      </td>
+
+      <td>
+        :india: India
+      </td>
+    </tr>
+  </tbody>
+</Table>
+
+# Supported workflows and services
+
+<Table align={["left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        Workflow
+      </th>
+
+      <th>
+        Supported
+      </th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        Available via Payrails SDK
+      </td>
+
+      <td>
+        :heavy_check_mark:
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        Available via Payrails API
+      </td>
+
+      <td>
+        :heavy_check_mark:
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        [Delayed / Manual Capture](/docs/orchestration/payment-acceptance/capture-and-cancel-modes#capture-mode)
+      </td>
+
+      <td>
+        :heavy_multiplication_x:
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        [Instant Capture](/docs/orchestration/payment-acceptance/capture-and-cancel-modes#capture-mode)
+      </td>
+
+      <td>
+        ✔️
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        [Cancel / Void](/docs/orchestration/payment-acceptance/cancel-a-payment)
+      </td>
+
+      <td>
+        ✔️
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        [Refund / Reverse](/docs/orchestration/payment-acceptance/refund-a-payment)
+      </td>
+
+      <td>
+        :heavy_check_mark:
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        [Save Instruments](/docs/resources/manage-instruments#/)
+      </td>
+
+      <td>
+        :heavy_multiplication_x:
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        [Merchant Initiated Transaction (MIT)](/docs/resources/payments/authorization-flags)
+      </td>
+
+      <td>
+        ✖️
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        Interoperability
+      </td>
+
+      <td>
+        N/A
+      </td>
+    </tr>
+  </tbody>
+</Table>

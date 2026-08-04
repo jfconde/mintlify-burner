@@ -1,0 +1,121 @@
+---
+title: Frequently Asked Questions
+description: Find answers to common questions about how Payrails Vault helps you securely store, manage, and use sensitive payment data.
+---
+<Accordion title="What is tokenization and detokenization?">
+  Tokenization is the process of collecting sensitive payment information (such as a card number) and returning a non-sensitive reference (often called a token or alias) that represents this data. When you tokenize with Payrails, we securely collect and store the sensitive data, relieving you of the PCI compliance burden.
+
+  Detokenization is the reverse process—retrieving the original sensitive data using its token. When you need to use actual card details (e.g., to authorize a payment via a third-party service), Payrails securely resolves the token and forwards the data to the intended recipient—without exposing it to your systems.
+</Accordion>
+
+<Accordion title="What does PSP-agnostic token vault mean?">
+  A PSP-agnostic token vault means that your tokens are not tied to any single payment service provider (PSP). Payrails Vault stores the original PAN data, enabling you to route payments through any provider. This flexibility allows you to optimize for cost, performance, or availability without the need to re-tokenize or re-collect card data.
+</Accordion>
+
+<Accordion title="What is a proxy, and how does it work?">
+  A proxy in Payrails Vault is a secure way to transmit sensitive data to or from a third party without directly handling the data in your systems. Payrails acts as an intermediary: when a request contains sensitive information, it's routed through our platform. We either inject the sensitive data into the request or extract it from the response, based on your configuration, ensuring PCI compliance and reducing data exposure.
+</Accordion>
+
+<Accordion title="Can I use Payrails Vault and still keep my own direct integrations with PSPs?">
+  Yes. Payrails Vault can be used as a standalone tokenization and proxy solution while you continue to manage your own PSP integrations. This gives you the flexibility to retain your existing flows while enhancing security and PCI compliance.
+</Accordion>
+
+<Accordion title="Which providers do you support with your Vault for proxy?">
+  Payrails Vault is provider-agnostic. You can proxy requests to or from any third-party provider, not just PSPs. Some providers may require specific handling (e.g., cryptographic signatures or payload encryption). In those cases, Payrails will guide you through the integration and help configure the proxy appropriately.
+</Accordion>
+
+<Accordion title="Do I have to use Payrails Vault with every request I want to send to a third party?">
+  No. You only need to use Payrails Vault’s proxy when a request involves sensitive data (e.g., PAN, CVV, expiry). For requests that don’t contain sensitive data, you can interact with third parties directly, bypassing Payrails Vault entirely.
+
+  A common use case is when you're integrating with a new PSP for the first time. In this case, you can use Payrails Vault as a proxy to securely send the sensitive card data to the PSP and ask them to store the card on their side. Once you receive the PSP’s token reference in response, you can use that reference directly for future payments with that PSP—no need to involve Payrails Vault again, since subsequent requests typically don’t contain sensitive data.
+
+  If you decide to switch to another PSP, simply repeat the process: use Payrails Vault as a proxy for the first transaction to pass the sensitive data, store the new PSP’s token, and handle the following payments directly.
+
+  This approach lets you:
+
+  * Stay PCI-compliant when handling sensitive data.
+
+  * Optimize for performance and latency by skipping the proxy when it's not needed.
+
+  * Maintain flexibility to switch providers without re-collecting card data.
+</Accordion>
+
+<Accordion title="Can I switch providers while processing subscription payments?">
+  Yes. If you're using Payrails Vault to store the original card data, you can switch PSPs even for recurring or subscription payments—without requiring the customer to re-enter their card details. To ensure that subsequent subscription payments succeed, you need to pass a value called the network transaction reference. This value serves as proof that an initial payment was successfully made with customer consent. The exact name of this field varies by provider (e.g., scheme transaction ID, network transaction ID, or similar).
+
+  Here’s how it works:
+
+  1. When initiating the first payment of a recurring agreement (such as a subscription or an unscheduled card-on-file transaction), ensure that the correct parameters are passed to the PSP.
+
+  2. The PSP will return a network transaction reference in the response to that payment.
+
+  3. You must store this reference in your system.
+
+  4. When switching to a new PSP, include this reference in your request for subsequent payments.
+
+  By doing this, you can avoid triggering additional customer authentication (such as CVV input or 3DS) and ensure a seamless continuation of the subscription billing cycle.
+</Accordion>
+
+<Accordion title="When a security code of a stored card is deleted after authorization, how can I make a second payment with that stored card?">
+  Once a security code (CVV) is used in an authorization, it must be deleted, in line with PCI regulations. To make a second payment:
+
+  * You can request the customer to re-enter their security code if it is a customer-initiated transaction (CIT) where you know that the customer is in your checkout page. Our proxy endpoint has an optional parameter that allows you to update the CVV in the vault. Check this section for more details.
+
+  * If you are processing a recurring payment of a subscription or unscheduled card-on-file transactions, which is a merchant-initiated transaction (MIT), typically PSPs allow the subsequent payments without the need for CVV or 3DS challenge, in the case that required parameters are passed to the PSP on the initial payment authorization. Note that the availability of this feature depends on the PSP. Please consult with your PSP and our team to understand their support for such flows.
+</Accordion>
+
+<Accordion title="Why does the security code expire? Can I not store the security code in Vault longer?">
+  No. PCI DSS strictly prohibits the storage of security codes (CVV/CVC) after the authorization. This is a compliance requirement. Payrails Vault automatically deletes CVVs post-authorization to ensure your setup remains PCI-compliant. Note that, depending on the use case, if authorization is not happening at the time of storing the card, the security code may be stored longer. This requires our compliance team to evaluate the use case according to PCI DSS requirements and approval.
+</Accordion>
+
+<Accordion title="Can I ensure a card’s validity before storing it?">
+  Yes. Simply make an API request to zero-amount authorizations to the PSP to validate a card before storing it in Vault. You can optionally include this step in your flow before tokenization to ensure the card is valid and active.
+</Accordion>
+
+<Accordion title="Can I use only Vault without any payment orchestration?">
+  Yes. You can use Payrails Vault as a standalone service—for tokenization, detokenization, and proxy—without using Payrails for payment orchestration. This is ideal if you want to stay in control of your PSP integrations while outsourcing PCI scope and data handling.
+</Accordion>
+
+<Accordion title="How can I migrate tokens from another provider?">
+  Token migration is possible. Go to 'Migrate tokens' page to learn more.
+  Please contact our support team for a tailored migration plan.
+</Accordion>
+
+<Accordion title="What is a payment instrument, and how is it different from a record or an alias?">
+  A payment instrument is a stored payment method—such as a card, a network token, or a wallet token like PayPal. In Payrails, it acts as a unified entity that links multiple representations of the same underlying method. For example, the same card stored in Payrails Vault, at a PSP, and as a network token can all be grouped under one instrument. This allows you to treat them as one, regardless of where they are stored.
+
+  Instruments can be used across both the Vault and payment orchestration modules. This enables dynamic token selection and centralized management of payment methods through a single API, simplifying operations and increasing flexibility.
+
+  An alias is a non-sensitive reference to a single piece of sensitive data, like a card number or card security code, individually stored inside Payrails Vault.
+
+  A record is a collection of aliases that together represent a full payment method, such as a card with its number, expiry, CVV, and cardholder name, combinedly stored inside Payrails Vault.
+</Accordion>
+
+<Accordion title="What’s the difference between Configurable Proxy and Instant Proxy?">
+  Instant Proxy is used for fast, one-off proxy calls that need minimal setup—ideal for cases like forwarding a card to a PSP.
+
+  Configurable Proxy allows more control and is suited for recurring, complex, or multi-party integrations. You can define URL templates, headers, transformations, and conditions. That type of proxy is based on the configurable proxy connections managed by the merchant from the Portal.
+
+  See our guide for more information on both types of proxies.
+</Accordion>
+
+<Accordion title="Which proxy connection should I use if I want to receive sensitive data from a third party?">
+  Use Configurable Proxy with type Inbound. This allows third parties (e.g., PSPs or partners) to send sensitive data (like card details) to Payrails Vault. Payrails securely tokenizes the incoming data and returns an alias to your system.
+</Accordion>
+
+<Accordion title="Which proxy connection should I use if I want to send sensitive data to a third party?">
+  Use either Configurable Proxy or Instant Proxy, depending on your use case, with type Outbound. Payrails will resolve the alias, inject the sensitive data into your request payload, and forward it to the destination—all without exposing the data to your environment.
+</Accordion>
+
+<Accordion title="Can I use regular expressions to parse a provider-specific payload?">
+  Yes. The proxy supports regular expressions for extracting, transforming, or inserting data into payloads. This is particularly helpful when working with legacy providers or non-standard formats.
+</Accordion>
+
+<Accordion title="Can I integrate with PSPs myself as a merchant, but only use Payrails as a Vault that handles the sensitive data for me?">
+  Yes. This is a common use case. You can keep direct integrations with PSPs and configure proxy routes through Payrails Vault only for sensitive-data handling—such as during tokenization, detokenization, or when sending card data to third parties.
+</Accordion>
+
+<Accordion title="What third parties can I integrate with via proxy?">
+  Whether it's fraud prevention tools, online travel agencies, channel managers, property management systems, loyalty platforms, other token vaults, or internal systems—you can configure proxy connections to route sensitive data securely and remain out of PCI scope.
+</Accordion>
+

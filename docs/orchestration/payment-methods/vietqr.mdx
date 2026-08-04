@@ -1,0 +1,135 @@
+---
+description: "VietQR is Vietnam's standardized QR payment solution, allowing customers to pay instantly by scanning a QR code using any participating Vietnamese banking app. It is compatible with over 40 banks and provides immediate payment confirmation, making it one of the fastest-growing payment methods in Vietnam."
+title: "VietQR"
+---
+## Introduction
+VietQR uses a **redirect-based payment flow**. When a customer selects VietQR at checkout, they are redirected to a hosted page displaying a QR code. The customer scans the QR code using their banking app to confirm payment, then returns to your website or app upon completion. VietQR is a single-use payment method.
+
+This guide explains the process of integrating VietQR into your app or website using Payrails.
+
+## Pre-requisites
+
+Before you start accepting VietQR payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for VietQR via **dLocal** as a Payment Service Provider. If you do not have a dLocal integration already configured in your workspace, please follow the [dLocal integration setup guide](/docs/orchestration/integrations/dlocal) first.
+3. Enable VietQR as a payment method in your dLocal integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your dLocal integration instance, and enable the **VietQR** checkbox under Payment methods, then save the account.
+4. Enable VietQR as a [payment option](set-up-payment-methods) in your workflow.
+5. Make sure you're sending the VietQR-specific meta fields in your requests.
+
+## Ways to integrate VietQR
+
+### Payrails SDK
+
+The simplest way to use VietQR with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with VietQR except for handling success/failure screens for your users.
+
+For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#generic-redirect-element) for your client-side implementation.
+
+### Server-to-server integration
+
+You can integrate VietQR by completely managing your own client-side implementation, and using Payrails APIs with a server-to-server integration to process VietQR payments.
+
+#### Parse VietQR from lookup response
+
+With a server-to-server integration, you can call our [lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) endpoint to get available payment options. As shown in the example below, you can see `vietQR` returned as an option of the `paymentCompositionOptions`.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2026-03-26T12:00:00.000000000Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "redirect",
+        "paymentMethodCode": "vietQR",
+        "description": "VietQR"
+      }
+    ]
+  },
+  "links": {
+    "execution": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+    "authorize": {
+      "method": "POST",
+      "href": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
+    }
+  }
+}
+```
+
+#### Pass VietQR payment method in request to authorize payment with Payrails
+
+You can then make a request to our [authorize a payment endpoint](/reference/authorizeaction) with `vietQR` as the `paymentMethodCode`. See an example below:
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "700000",
+    "currency": "VND"
+  },
+  "paymentComposition": [
+    {
+      "integrationType": "redirect",
+      "paymentMethodCode": "vietQR",
+      "amount": {
+        "value": "700000",
+        "currency": "VND"
+      }
+    }
+  ],
+  "meta": {
+    "customer": {
+      "name": "Nguyen Van A",
+      "email": "nguyen.vana@email.com",
+      "country": {
+        "code": "VN"
+      }
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+> **Note on amounts:** VND uses 2 decimal places but is typically quoted as whole numbers. Amounts should be provided in the smallest currency unit.
+>
+>
+> **Note:** VietQR is a redirect-based, single-use payment method. After calling the authorize endpoint, the customer will be redirected to a hosted page displaying a QR code. The customer scans this with their banking app to confirm payment. Once confirmed, the customer will be redirected back to the `returnInfo.success` URL.
+
+#### Handle the redirect response
+
+After the customer completes the payment, they will be redirected back to your `success` or `error` URL. You should then verify the payment status by checking the workflow execution status via the Payrails API or by listening to webhook notifications.
+
+## Supported currencies
+
+VietQR via dLocal supports the following presentment currency:
+
+* VND — Vietnamese Dong
+
+## Supported regions / countries
+
+### Customer regions
+
+VietQR is available to customers based in:
+
+* Vietnam 🇻🇳
+
+### Merchant regions
+
+Merchants enabled for Vietnam can accept VietQR payments via dLocal.
+
+## Supported workflows and services
+
+| Workflow                             | Supported |
+| ------------------------------------ | --------- |
+| Available via Payrails SDK           | ✔️        |
+| Available via Payrails API           | ✔️        |
+| Delayed / Manual Capture             | ✖️        |
+| Instant Capture                      | ✔️        |
+| Cancel / Void                        | ✖️        |
+| Refund / Reverse                     | ✔️        |
+| Save Instruments                     | ✖️        |
+| Merchant Initiated Transaction (MIT) | ✖️        |

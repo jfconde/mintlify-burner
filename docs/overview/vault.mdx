@@ -1,0 +1,76 @@
+---
+title: Token Vault
+description: Tokenize any sensitive data, store in a PCI-certified environment and used stored tokens, as a standalone module or within your orchestration workflows.
+---
+
+# Introduction
+
+<img
+  class="float-right ml-4 my-1 rounded-lg object-cover"
+  width="40%"
+  src="/images/docs/dropin-token-creation.png"
+/>
+
+For merchants, handling payment data securely to **meet compliance standards** and the security of the payment data are must, while ensuring a **smooth payment experience** is as critical. Token vaults simplify this process by storing sensitive payment data as secure tokens, allowing merchants to process transactions without ever touching the sensitive card details. This approach not only strengthens security but also enhances **flexibility, scalability, and compliance in payment workflows**.
+
+Tokenization and detokenization via Payrails Vault ensures that sensitive information stays protected in a **PCI-DSS Level 1 compliant** Vault, while still allowing merchants the flexibility in their payment workflows.
+
+<br />
+
+## What is tokenization and detokenization?
+
+**Tokenization** refers to the process of collecting sensitive payment information and returning a non-sensitive value (usually named as token reference or alias) that represents this information. When you tokenize with Payrails, **we collect and store the sensitive payment information** for you, so responsibility for PCI compliance remains with us.
+
+**Detokenization** is the process of retrieving the original sensitive payment data using its non-sensitive reference. When a merchant needs to use the actual card details, such as for sending a request to a third-party service, Payrails securely resolves the token and sends the sensitive data to the intended destination without exposing it to the merchant's systems.
+
+# Payrails Token Vault
+
+With our Payrails **PCI-DSS Level 1 compliant** vault, you can tokenize and detokenize your customers' payment information and minimize your PCI scope.
+
+## 100% PSP agnostic
+
+Payrails Token Vault allows you to **switch between any payment service providers** at any time, without disrupting your customer experience or facing technical hurdles. Because your token vault is independent of any single payment processor, you’re not locked into any one provider—this means you can take advantage of **better rates, improved service, or new features** from other providers at any time.
+
+For your returning customers you can use stored payment methods for a **smoother checkout experience**, use tokenized payment methods which are the **best performing in subscription** or recurring payment scenarios (particularly when used with network tokens), and **enable users to manage** their saved cards and have control over their sensitive information.
+
+## Connect to any third-party service and proxy sensitive data
+
+Payrails Vault enables you to securely receive and send tokenized data to **a variety of third-party services—not just PSPs**—without exposing sensitive information to your systems.
+
+Whether it's fraud prevention tools, online travel agencies, channel managers, property management systems, loyalty platforms, other external token vaults, or internal systems, you can configure proxy connections to route sensitive data securely and stay out of PCI scope.
+
+# How to use Payrails Token Vault?
+
+There are 2 main alternatives to use Payrails Token Vault:
+
+**1. Token Vault as a standalone module:**
+
+<img
+  align="right"
+  class="float-right ml-4 mb-1 mt-0 rounded-lg object-cover"
+  width="50%"
+  src="/images/docs/token-vault-how-to-1.png"
+/>
+
+In the case that you want to manage third-party integrations within your system, such as payment providers or your travel partners, but only use our Vault for the storage and processing of the sensitive data, you can use our Vault as a **proxy** which collects the sensitive data via our SDKs and pass the sensitive information to third parties without touching the sensitive data.
+
+<br />
+
+**2. Token Vault as part of payment orchestration:**
+
+<img
+  align="right"
+  class="float-right ml-4 mb-1 mt-0 rounded-lg object-cover"
+  width="50%"
+  src="/images/docs/token-vault-how-to-2.png"
+/>
+
+In this option, you integrate with our payment orchestration platform, where you have one single API integration to the Payrails API, which, in the background, Payrails manages all the provider integrations for you in a PSP-agnostic way.
+
+<br />
+
+### Using Token Vault with combination of other Payrails modules
+
+If you start using our Vault as a standalone module, you can always start using our other modules later, such as payment orchestration or analytics, at any moment in time
+
+It is also possible to use both integration methods at the same time, if your business needs require that. Our solution engineers, before your integration phase, will work with you to understand your goals and your current flows to propose the best design solution for you.

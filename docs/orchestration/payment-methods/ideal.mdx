@@ -1,0 +1,189 @@
+---
+description: "iDEAL is the Netherlands' leading online payment method, enabling direct bank transfers through a familiar and trusted interface. It is used by millions of Dutch consumers and supported by all major Dutch banks."
+title: "iDEAL"
+---
+## Introduction
+iDEAL is a bank-redirect payment method that lets Dutch consumers pay directly from their bank account using their online banking credentials. Integrating iDEAL with Payrails allows you to offer a seamless checkout experience to customers in the Netherlands while routing payments via [Checkout.com](https://checkout.com) or [Stripe](https://stripe.com) as a Payment Service Provider (PSP).
+
+iDEAL uses a redirect-based payment flow. When a customer selects iDEAL at checkout, they are redirected to their bank's authentication interface to confirm the payment, then redirected back to your website or app upon completion. iDEAL is a single-use payment method where customers authenticate each payment individually.
+
+This guide explains the process of integrating iDEAL into your app or website using Payrails.
+
+## Pre-requisites
+
+Before you start accepting iDEAL payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api).
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for iDEAL via **Checkout.com** or **Stripe** as a Payment Service Provider.
+   * For **Checkout.com**: If you do not have a Checkout.com integration already configured in your workspace, please follow the [Checkout.com integration setup guide](/docs/orchestration/integrations/checkout-com) first. You may need to contact CKO Support to enable iDEAL on the provider config.
+   * For **Stripe**: If you do not have a Stripe integration already configured in your workspace, please follow the [Stripe integration setup guide](/docs/orchestration/integrations/stripe) first.
+3. Enable iDEAL as a payment method in your chosen PSP integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your integration instance, enable the **iDEAL** checkbox under Payment methods, then save the account.
+4. Enable iDEAL as a [payment option](set-up-payment-methods) in your workflow.
+5. Make sure you are sending the iDEAL-specific meta fields in your requests (see examples below).
+
+## Ways to integrate iDEAL
+
+### Payrails SDK
+
+The simplest way to use iDEAL with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with iDEAL — the customer clicks iDEAL in the drop-in and is redirected to their bank automatically.
+
+For a more flexible implementation using our SDK, you can use the `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#generic-redirect-element) for your client-side implementation.
+
+### Server-to-server integration
+
+You can integrate iDEAL by completely managing your own client-side implementation and using Payrails APIs with a server-to-server integration to process iDEAL payments. With this approach, follow the documentation below to build iDEAL into your application.
+
+#### Parse iDEAL from the lookup response
+
+With a server-to-server integration, you can call our [lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) endpoint to get available payment options and relevant configurations for each payment method. As shown in the example below, you can see `ideal` returned as an option of the `paymentCompositionOptions`. You can use this value later to authorize payments with Payrails.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2026-04-01T12:00:00.000000000Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "api",
+        "paymentMethodCode": "ideal",
+        "description": "iDEAL"
+      }
+    ]
+  }
+}
+```
+
+#### Pass iDEAL payment method in request to authorize payment with Payrails
+
+You can then make a request to our [authorize a payment endpoint](/reference/authorizeaction) with `ideal` as the `paymentMethodCode`. The required meta fields differ slightly depending on your PSP.
+
+**Via Checkout.com**
+
+```json
+{
+  "type": "dropIn",
+  "workflowCode": "payment-acceptance",
+  "merchantReference": "tp_4194b490-3408-47d6-b0cc-6603701cb614",
+  "holderReference": "tp_819206f2-7cbb-4d35-869e-f257f61626dd",
+  "amount": {
+    "value": "1",
+    "currency": "EUR"
+  },
+  "meta": {
+    "source": "portal",
+    "customer": {
+      "name": "John",
+      "lastName": "Doe",
+      "email": "john.doe@payrails.com",
+      "reference": "tp_819206f2-7cbb-4d35-869e-f257f61626dd"
+    },
+    "billingAddress": {
+      "city": "Berlin",
+      "country": { "code": "DE" },
+      "postalCode": "10405",
+      "street": "Straßburger Straße",
+      "doorNumber": "1"
+    },
+    "order": {
+      "lines": [
+        {
+          "id": "75abef89-5356-4818-bffa-3630d119396f",
+          "quantity": 1,
+          "name": "Product name",
+          "unitPrice": { "value": "1", "currency": "EUR" }
+        }
+      ]
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+**Via Stripe**
+
+When using Stripe, the required meta fields follow the `meta.order.billingAddress` structure. The customer's name and country are required.
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "2000",
+    "currency": "EUR"
+  },
+  "paymentComposition": [
+    {
+      "integrationType": "redirect",
+      "paymentMethodCode": "ideal",
+      "amount": {
+        "value": "2000",
+        "currency": "EUR"
+      }
+    }
+  ],
+  "meta": {
+    "order": {
+      "billingAddress": {
+        "name": "Jan",
+        "lastName": "de Vries",
+        "country": {
+          "code": "NL"
+        }
+      }
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+> 📘 **Note:** iDEAL is a redirect-based, single-use payment method. After calling the authorize endpoint, the customer will be redirected to their bank to authenticate and confirm the payment. Once confirmed, the customer will be redirected back to the `returnInfo.success` URL. Make sure to provide valid `returnInfo` URLs in your authorization request.
+
+#### Handle the redirect response
+
+After the customer completes the payment on their bank's interface, they will be redirected back to your `success` or `error` URL. You should then verify the payment status by checking the workflow execution status via the Payrails API or by listening to [webhook notifications](/docs/orchestration/payment-acceptance/receive-notifications).
+
+## Supported currencies
+
+iDEAL supports the following presentment currency:
+
+* EUR — Euro
+
+## Supported regions / countries
+
+### Customer regions
+
+iDEAL is available to customers based in:
+
+* Netherlands 🇳🇱
+
+### Merchant regions
+
+Merchants based in the following regions can accept iDEAL payments:
+
+* **Via Checkout.com:** European Economic Area 🇪🇺, United Kingdom 🇬🇧
+* **Via Stripe:** Europe, US, CA, NZ, SG, HK, JP, AU, MX
+
+## Supported workflows and services
+
+| Workflow / Feature                                                                               | Checkout.com | Stripe |
+| ------------------------------------------------------------------------------------------------ | ------------ | ------ |
+| Available via Payrails SDK                                                                       | ✔️           | ✔️     |
+| Available via Payrails API                                                                       | ✔️           | ✔️     |
+| [Instant Capture](/docs/orchestration/payment-acceptance/capture-and-cancel-modes#capture-mode)          | ✔️           | ✔️     |
+| [Delayed / Manual Capture](/docs/orchestration/payment-acceptance/capture-and-cancel-modes#capture-mode) | ✔️           | ✖️     |
+| [Cancel / Void](/docs/orchestration/payment-acceptance/cancel-a-payment)                                 | ✔️           | ✖️     |
+| [Refund / Reverse](/docs/orchestration/payment-acceptance/refund-a-payment)                              | ✔️           | ✔️     |
+| Notifications                                                                                    | ✔️           | ✔️     |
+| Raw response propagation                                                                         | ✔️           | ✔️     |
+| Operation results mapping                                                                        | ✔️           | ✔️     |
+| [Save Instruments](/docs/resources/manage-instruments)                            | ✖️           | ✖️     |
+| [Merchant Initiated Transaction (MIT)](/docs/resources/payments/authorization-flags)       | ✖️           | ✖️     |
+| Control 3DS                                                                                      | ✖️           | ✖️     |
+| Unified 3DS mapping                                                                              | —            | —      |
+| Unified partner response mapping                                                                 | —            | —      |

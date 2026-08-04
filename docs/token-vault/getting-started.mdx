@@ -1,0 +1,45 @@
+---
+title: Getting Started
+description: In this section, you will learn how to use Vault as a standalone module, about our proxies, tokenization and detokenization methods.
+---
+# Introduction
+
+If you have read our [Token Vault introduction](/docs/overview/vault) page, you already know that Payrails offers multiple ways to use our Token Vault, as a standalone module or within the Payment Orchestration with Payrails. In this section, we introduce the Vault module. If you are not sure how you want to use the vault, you can navigate to the next [section](getting-started#options-to-use-payrails-token-vault) to learn your options.
+
+# Benefits
+
+* Payrails Vault is a **PCI-DSS Level 1 compliant** vault, which you can use to minimize your PCI scope.
+* It is provider-agnostic that allows you to **switch between any payment service providers** at any time, without disrupting your customer experience or facing technical hurdles. Because your token vault is independent of any single payment processor, you’re not locked into any one provider—this means you can take advantage of **better rates, improved service, or new features** from other providers at any time.
+* Payrails Vault enables you to securely receive and send tokenized data to **a variety of third-party services—not just PSPs**—without exposing sensitive information to your systems. Whether it's fraud prevention tools, online travel agencies, channel managers, property management systems, loyalty platforms, other external token vaults, or internal systems, you can configure proxy connections to route sensitive data securely and stay out of PCI scope.
+* With Vault, your returning customers can use stored payment methods for a **smoother checkout experience**, use tokenized payment methods, which are the **best performing in subscription** or recurring payment scenarios (particularly when used with network tokens), and **enable users to manage** their saved cards and have control over their sensitive information.
+* You can unlock more benefits with additional Vault features, such as network tokenization, card lifecycle updates and BIN lookup data. You will find more information about each feature as you navigate to the next pages of the **Token Vault** section.
+
+# Options to use Payrails Token Vault
+
+There are 2 main alternatives to use Payrails Token Vault:
+
+<img
+  className="float-right ml-4 mb-1 mt-0 rounded-lg object-cover"
+  src="/images/docs/token-vault/getting-started-1.png"
+  width="450px"
+/>
+
+**1. Token Vault as a standalone module:**
+
+In the case that you want to manage third-party integrations within your system, such as payment providers or your travel partners, but only use our Vault for the storage and processing of the sensitive data, you can use our Vault as a **proxy** which collects the sensitive data via our SDKs and pass the sensitive information to third parties without touching the sensitive data.
+
+<img
+  className="float-right ml-4 mb-1 mt-0 rounded-lg object-cover"
+  src="/images/docs/token-vault/getting-started-2.png"
+  width="450px"
+/>
+
+**2. Token Vault as part of payment orchestration:**
+
+In the case that you want one single API integration with Payrails payment orchestration platform, which in the background, will connect you to all the provider integrations for you in a PSP-agnostic way by leveraging our Vault.
+
+### Using Token Vault with combination of other Payrails modules
+
+If you start using our Vault as a standalone module, you can always start using our other modules later, such as payment orchestration or analytics, at any moment in time. It is also possible to use both integration methods at the same time if your business needs require that.
+
+

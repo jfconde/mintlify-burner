@@ -1,0 +1,30 @@
+---
+title: Getting Started
+---
+
+## Choose the right integration approach
+
+Payrails offers several SDKs, each with a different balance of customization and PCI scope. Pick the approach that matches how much control you need over the checkout experience and how much card data your application handles.
+
+### What to consider
+
+- **Customization vs. ease of integration.** For the simplest client-side setup that still uses Payrails orchestration, use the Drop-in SDK. For full control over the experience and presentation, use Elements or Secure Fields.
+- **PCI compliance.** Every client-side SDK uses the Payrails PCI-compliant token vault, which minimizes your PCI scope. To collect and tokenize card data yourself, integrate with the API only.
+- **Adding new payment methods.** The Drop-in SDK includes the frontend code for every payment method, so adding methods such as Apple Pay and Google Pay takes no frontend work on your side. The other approaches give you more control over where payment options appear in your checkout.
+
+The following table compares what each approach supports. If you are unsure which one is right for you, contact your Payrails representative.
+
+| I want to...                                                                        | Drop-in | Elements | Secure fields | API only |
+| :---------------------------------------------------------------------------------- | :------ | :------- | :------------ | :------- |
+| Use Payrails orchestration features such as routing and retries                     | ✅      | ✅       | ✅            | ✅       |
+| Use the Payrails PCI-DSS certification to collect PAN data in my application        | ✅      | ✅       | ✅            | ❌       |
+| Tokenize payment methods with no additional frontend code                           | ✅      | ✅       | ❌            | ❌       |
+| Add new payment methods with no additional frontend code                            | ✅      | ❌       | ❌            | ❌       |
+| Customize the style of a Payrails SDK with my own CSS                               | ✅      | ✅       | ✅            | ❌       |
+| Have complete control over the checkout experience: position, style, and animations | ❌      | ✅       | ✅            | ✅       |
+
+### Next steps
+
+After you choose an approach, start on the client-side implementation. The [SDK guide](checkout-sdks/index) explains how to get started, and each SDK type has its own guide: [Drop-in](checkout-sdks/web/drop-in), [Elements](checkout-sdks/web/elements), and [Secure Fields](checkout-sdks/web-v5-legacy/secure-fields).
+
+If you prefer more frontend flexibility and choose not to use an SDK, refer to [accepting payments via API](checkout-sdks/accept-payments-via-api).

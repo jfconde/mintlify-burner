@@ -1,0 +1,619 @@
+---
+title: SDK Events Glossary
+description: This page describes events sent by Payrails SDKs
+---
+
+# Event types
+
+Payrails Web SDK has two categories of events:
+
+| Category           | Description                                                                                                                         | Event Names                                                                                                                                                                                                                |
+| :----------------- | :---------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **UI Events**      | Events which are triggered on user interaction with an SDK element or when the payment methods gets shown/ removed from the screen. | `onChange`, `onFocus`, `onCardChange`, `onSaveInstrumentCheckboxChanged`, `onPaymentButtonClicked`, `onReady`, `onGooglePayAvailable`, `onApplePayAvailable`, `onPaypalAvailable`,`onAvailable`, `onPaymentOptionSelected` |
+| **Payment Events** | Events which are related to the payment authorization lifecycle.                                                                    | `onAuthorizeSuccess`, `onAuthorizeFailed`, `onAuthorizePending`, `onThreeDSecureChallenge`, `onPaymentSessionExpired`                                                                                                      |
+| Generic Events     | Events which handles the context depending on which action the SDK element has taken.                                               | `onSuccess`, `onFailed`, `onPending`, `onButtonClicked`, `onRequestStart`                                                                                                                                                  |
+
+<br />
+
+<Callout icon="❗️" theme="error">
+  Important Update:
+
+As of @payrails/web-sdk@5.36.0, Payrails Elements’ payment authorization related events are now marked deprecated. For more information, please checkout this page.
+
+Please refer to these generic events as replacements.
+
+| Old                     | New             |
+| :---------------------- | :-------------- |
+| onAuthorizeSuccess      | onSuccess       |
+| onAuthorizeFailed       | onFailed        |
+| onAuthorizePending      | onPending       |
+| onAuthorizeRequestStart | onRequestStart  |
+| onPaymentButtonClicked  | onButtonClicked |
+
+</Callout>
+
+# Rules for Event Execution
+
+While UI events are async and trigger on user interaction (such as `onChange`, `onFocus`), payment events have some rules and order of execution around them.
+
+`onAuthorizeSuccess` , `onAuthorizeFailed` and `onAuthorizePending` are terminal events. This means each request will result in at least a success or failed state and corresponding event will be fired. Rules for event execution are defined below:
+
+- `onPaymentButtonClicked` (UI Event) - if this returns false, this also calls `onAuthorizeFailed` as terminal event.
+- `onThreeDSecureChallenge` - triggered when the user sees the 3D Secure popup.
+- `onPaymentSessionExpired` - in case of unauthorized request. Also calls `onAuthorizeFailed` as terminal event.
+- `onAuthorizeFailed` - when payment authorization fails. With this event you would also get the reason why the execution failed. This is based on the [operations codes](/docs/resources/payments/operation-results#/).
+- `onAuthorizeSuccess` - when payment authorization is successful
+- `onAuthorizePending` - triggered when the execution is in pending state with no further action required from the user. (Please reach out to your account manager on what could be the potential use cases for this event)
+
+# Web SDK Event Glossary
+
+<Table align={["left","left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        Name
+      </th>
+
+      <th>
+        Type
+      </th>
+
+      <th>
+        Description
+      </th>
+
+      <th>
+        Function Signature
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `onPaymentOptionSelected`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered each time the payment option is selected
+
+        for saved instrument both instrument details and payment method config are returned
+
+        for payment method only payment method config is returned
+      </td>
+
+      <td>
+        `(e: onPaymentMethodSelectedParams) => void`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onSaveInstrumentCheckboxChanged`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered each time save instrument checkbox changes state
+      </td>
+
+      <td>
+        `({ checked }: { checked: boolean }) => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onPaymentButtonClicked`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered each time, user clicks on the payment button.
+
+        This event is called just before the SDK makes a call to authorize.
+
+        callback passed to this event should return a Promise which resolves to a boolean
+
+        If this callback returns false, SDK does not make the authorize call and the user sees a payment not successful screen and also triggers onAuthorizeFailed event.
+      </td>
+
+      <td>
+        `(event?: { bin?: string }) => Promise<boolean>;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onStateChanged`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered when payment button state changes
+      </td>
+
+      <td>
+        `(state: 'enabled' | 'disabled') => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onThreeDSecureChallenge`
+      </td>
+
+      <td>
+        Payment
+      </td>
+
+      <td>
+        triggered just before the user sees the 3ds popup
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onPaymentSessionExpired`
+      </td>
+
+      <td>
+        Payment
+      </td>
+
+      <td>
+        triggered when authorization fails due to payment session expiration
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        onAuthorizeRequestStart
+      </td>
+
+      <td>
+        Payment
+      </td>
+
+      <td>
+        triggered only for Apple Pay and Google Pay.
+
+        triggered after the user actually approves the payment on AP and GP modals and before the authorize request is initiated from the SDK.
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onAuthorizeSuccess`
+      </td>
+
+      <td>
+        Payment
+      </td>
+
+      <td>
+        triggered when payment authorization is successful
+
+        callback passed to this event can pass a param to get more information regarding the authorization
+      </td>
+
+      <td>
+        `(event?: any) => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onAuthorizeFailed`
+      </td>
+
+      <td>
+        Payment
+      </td>
+
+      <td>
+        generic authorization failure event triggered for all the authorization failure reasons.
+
+        callback passed to this event can pass a param to get more information regarding the reason of failure
+      </td>
+
+      <td>
+        `(event?: {
+                                                                    code: 'AUTHORIZATION_ERROR',
+                                                                    message: string
+                                                                  }) => void`
+
+        <br />
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onChange`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered when changes are made to the card form
+      </td>
+
+      <td>
+        `(event: OnChange) => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onFocus`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered when any input field inside the card form triggers focus event
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onReady`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered when the card form is rendered and ready to pay
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onCardChange`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered when user selects a different saved instrument in the saved instrument list
+      </td>
+
+      <td>
+        `(selectedCard: StoredPaymentInstrument<CardMetadata>) => void`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onBillingAddressChanged`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggered when billing address changes
+      </td>
+
+      <td>
+        `((e: {
+                                                                 isValid: boolean;
+                                                                 billingAddress?: IAddress;
+                                                                }) => void)`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onDeliveryAddressChanged`
+      </td>
+
+      <td>
+        UI
+      </td>
+
+      <td>
+        triggers when shipping address changed for express flow
+      </td>
+
+      <td>
+        <br />`(((data?: onDeliveryAddressChangedResponse) => Promise<boolean>))`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        onSuccess
+      </td>
+
+      <td>
+        Generic
+      </td>
+
+      <td>
+        triggers when Payrails Elements successfully done a payment or tokenization
+      </td>
+
+      <td>
+        `(action: 'AUTHORIZE' | 'TOKENIZE', response?: any) => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        onFailed
+      </td>
+
+      <td>
+        Generic
+      </td>
+
+      <td>
+        triggers when Payrails Elements failed a payment or tokenization
+      </td>
+
+      <td>
+        `(action: 'AUTHORIZE' | 'TOKENIZE', e?: any) => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        onPending
+      </td>
+
+      <td>
+        Generic
+      </td>
+
+      <td>
+        triggers when Payrails Elements payment or tokenization is in pending or review
+      </td>
+
+      <td>
+        `(action: 'AUTHORIZE' | 'TOKENIZE', e?: any) => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        onButtonClicked
+      </td>
+
+      <td>
+        Generic
+      </td>
+
+      <td>
+        • triggered each time, user clicks on the element button.
+        • This event is called just before the SDK makes a call to either authorize or tokenize.
+        • callback passed to this event should return a Promise which resolves to a boolean
+        • If this callback returns false, SDK does not make the authorize / tokenize call and the user sees a payment / tokenize not successful screen and also triggers onFailed event.
+      </td>
+
+      <td>
+        `(e?: { bin?: string }) => Promise<boolean>;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        onRequestStart
+      </td>
+
+      <td>
+        Generic
+      </td>
+
+      <td>
+        • only for AP and GP.
+        • triggered after the user actually approves the payment on AP and GP modals and before the authorize / tokenize request is initiated from the SDK.
+      </td>
+
+      <td>
+        `() => Promise<boolean>;`
+      </td>
+    </tr>
+
+  </tbody>
+</Table>
+
+# React Native Event Glossary
+
+<Table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th>
+        Name
+      </th>
+
+      <th>
+        Description
+      </th>
+
+      <th>
+        Function Signature
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>
+        `onAuthorizeSuccess`
+      </td>
+
+      <td>
+        Triggered when payment authorization is successful
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onAuthorizeFailure`
+      </td>
+
+      <td>
+        Triggered when payment authorization fails
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onAuthorizeError`
+      </td>
+
+      <td>
+        Triggered in case of when BE returns 5xx or the client throws. For unsuccessful authorizations onAuthorizeFailure is fired
+      </td>
+
+      <td>
+        `(error: any) => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onAuthenticationError`
+      </td>
+
+      <td>
+        Triggered when the access token is expired
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onAuthorizeStart`
+      </td>
+
+      <td>
+        Triggered when the payment button is clicked.
+        If the resolved value is false, then the payment is canceled. It fires after a user clicks the payment button. It allows a merchant to perform additional checks and block the payment if needed
+      </td>
+
+      <td>
+        `() => Promise<boolean>;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onRequestProgressChange`
+      </td>
+
+      <td>
+        Triggered when authorization request changes state. It can be used to show a loading state
+      </td>
+
+      <td>
+        `(isInProgress: boolean) => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onAuthorizeCancel`
+      </td>
+
+      <td>
+        Triggered when user closed a popup (for paypal) or a webview (for 3DS) without completing the challenge. This is only available for APM hooks:
+
+        `useExecuteGooglePayPayment`
+
+        `useExecuteApplePayPayment`
+
+        `useExecutePayPalPayment`
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onAuthorizeRequestStart`
+      </td>
+
+      <td>
+        triggered after the user actually approves the payment on APM modals (Apple Pay, Google Pay or Paypal) and before the authorize request is initiated from the SDK.
+      </td>
+
+      <td>
+        `() => void;`
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        `onSessionExpired`
+      </td>
+
+      <td>
+        triggered when the client session is expired. merchants can pass the function which contains their implementation of client init as part of the `onSessionExpired` event. This then can be used to automatically reinitialize the client when the client session is expired instead of merchants having to do this themselves.
+      </td>
+
+      <td>
+        `() => Promise<InitOptions>`
+      </td>
+    </tr>
+
+  </tbody>
+</Table>

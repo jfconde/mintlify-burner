@@ -1,0 +1,83 @@
+---
+description: >-
+  How to configure and maintain SAML SSO in Payrails using your organization's
+  identity provider.
+---
+
+## Overview
+
+Payrails supports Single Sign‑On (SSO) using SAML, allowing organizations to authenticate users with their existing identity provider (IdP). SSO is configured per environment (Staging and Production) in the Payrails Portal. This centralizes authentication, improves your security posture, and reduces operational overhead associated with managing separate credentials.
+
+Supported IdPs include Okta, JumpCloud, Google Workspace, Microsoft Entra/Azure AD, and Auth0 (as an external IdP).
+
+## Prerequisites
+
+- Access to your IdP with permission to create or configure a SAML application.
+- A test user in your IdP to validate end‑to‑end authentication before broad rollout.
+- A SAML metadata URL provided by your IdP. File uploads/XML are not supported—URL only.
+- Recommended reading to understand the basics: Okta’s Beginner's Guide to SAML
+  — [https://developer.okta.com/docs/concepts/saml/](https://developer.okta.com/docs/concepts/saml/)
+
+## Configuration Steps
+
+1. In the Payrails Portal, go to `Settings → Identity → SSO`.
+
+<img class="mx-auto block rounded-lg" width="80%" src="/images/docs/sso-settings-page.png" alt="Payrails SSO settings page" />
+
+2. From the provider dropdown, choose your IdP (Okta, JumpCloud, Google Workspace, Microsoft Entra/Azure AD, or Auth0). This helps the Portal tailor the guidance you see.
+3. Copy the values shown by Payrails for your IdP setup:
+   - `Entity ID / Audience URI`
+   - `ACS (Assertion Consumer Service) URL`
+4. In your IdP, create a new SAML application and set:
+   - Audience/Entity ID = Payrails `Entity ID / Audience URI`
+   - ACS/Callback URL = Payrails `ACS URL`
+5. Back in Payrails, paste your IdP’s `SAML Metadata URL` into the configuration form (URL only).
+6. Select `Save` to apply the configuration. The connection becomes active for that environment.
+
+<img class="mx-auto block rounded-lg" width="80%" src="/images/docs/sso-configuration-form.png" alt="Payrails SSO configuration form" />
+
+7. To rotate certificates/metadata later, press `Refresh` to pull the latest metadata from the same URL. Use `Edit configuration` only if the metadata URL itself changes.
+
+Only one SSO configuration is supported per environment.
+
+## Validation & Testing
+
+Validate the configuration in Staging before enabling Production.
+
+1. Assign a test user to the SAML application in your IdP.
+2. Sign out of the Portal, then initiate sign‑in using SSO in your staging/non‑production environment.
+3. Complete the IdP login; you should be redirected back to Payrails and signed in.
+4. Confirm the user lands in the expected workspace(s) and can access permitted areas.
+5. Assign the appropriate roles and permissions at the workspace or organization level so the user has the intended access.
+6. If rotating certificates or metadata, use `Refresh` (as long as the metadata URL hasn’t changed). If the URL changed, open `Edit configuration`, update the URL, save, and re‑test.
+
+## Troubleshooting
+
+Use the following checks to diagnose common setup issues (no specific error messages referenced):
+
+- Verify the `SAML Metadata URL` is reachable and current (after any cert rotation).
+- Confirm the `Entity ID/Audience URI` and `ACS URL` exactly match the Payrails values (no whitespace or typos).
+- Ensure the IdP NameID resolves to the user’s email used in Payrails.
+- Check time synchronization (IdP and client clocks) to avoid assertion validity issues.
+- Make sure the user is assigned to the SAML application in your IdP.
+
+## FAQs & Edge Cases
+
+- Can we connect more than one IdP per environment?  
+  Not currently. Only a single SSO configuration per environment is supported.
+
+- Can we disable SSO temporarily?  
+  Disabling is not supported. You can remove the configuration. Removing SSO immediately stops new SSO logins for that environment.
+
+- What happens to existing username/password users?  
+  SSO accounts are created as new identities. Username/password users can continue using their credentials unless your organization admins choose to disable those accounts.
+
+- Can we enforce SSO‑only login?  
+  Not supported.
+
+## Related Topics
+
+- Workspaces: [/docs/set-up-your-payrails-account-and-environment/workspaces](/docs/set-up-your-payrails-account-and-environment/workspaces)
+- Organizations: [/docs/set-up-your-payrails-account-and-environment/organization](/docs/set-up-your-payrails-account-and-environment/organization)
+- User Roles & Permissions: [/docs/set-up-your-payrails-account-and-environment/organization](/docs/set-up-your-payrails-account-and-environment/organization)
+- Roles & Permissions (overview): [roles-permissions)

@@ -1,0 +1,148 @@
+---
+title: Token Migration
+description: Import tokens from other vault providers into Payrails securely while maintaining PCI DSS compliance. Export your payment data when needed.
+---
+# Token Migration Overview
+
+Moving payment tokens between vault providers can be complex, but Payrails makes it straightforward while maintaining the highest security standards. Whether you're migrating **to** Payrails from another provider or **from** Payrails to elsewhere, we ensure PCI DSS compliance throughout the process.
+
+## Why Migrate Tokens?
+
+Token migration offers significant benefits for both merchants and customers:
+
+- **Zero customer friction** - Customers can continue using their stored payment methods without re-entering card information
+- **Seamless PSP transitions** - Existing payment service provider configurations remain functional during migration  
+- **Enhanced control** - Consolidate multiple tokens for the same payment instrument across providers
+- **Improved conversion** - Leverage Payrails' routing capabilities to select the optimal token for each transaction
+
+> 📘 **How Payrails Handles Duplicates**
+> 
+> When importing payment instruments, Payrails automatically performs uniqueness checks and groups different representations of the same card into a single instrument with multiple provider tokens. This enables intelligent routing to maximize payment success rates.
+
+---
+
+## Importing Tokens to Payrails
+
+### Before You Begin
+
+Token migration requires coordination between three parties: **you** (the merchant), **Payrails**, and your **current vault provider**. We'll guide you through the entire process to ensure PCI DSS compliance.
+
+### Migration Process
+
+<Accordion title="Step 1: Initiate Migration Request" icon="play">
+
+Contact your current vault provider to begin the token export process. Requirements vary by provider:
+
+- **Dashboard-based providers**: Submit migration request through merchant portal
+- **Email-based providers**: Send formal migration request to support team
+- **Custom process**: Follow provider-specific procedures
+
+Your Payrails account representative will provide guidance for your specific provider and supply our **PCI Attestation of Compliance (AOC)** as required.
+
+</Accordion>
+
+<Accordion title="Step 2: Prepare Export Data" icon="database">
+
+Work with your current provider to export token data in a Payrails-compatible format. The export typically includes:
+
+- **Token identifiers** from the current provider
+- **Associated payment card data** (encrypted/tokenized)
+- **Metadata** such as customer IDs, expiration dates, and card types
+
+You'll also need to provide a **customer mapping file** to ensure proper instrument-to-customer relationships. Your account representative will specify the exact format requirements.
+
+</Accordion>
+
+<Accordion title="Step 3: Secure Data Transfer" icon="shield-alt">
+
+All data transfers use secure protocols and encryption:
+
+- **File Transfer Protocol**: Encrypted channels with provider-specific security keys
+- **Data Encryption**: Provider supplies encryption keys to Payrails for secure decryption
+- **Access Control**: Limited to authorized personnel only
+
+Your Payrails representative coordinates all security requirements with the source provider.
+
+</Accordion>
+
+<Accordion title="Step 4: Validation & Import" icon="check-circle">
+
+Once we receive your token data, Payrails performs comprehensive validation:
+
+1. **Data integrity checks** - Verify file completeness and format compliance
+2. **Token validation** - Confirm token validity and associated metadata
+3. **Instrument creation** - Generate Payrails payment instruments linked to imported tokens
+4. **Relationship mapping** - Connect instruments to your customers using provided mapping data
+
+See our [Instruments guide](/docs/resources/manage-instruments) for details on how payment instruments and tokens work together.
+
+</Accordion>
+
+<Accordion title="Step 5: Import Results & System Updates" icon="sync-alt">
+
+After successful migration, you'll receive a **results file** containing:
+
+- **New Payrails instrument IDs** for each migrated payment method  
+- **Token mappings** between old and new token identifiers
+- **Migration status** for each processed record
+
+Import this file into your systems to update customer payment method references and complete the migration process.
+
+</Accordion>
+
+> ✅ **Migration Complete**
+> 
+> Your payment tokens are now secured in Payrails' PCI DSS-certified vault. For questions or assistance, contact your account representative or Payrails support.
+
+---
+
+## Exporting Data from Payrails
+
+### API-Based Exports
+
+For programmatic access to your vault data, use these Payrails APIs:
+
+**Individual Token Export**
+```
+GET /tokens
+```
+Use the [Search & List Tokens](ref:listtokens) API with filtering and pagination to export specific token sets.
+
+**Bulk Instrument Export**  
+```
+GET /instruments
+```
+The [Search & List Instruments](ref:listinstruments) API provides comprehensive instrument data with optional token inclusion.
+
+**Combined Export**
+```
+GET /instruments?includeTokens=true&filter[holderReference]=customer-123
+```
+
+Add the `includeTokens=true` parameter to include token details in instrument responses. Use filtering to manage response size and improve performance.
+
+> ⚠️ **Performance Considerations**
+> 
+> Large exports can impact performance. Always use filtering (`filter[holderReference]`, `filter[createdAt]`, etc.) and pagination (`page[size]`, `page[number]`) to optimize response times.
+
+### Bulk Migration Support
+
+For large-scale migrations **from** Payrails to another provider:
+
+1. **Contact Payrails Support** - We'll coordinate the migration process with your new provider
+2. **PCI Compliance** - All transfers maintain PCI DSS compliance requirements  
+3. **Data Security** - Encrypted transfers using secure protocols
+4. **Provider Coordination** - We work directly with your new vault provider for seamless migration
+
+> 🔒 **PCI Compliance Note**
+> 
+> By default, full PAN (Primary Account Number) data is not included in standard exports to maintain PCI compliance. If you require full PAN access, contact our team to discuss the specialized process we follow in accordance with PCI DSS requirements.
+
+---
+
+## Need Help?
+
+- **Account Questions**: Contact your dedicated Payrails account representative
+- **Technical Support**: Reach out to [Payrails Support](mailto:support@payrails.com)
+- **Implementation Guidance**: Check our [API Reference](ref:getting-started) and [Instruments Documentation](/docs/resources/manage-instruments)
+

@@ -1,0 +1,106 @@
+---
+title: Tokenize cards with Secure Fields
+---
+Tokenization is the process of collecting sensitive payment information and returning a short-term, single-use token that represents this information. There are many ways of tokenizing card data, in this page we will look into tokenization with our Secure Fields SDK. If you need to know more about tokenization and Payrails Token Vault, we recommend you first read this [guide](/docs/overview/vault#/).
+
+'Secure Fields' is a highly customizable payment form, which allows customers to enter their payment details directly on your checkout page or in your app. We collect and process this sensitive information directly and exchange it for a secure token. You can then use this token to request a payment, without having to process or store any sensitive information yourself.
+
+<img
+  className="float-left mr-4 mb-1 mt-0 rounded-lg object-cover"
+  src="/images/docs/token-vault/tokenize-payment-instruments/tokenize-cards-with-secure-fields-1.png"
+  width="80%"
+/>
+
+Secure Fields uses iframes for handling payment information, so you remain PCI-compliant. Your customer inputs their card details directly into our iframes, and then we send you a token representing those details, so you can request a payment.
+
+> 📘
+>
+> Secure Fields are useful to tokenize cards and keep the PCI scope away. They do not intervene in the payment acceptance process. If you wish an end-to-end payment acceptance solution for your clients in which you can manage dynamic payment options, alternative payment methods or redirection easily, look into our Payrails Drop-in solution.
+
+## How it works
+
+1. Inject secured input fields inside iFrames into your HTML containers
+2. Customize the look and feel of your input fields with CSS
+3. Control the input fields behavior via Javascript
+
+Go here for a detailed [technical implementation guide](/docs/orchestration/checkout-sdks/web-v5-legacy/secure-fields).
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/tokenize-payment-instruments/tokenize-cards-with-secure-fields-2.png"
+  width="80%"
+/>
+
+> 📘
+>
+> To make sure your frontend can communicate securely with Payrails, you must first fetch configurations **from your server side application**.
+
+Here's a simple tokenization flow with the surface covered by the SDK colored in blue:
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/tokenize-payment-instruments/tokenize-cards-with-secure-fields-3.png"
+  width="80%"
+/>
+
+After the SDK is initialized, you can leverage the SDK features to customize the user experience:
+
+* Custom field validation and errors
+* Subscribe and react to events happening inside the form
+* Customize the style with JSS
+* Save your tokenized card and get a payment instrument id for future references
+
+The Secure Fields are available for Web and React Native applications.
+
+# (Optional) Update card security code during authorization request
+
+In case you want to re-send the security code of the card after the initial tokenization of a card, you need to send instrumentId and encryptedCardDetails in the authorize request.
+
+### Use secure fields for encrypting card security code
+
+```javascript
+//Step 1
+const container = payrailsClient.collectContainer({
+  containerType: 'COLLECT'
+});
+
+//Step 2
+const field = container.createCollectElement({
+  placeholder: "CVV",
+  label: "cvv",
+  type: ElementType.CVV,
+});
+
+// Step 3
+field.mount("#cvv"); //assumes there is a div with id="#cardNumber" in the webpage
+
+// Step 4
+const encryptedCardData = await container.collect(); 
+```
+
+Pass this data along with instrumentId to the authorize request.  Here is what payment composition object will look like for the authorize action -
+
+```javascript
+const paymentCompositionObject = {
+  "paymentComposition": [
+    {
+      "integrationType": "api",
+      "paymentInstrumentData": {
+        "encryptedData": encryptedCardData
+      },
+      "storeInstrument": false,
+      "enrollInstrumentToNetworkOffers": false,
+      "paymentInstrumentId": "384279fe-fee4-441d-9836-d2ef663551ad"
+    }
+  ]
+}
+```
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/token-vault/tokenize-payment-instruments/tokenize-cards-with-secure-fields-4.png"
+  width="80%"
+/>
+
+The security code will be updated for the instrument vault token and used for the authorization.
+

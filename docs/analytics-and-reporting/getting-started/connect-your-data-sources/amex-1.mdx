@@ -1,0 +1,61 @@
+---
+title: Amex
+---
+This guide will help you obtain SFTP credentials and encryption keys and connect American Express (AMEX) as a data source in Payrails to ingest settlement and payout data. With the self-serve flow you configure the integration yourself in the Payrails portal.
+
+## Prerequisites
+
+You will need:
+
+- An active American Express Merchant Account
+- **SFTP Access:** A dedicated SFTP username and password assigned to your merchant account
+- **PGP Encryption:** A PGP key pair (you must hold the Private Key) for file decryption
+
+## Step-by-step instructions
+
+### Step 1: Gather SFTP Credentials and Connection Details
+
+To configure the secure file transfer, you will need to gather the following information:
+
+**1. SFTP host and port**
+
+Gather the following credentials:
+
+- **Host:** `fsgateway.americanexpress.com`
+- **Username:** the AMEX SFTP username assigned to your merchant account (e.g. `PAYRAILS...`)
+- **Password:** the password associated with this SFTP user
+- **Port:** confirm standard port **22** is used
+
+**PGP decryption**
+
+- **PGP Private Key:** the full PEM-encoded private key block to decrypt the files
+- **Passphrase:** _(optional)_ if the private key is password-protected
+
+**2. Verify data lifecycle & storage**
+
+Before integrating, confirm the file lifecycle logic on your AMEX SFTP server to ensure consistent data retrieval and support for backfills:
+
+- **Folder structure:** confirm that new reports land in the `/outbox/` directory and are automatically moved to `/sent/` after download.
+- **Inbox retention:** verify how long files remain in `/outbox/` if not picked up (standard is typically 7 days).
+- **Archive retention:** verify how long files persist in `/sent/` before permanent deletion (standard is typically 24 hours).
+- **Backfill availability:** determine if older files are available in `/sent/` or a separate archive path for re-ingestion.
+
+***
+
+### Step 2: Add the Amex integration in the Payrails portal (self-serve)
+
+1. Log in to the Payrails portal and open **Settings → Integrations → Data**.
+2. Click **Add instance** (top-right).
+3. In **New integration instance**.
+4. On **Select provider**, choose **American Express** and click **Continue**.
+5. On the **Configure account** screen, fill in:
+   - **Integration instance name** — a unique label.
+   - **Start Date** — the date of today or tomorrow (currently backfilling data is not available over the self-serve capability. In the need of backfilling, please reach out to your Payrails account manager).
+   - **SFTP host** — `fsgateway.americanexpress.com`
+   - **SFTP username** and **password**
+   - **Port** — `22`
+   - **PGP private key** and, if applicable, the **passphrase**
+   - _(Optional)_ **Additional data**.
+6. Click **Save account**. The instance appears in the Data integrations list and Payrails begins ingesting data.
+
+
