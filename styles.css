@@ -9,3 +9,8 @@
   left: 0;
   z-index: -1;
 }
+
+.hero h1 {
+  color: white;
+  font-size: 4rem;
+}

@@ -1,8 +1,14 @@
 ---
 title: Connect your data sources
 ---
+
 <Note>
-  To power Analytics & Reporting in Payrails (specifically as standalone product and for fee monitoring), connect your payment providers as **data sources**. With **self-serve data integrations**, you create and configure each integration yourself in the Payrails portal - no manual setup or intervention from Payrails teams is required. You can add a data source in the Payrails Portal by following the setup guides below.
+  To power Analytics & Reporting in Payrails (specifically as standalone product
+  and for fee monitoring), connect your payment providers as **data sources**.
+  With **self-serve data integrations**, you create and configure each
+  integration yourself in the Payrails portal - no manual setup or intervention
+  from Payrails teams is required. You can add a data source in the Payrails
+  Portal by following the setup guides below.
 </Note>
 
 Each setup guide walks you through how to connect a provider as a data source in Payrails. It includes:
@@ -13,7 +19,7 @@ Each setup guide walks you through how to connect a provider as a data source in
 
 Use these guides when adding a new data source or reviewing an existing setup.
 
-***
+---
 
 ## How the self-serve flow works
 
@@ -28,7 +34,7 @@ After gathering the required credentials from your provider (see each provider g
 
 The new instance appears in the **Data integrations** list with its status, and Payrails begins ingesting data automatically.
 
-***
+---
 
 ## Edit or disable an integration instance
 
@@ -46,135 +52,224 @@ You can manage an existing integration at any time from **Settings → Integrati
 ## Backfilling historical data
 
 <Warning>
-  Self-serve backfilling is **not available yet**. If you need historical data ingested (for a period before your start date), reach out to your **Payrails account manager** to arrange it. Self-serve backfilling is in progress and will be enabled over self-serve in a future release.
+  Self-serve backfilling is **not available yet**. If you need historical data
+  ingested (for a period before your start date), reach out to your **Payrails
+  account manager** to arrange it. Self-serve backfilling is in progress and
+  will be enabled over self-serve in a future release.
 </Warning>
 
-***
+---
 
 ## Data integration setup guides
 
 <Tip>
-  These providers are configured exclusively through the self-serve flow, with new providers added regularly.
+  These providers are configured exclusively through the self-serve flow, with
+  new providers added regularly.
 </Tip>
 
 <CardGroup cols="1">
   <Card href="/docs/adyen-1">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/adyen.svg" alt="Adyen logo" height="28" style="display: block;" />
+    <div className="flex w-full items-center gap-3.5 text-left">
+      <div className="flex w-11">
+        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/adyen.svg" alt="Adyen logo" height="28" className="block" />
       </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Adyen</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      <div className="flex flex-col">
+        <div className="text-[15px] font-semibold leading-[1.2]">Adyen</div>
+        <div className="text-[13px] leading-[1.2] text-gray-600">Data integration</div>
       </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+      <div className="ml-auto text-[18px] leading-none text-gray-400">→</div>
     </div>
   </Card>
 
-  <Card href="/docs/amex-1">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/amex.jpeg" alt="Amex logo" height="28" style="display: block;" />
-      </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Amex</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
-      </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+<Card href="/docs/amex-1">
+  <div className="flex w-full items-center gap-3.5 text-left">
+    <div className="flex w-11">
+      <img
+        src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/amex.jpeg"
+        alt="Amex logo"
+        height="28"
+        className="block"
+      />
     </div>
-  </Card>
+    <div className="flex flex-col">
+      <div className="text-[15px] font-semibold leading-[1.2]">
+        Amex
+      </div>
+      <div className="text-[13px] leading-[1.2] text-gray-600">
+        Data integration
+      </div>
+    </div>
+    <div className="ml-auto text-[18px] leading-none text-gray-400">
+      →
+    </div>
+  </div>
+</Card>
 
-   <Card href="/docs/braintree-1">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/braintree.svg" alt="Braintree logo" height="28" style="display: block;" />
-      </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Braintree</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
-      </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+<Card href="/docs/braintree-1">
+  <div className="flex w-full items-center gap-3.5 text-left">
+    <div className="flex w-11">
+      <img
+        src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/braintree.svg"
+        alt="Braintree logo"
+        height="28"
+        className="block"
+      />
     </div>
-  </Card>
+    <div className="flex flex-col">
+      <div className="text-[15px] font-semibold leading-[1.2]">
+        Braintree
+      </div>
+      <div className="text-[13px] leading-[1.2] text-gray-600">
+        Data integration
+      </div>
+    </div>
+    <div className="ml-auto text-[18px] leading-none text-gray-400">
+      →
+    </div>
+  </div>
+</Card>
 
-  <Card href="/docs/checkout-1">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/checkout-com.svg" alt="Checkout.com logo" height="28" style="display: block;" />
-      </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Checkout.com</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
-      </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+<Card href="/docs/checkout-1">
+  <div className="flex w-full items-center gap-3.5 text-left">
+    <div className="flex w-11">
+      <img
+        src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/checkout-com.svg"
+        alt="Checkout.com logo"
+        height="28"
+        className="block"
+      />
     </div>
-  </Card>
+    <div className="flex flex-col">
+      <div className="text-[15px] font-semibold leading-[1.2]">
+        Checkout.com
+      </div>
+      <div className="text-[13px] leading-[1.2] text-gray-600">
+        Data integration
+      </div>
+    </div>
+    <div className="ml-auto text-[18px] leading-none text-gray-400">
+      →
+    </div>
+  </div>
+</Card>
 
 <Card href="/docs/dlocal-1">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/dlocal.png" alt="dLocal logo" height="28" style="display: block;" />
-      </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">dLocal</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
-      </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+  <div className="flex w-full items-center gap-3.5 text-left">
+    <div className="flex w-11">
+      <img
+        src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/dlocal.png"
+        alt="dLocal logo"
+        height="28"
+        className="block"
+      />
     </div>
-  </Card>
-
-  <Card href="/docs/jp-morgan">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/jp-morgan.png" alt="JPMorgan logo" height="28" style="display: block; object-fit: contain;" />
+    <div className="flex flex-col">
+      <div className="text-[15px] font-semibold leading-[1.2]">
+        dLocal
       </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">J.P.Morgan</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      <div className="text-[13px] leading-[1.2] text-gray-600">
+        Data integration
       </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
     </div>
-  </Card>
-
-  <Card href="/docs/klarna-1">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/klarna.svg" alt="Klarna logo" height="28" style="display: block;" />
-      </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Klarna</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
-      </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+    <div className="ml-auto text-[18px] leading-none text-gray-400">
+      →
     </div>
-  </Card>
+  </div>
+</Card>
 
-  <Card href="/docs/stripe-1">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/stripe.svg" alt="Stripe logo" height="28" style="display: block;" />
-      </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">Stripe</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
-      </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
+<Card href="/docs/jp-morgan">
+  <div className="flex w-full items-center gap-3.5 text-left">
+    <div className="flex w-11">
+      <img
+        src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/jp-morgan.png"
+        alt="JPMorgan logo"
+        height="28"
+        className="block object-contain"
+      />
     </div>
-  </Card>
-
-  <Card href="/docs/tap-1">
-    <div style="display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;">
-      <div style="width: 44px; display: flex;">
-        <img src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/tap.png" alt="TAP logo" height="28" style="display: block;" />
+    <div className="flex flex-col">
+      <div className="text-[15px] font-semibold leading-[1.2]">
+        J.P.Morgan
       </div>
-      <div style="display: flex; flex-direction: column;">
-        <div style="font-size: 15px; font-weight: 600; color: var(--card-title-color, #111); line-height: 1.2;">TAP</div>
-        <div style="font-size: 13px; color: #555; line-height: 1.2;">Data integration</div>
+      <div className="text-[13px] leading-[1.2] text-gray-600">
+        Data integration
       </div>
-      <div style="margin-left: auto; color: #999; font-size: 18px; line-height: 1;">→</div>
     </div>
-  </Card>
+    <div className="ml-auto text-[18px] leading-none text-gray-400">
+      →
+    </div>
+  </div>
+</Card>
 
-</text>
+<Card href="/docs/klarna-1">
+  <div className="flex w-full items-center gap-3.5 text-left">
+    <div className="flex w-11">
+      <img
+        src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/klarna.svg"
+        alt="Klarna logo"
+        height="28"
+        className="block"
+      />
+    </div>
+    <div className="flex flex-col">
+      <div className="text-[15px] font-semibold leading-[1.2]">
+        Klarna
+      </div>
+      <div className="text-[13px] leading-[1.2] text-gray-600">
+        Data integration
+      </div>
+    </div>
+    <div className="ml-auto text-[18px] leading-none text-gray-400">
+      →
+    </div>
+  </div>
+</Card>
 
+<Card href="/docs/stripe-1">
+  <div className="flex w-full items-center gap-3.5 text-left">
+    <div className="flex w-11">
+      <img
+        src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/stripe.svg"
+        alt="Stripe logo"
+        height="28"
+        className="block"
+      />
+    </div>
+    <div className="flex flex-col">
+      <div className="text-[15px] font-semibold leading-[1.2]">
+        Stripe
+      </div>
+      <div className="text-[13px] leading-[1.2] text-gray-600">
+        Data integration
+      </div>
+    </div>
+    <div className="ml-auto text-[18px] leading-none text-gray-400">
+      →
+    </div>
+  </div>
+</Card>
 
+<Card href="/docs/tap-1">
+  <div className="flex w-full items-center gap-3.5 text-left">
+    <div className="flex w-11">
+      <img
+        src="/images/docs/analytics-and-reporting/getting-started/connect-your-data-sources/logos/tap.png"
+        alt="TAP logo"
+        height="28"
+        className="block"
+      />
+    </div>
+    <div className="flex flex-col">
+      <div className="text-[15px] font-semibold leading-[1.2]">
+        TAP
+      </div>
+      <div className="text-[13px] leading-[1.2] text-gray-600">
+        Data integration
+      </div>
+    </div>
+    <div className="ml-auto text-[18px] leading-none text-gray-400">
+      →
+    </div>
+  </div>
+</Card>
+</CardGroup>

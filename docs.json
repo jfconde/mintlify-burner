@@ -544,7 +544,126 @@
       {
         "tab": "API Reference",
         "icon": "code",
-        "groups": []
+        "groups": [
+          {
+            "group": "Endpoints",
+            "version": "v1",
+            "pages": [
+              {
+                "group": "Authentication",
+                "openapi": "api-oas/chunks/authentication.yaml"
+              },
+              {
+                "group": "Client",
+                "openapi": "api-oas/chunks/client.yaml"
+              },
+              {
+                "group": "Workflows",
+                "openapi": "api-oas/chunks/workflows.yaml"
+              },
+              {
+                "group": "Executions",
+                "openapi": "api-oas/chunks/executions.yaml"
+              },
+              {
+                "group": "Actions",
+                "openapi": "api-oas/chunks/actions.yaml"
+              },
+              {
+                "group": "Payments",
+                "openapi": "api-oas/chunks/payments.yaml"
+              },
+              {
+                "group": "Instruments",
+                "openapi": "api-oas/chunks/instruments.yaml"
+              },
+              {
+                "group": "InstrumentTokens",
+                "openapi": "api-oas/chunks/instrumenttokens.yaml"
+              },
+              {
+                "group": "BinLookup",
+                "openapi": "api-oas/chunks/binlookup.yaml"
+              },
+              {
+                "group": "Providers",
+                "openapi": "api-oas/chunks/providers.yaml"
+              },
+              {
+                "group": "ProviderConfigs",
+                "openapi": "api-oas/chunks/providerconfigs.yaml"
+              },
+              {
+                "group": "Rulesets",
+                "openapi": "api-oas/chunks/rulesets.yaml"
+              },
+              {
+                "group": "Holders",
+                "openapi": "api-oas/chunks/holders.yaml"
+              },
+              {
+                "group": "SSO Connections",
+                "openapi": "api-oas/chunks/sso-connections.yaml"
+              },
+              {
+                "group": "APILogs",
+                "openapi": "api-oas/chunks/apilogs.yaml"
+              },
+              {
+                "group": "Workspaces",
+                "openapi": "api-oas/chunks/workspaces.yaml"
+              },
+              {
+                "group": "DropInLinks",
+                "openapi": "api-oas/chunks/dropinlinks.yaml"
+              },
+              {
+                "group": "Reports",
+                "openapi": "api-oas/chunks/reports.yaml"
+              },
+              {
+                "group": "ReportRuns",
+                "openapi": "api-oas/chunks/reportruns.yaml"
+              },
+              {
+                "group": "FraudChecks",
+                "openapi": "api-oas/chunks/fraudchecks.yaml"
+              },
+              {
+                "group": "ThreeDS",
+                "openapi": "api-oas/chunks/threeds.yaml"
+              },
+              {
+                "group": "ReconciliationRecords",
+                "openapi": "api-oas/chunks/reconciliationrecords.yaml"
+              },
+              {
+                "group": "Vault Instant Proxy",
+                "openapi": "api-oas/chunks/vault-instant-proxy.yaml"
+              },
+              {
+                "group": "Vault Proxy Connections",
+                "openapi": "api-oas/chunks/vault-proxy-connections.yaml"
+              },
+              {
+                "group": "Vault Records and Aliases",
+                "openapi": "api-oas/chunks/vault-records-and-aliases.yaml"
+              },
+              {
+                "group": "Vault Display SDK",
+                "openapi": "api-oas/chunks/vault-display-sdk.yaml"
+              },
+              {
+                "group": "Vault Public Encryption",
+                "openapi": "api-oas/chunks/vault-public-encryption.yaml"
+              },
+              {
+                "group": "Disputes",
+                "openapi": "api-oas/chunks/disputes.yaml"
+              }
+            ]
+          }
+        ]
       }
     ]
   }
