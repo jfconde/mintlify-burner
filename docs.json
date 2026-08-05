@@ -1,5 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
+  "versions": ["v1", "v2"],
   "theme": "maple",
   "fonts": {
     "family": "Archivo"
@@ -266,7 +267,7 @@
                   "docs/orchestration/payment-methods/payjustnow",
                   {
                     "group": "PayPal",
-                    "index": "docs/orchestration/payment-methods/paypal/index",
+                    "root": "docs/orchestration/payment-methods/paypal/index",
                     "pages": [
                       "docs/orchestration/payment-methods/paypal/paypal-express-flow"
                     ]
@@ -440,17 +441,17 @@
                     "group": "Connect your data sources",
                     "root": "docs/analytics-and-reporting/getting-started/connect-your-data-sources/index",
                     "pages": [
-                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/adyen-1",
-                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/amex-1",
-                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/braintree-1",
-                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/checkout-1",
-                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/dlocal-1",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/adyen",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/amex",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/braintree",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/checkout",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/dlocal",
                       "docs/analytics-and-reporting/getting-started/connect-your-data-sources/jp-morgan",
                       "docs/analytics-and-reporting/getting-started/connect-your-data-sources/klarna",
                       "docs/analytics-and-reporting/getting-started/connect-your-data-sources/mangopay",
-                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/paypal-1",
-                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/stripe-1",
-                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/tap-1"
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/paypal",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/stripe",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/tap"
                     ]
                   }
                 ]
@@ -491,11 +492,11 @@
                 "group": "Integrations",
                 "root": "docs/chargeback/integrations/index",
                 "pages": [
-                  "docs/chargeback/integrations/adyen-chargeback-integration",
-                  "docs/chargeback/integrations/checkout-chargeback-integration",
-                  "docs/chargeback/integrations/stripe-chargeback-integration",
-                  "docs/chargeback/integrations/klarna-chargeback-integration",
-                  "docs/chargeback/integrations/nuvei-chargeback-integration"
+                  "docs/chargeback/integrations/adyen",
+                  "docs/chargeback/integrations/checkout",
+                  "docs/chargeback/integrations/stripe",
+                  "docs/chargeback/integrations/klarna",
+                  "docs/chargeback/integrations/nuvei"
                 ]
               }
             ]
@@ -523,10 +524,8 @@
               "docs/resources/manage-instruments",
               {
                 "group": "Notifications",
-                "pages": [
-                  "docs/resources/notifications/notifications",
-                  "docs/resources/notifications/dispute-notifications"
-                ]
+                "root": "docs/resources/notifications/notifications",
+                "pages": ["docs/resources/notifications/dispute-notifications"]
               },
               "docs/resources/error-codes",
               "docs/resources/currency-codes"
@@ -544,122 +543,22 @@
       {
         "tab": "API Reference",
         "icon": "code",
-        "groups": [
+        "versions": [
           {
-            "group": "Endpoints",
             "version": "v1",
-            "pages": [
+            "groups": [
               {
-                "group": "Authentication",
-                "openapi": "api-oas/chunks/authentication.yaml"
-              },
+                "group": "Endpoints",
+                "openapi": "/api-oas/openapi.json"
+              }
+            ]
+          },
+          {
+            "version": "v2",
+            "groups": [
               {
-                "group": "Client",
-                "openapi": "api-oas/chunks/client.yaml"
-              },
-              {
-                "group": "Workflows",
-                "openapi": "api-oas/chunks/workflows.yaml"
-              },
-              {
-                "group": "Executions",
-                "openapi": "api-oas/chunks/executions.yaml"
-              },
-              {
-                "group": "Actions",
-                "openapi": "api-oas/chunks/actions.yaml"
-              },
-              {
-                "group": "Payments",
-                "openapi": "api-oas/chunks/payments.yaml"
-              },
-              {
-                "group": "Instruments",
-                "openapi": "api-oas/chunks/instruments.yaml"
-              },
-              {
-                "group": "InstrumentTokens",
-                "openapi": "api-oas/chunks/instrumenttokens.yaml"
-              },
-              {
-                "group": "BinLookup",
-                "openapi": "api-oas/chunks/binlookup.yaml"
-              },
-              {
-                "group": "Providers",
-                "openapi": "api-oas/chunks/providers.yaml"
-              },
-              {
-                "group": "ProviderConfigs",
-                "openapi": "api-oas/chunks/providerconfigs.yaml"
-              },
-              {
-                "group": "Rulesets",
-                "openapi": "api-oas/chunks/rulesets.yaml"
-              },
-              {
-                "group": "Holders",
-                "openapi": "api-oas/chunks/holders.yaml"
-              },
-              {
-                "group": "SSO Connections",
-                "openapi": "api-oas/chunks/sso-connections.yaml"
-              },
-              {
-                "group": "APILogs",
-                "openapi": "api-oas/chunks/apilogs.yaml"
-              },
-              {
-                "group": "Workspaces",
-                "openapi": "api-oas/chunks/workspaces.yaml"
-              },
-              {
-                "group": "DropInLinks",
-                "openapi": "api-oas/chunks/dropinlinks.yaml"
-              },
-              {
-                "group": "Reports",
-                "openapi": "api-oas/chunks/reports.yaml"
-              },
-              {
-                "group": "ReportRuns",
-                "openapi": "api-oas/chunks/reportruns.yaml"
-              },
-              {
-                "group": "FraudChecks",
-                "openapi": "api-oas/chunks/fraudchecks.yaml"
-              },
-              {
-                "group": "ThreeDS",
-                "openapi": "api-oas/chunks/threeds.yaml"
-              },
-              {
-                "group": "ReconciliationRecords",
-                "openapi": "api-oas/chunks/reconciliationrecords.yaml"
-              },
-              {
-                "group": "Vault Instant Proxy",
-                "openapi": "api-oas/chunks/vault-instant-proxy.yaml"
-              },
-              {
-                "group": "Vault Proxy Connections",
-                "openapi": "api-oas/chunks/vault-proxy-connections.yaml"
-              },
-              {
-                "group": "Vault Records and Aliases",
-                "openapi": "api-oas/chunks/vault-records-and-aliases.yaml"
-              },
-              {
-                "group": "Vault Display SDK",
-                "openapi": "api-oas/chunks/vault-display-sdk.yaml"
-              },
-              {
-                "group": "Vault Public Encryption",
-                "openapi": "api-oas/chunks/vault-public-encryption.yaml"
-              },
-              {
-                "group": "Disputes",
-                "openapi": "api-oas/chunks/disputes.yaml"
+                "group": "Endpoints",
+                "openapi": "/api-oas/openapi-v2.json"
               }
             ]
           }

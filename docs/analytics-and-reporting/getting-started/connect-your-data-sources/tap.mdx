@@ -1,0 +1,43 @@
+---
+title: Tap
+---
+## Prerequisites
+
+- An active TAP merchant account
+- A point of contact with your TAP account manager
+
+## Overview
+
+TAP does not currently offer self-service API key creation through their merchant portal. To get an API key, you need to **reach out to your TAP account manager** and request **read-only API keys** for the environments below.
+
+To ensure we can ingest data for both your production and testing environments, please request two separate keys:
+
+- One for **Live Mode** (production) — key starts with `sk_live_...`
+- One for **Sandbox / Test Mode** — key starts with `sk_test_...`
+
+> **Note on sandbox payouts:** TAP's sandbox environment does not support payouts. We will still accept a sandbox key for testing the charges, authorizations and refunds flows, but no payout data will be ingested for the sandbox environment.
+
+## Step-by-step instructions
+
+### Step 1: Request your API keys from TAP
+
+1. Contact your TAP account manager
+2. Request **two read-only API keys** scoped for reporting access:
+   - One Live Mode key (`sk_live_...`) — suggested label: `Payrails Live Reporting`
+   - One Sandbox / Test Mode key (`sk_test_...`) — suggested label: `Payrails Sandbox Reporting`
+3. Once TAP has provisioned the keys, store them securely — they typically cannot be retrieved again later
+
+### Step 2: Add the TAP integration in the Payrails portal (self-serve)
+
+1. Log in to the Payrails dashboard and open **Settings → Integrations → Data**.
+2. Click **Add instance** (top-right).
+3. In New instance, select provider: **TAP** and click **Continue**.
+4. On the **Configure account** screen, fill in:
+   - **Integration instance name** — a unique label (e.g. clearly mark Live vs Sandbox).
+   - **Start Date** — the date of today or tomorrow (currently we can not backfill over the sel-serve capability. In the need of backfilling, please reach out to your Payrails account manager).
+   - **Is Live** — enable for the Live key; leave off for the Sandbox key.
+   - **API key** — `sk_live_...` for production, `sk_test_...` for sandbox. Create a separate instance for each environment.
+   - _(Optional)_ **Additional data**.
+5. Click **Save account**. The instance appears in the Data integrations list and Payrails begins ingesting data.
+
+

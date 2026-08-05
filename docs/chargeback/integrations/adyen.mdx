@@ -1,0 +1,259 @@
+---
+title: Adyen
+---
+
+<Note>
+
+**Who should use this guide**
+
+This guide is intended for merchants who:
+
+- Use **Payrails** as chargeback
+- Use **Adyen Disputes**
+
+_We use a server-to-server integration with Adyen, so your account must be enabled to process dispute. If this isn’t enabled, chargebacks won’t work in production. Please contact your Adyen account manager or support team to activate it._
+
+</Note>
+
+<Accordion title="How to request permission for Disputes API management">
+  1. Locate the credential used for the integration with Payrails (eg "WS\_XXXXXX").
+     1. On the section "Permissions > UNCATEGORIZED"
+     2. locate and check the checkbox: "\[X] API dispute management"
+     3. Click "Save changes"
+
+2. Email **[support@adyen.com](mailto:support@adyen.com)**.
+   Optionally copy the Payrails Support team.
+   In your request, confirm that **Payrails will act as the chargeback orchestrator**:
+
+Dear Adyen team,
+Please enable "Permissions > UNCATEGORIZED > API dispute management" on WS user "WS_XXXXX" for "MERCHANT_NAME" to be used with Payrails Integration.
+
+</Accordion>
+
+---
+
+## Create and configure an Adyen integration in Payrails
+
+1. Log in to the **Payrails** portal.
+2. Go to **Settings** → **Integrations**.
+3. Select **Add instance** to create a new Adyen integration configuration.
+4. Select the **Workspaces** where this integration should be available.
+
+> **About Workspaces**  
+> Workspaces determine where this integration is available. They let you isolate provider setups by region or business line, or share the same configuration across multiple Workspaces.
+
+---
+
+## Step 1: Choose the integration type
+
+- Select **Dispute** and continue to the next step.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-1.png"
+  width="80%"
+/>
+
+---
+
+## Step 2: Choose the provider
+
+- Select **Adyen** and continue to the next step.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-2.png"
+  width="500px"
+/>
+
+---
+
+## Step 3: Configure your Adyen integration
+
+<Tip>
+  ### What you’ll need from Adyen
+
+Before you begin, make sure you have access to:
+
+- Adyen merchant account name
+- Adyen API key (Web Service User)
+- Prefix (production only)
+- Webhook HMAC key
+
+<a
+  href="https://authn-live.adyen.com/authn/ui/login?request=eyJBdXRoblJlcXVlc3QiOnsiYWN0aXZpdHlHcm91cCI6IkJPX0NBIiwiY3JlZHNSZWFzb24iOlsiTG9nZ2luZyBpbiB0byBhcHBsaWNhdGlvbiBjYSJdLCJmb3JjZU5ld1Nlc3Npb24iOiJmYWxzZSIsImZvcmdvdFBhc3N3b3JkVXJsIjoiaHR0cHM6XC9cL2NhLWxpdmUuYWR5ZW4uY29tXC9jYVwvbG9iYnlcL3Bhc3N3b3JkLXJlc2V0XC9mb3Jnb3QtcGFzc3dvcmQiLCJyZXF1ZXN0VGltZSI6IjIwMjYtMDItMDdUMTc6NDk6MTArMDE6MDAiLCJyZXF1ZXN0ZWRDcmVkZW50aWFscyI6W3siUmVxdWVzdGVkQ3JlZGVudGlhbCI6eyJhY2NlcHRlZEFjdGl2aXR5IjpbeyJBY2NlcHRlZEFjdGl2aXR5Ijp7ImFjdGl2aXR5R3JvdXAiOiJCT19DQSIsImFjdGl2aXR5VHlwZSI6IklNUExJQ0lUIiwibWlsbGlzZWNvbmRzQWdvIjo5MDAwMDB9fV0sInR5cGUiOiJQQVNTV09SRCJ9fSx7IlJlcXVlc3RlZENyZWRlbnRpYWwiOnsiYWNjZXB0ZWRBY3Rpdml0eSI6W3siQWNjZXB0ZWRBY3Rpdml0eSI6eyJhY3Rpdml0eUdyb3VwIjoiQk9fQ0EiLCJhY3Rpdml0eVR5cGUiOiJHUkFDRV9DT09LSUUiLCJtaWxsaXNlY29uZHNBZ28iOjB9fV0sInR5cGUiOiJUV09fRkFDVE9SIn19XSwicmVxdWVzdGluZ0FwcCI6ImNhIiwicmV0dXJuVXJsIjoiaHR0cHM6XC9cL2NhLWxpdmUuYWR5ZW4uY29tXC9jYVwvY2FcL292ZXJ2aWV3XC9kZWZhdWx0LnNodG1sIiwic2lnbmF0dXJlIjoiVjAwNFNSMVJZZklCRmNiVDdYZDFrREJHSTV5TE9nWmV5WEJcLzRTakZGMTA0WGRsZz0ifX0%3D"
+  target="_blank"
+>
+  Log in
+</a>
+to your Adyen merchant dashboard to complete this step.
+
+</Tip>
+
+---
+
+### Integration instance name
+
+**In Payrails**
+
+- Enter an **Instance name** for your integration.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-3.png"
+  width="500px"
+/>
+
+---
+
+### Merchant account name
+
+**In Adyen**
+
+1. <a
+     href="https://authn-live.adyen.com/authn/ui/login?request=eyJBdXRoblJlcXVlc3QiOnsiYWN0aXZpdHlHcm91cCI6IkJPX0NBIiwiY3JlZHNSZWFzb24iOlsiTG9nZ2luZyBpbiB0byBhcHBsaWNhdGlvbiBjYSJdLCJmb3JjZU5ld1Nlc3Npb24iOiJmYWxzZSIsImZvcmdvdFBhc3N3b3JkVXJsIjoiaHR0cHM6XC9cL2NhLWxpdmUuYWR5ZW4uY29tXC9jYVwvbG9iYnlcL3Bhc3N3b3JkLXJlc2V0XC9mb3Jnb3QtcGFzc3dvcmQiLCJyZXF1ZXN0VGltZSI6IjIwMjYtMDItMDdUMTc6NDk6MTArMDE6MDAiLCJyZXF1ZXN0ZWRDcmVkZW50aWFscyI6W3siUmVxdWVzdGVkQ3JlZGVudGlhbCI6eyJhY2NlcHRlZEFjdGl2aXR5IjpbeyJBY2NlcHRlZEFjdGl2aXR5Ijp7ImFjdGl2aXR5R3JvdXAiOiJCT19DQSIsImFjdGl2aXR5VHlwZSI6IklNUExJQ0lUIiwibWlsbGlzZWNvbmRzQWdvIjo5MDAwMDB9fV0sInR5cGUiOiJQQVNTV09SRCJ9fSx7IlJlcXVlc3RlZENyZWRlbnRpYWwiOnsiYWNjZXB0ZWRBY3Rpdml0eSI6W3siQWNjZXB0ZWRBY3Rpdml0eSI6eyJhY3Rpdml0eUdyb3VwIjoiQk9fQ0EiLCJhY3Rpdml0eVR5cGUiOiJHUkFDRV9DT09LSUUiLCJtaWxsaXNlY29uZHNBZ28iOjB9fV0sInR5cGUiOiJUV09fRkFDVE9SIn19XSwicmVxdWVzdGluZ0FwcCI6ImNhIiwicmV0dXJuVXJsIjoiaHR0cHM6XC9cL2NhLWxpdmUuYWR5ZW4uY29tXC9jYVwvY2FcL292ZXJ2aWV3XC9kZWZhdWx0LnNodG1sIiwic2lnbmF0dXJlIjoiVjAwNFNSMVJZZklCRmNiVDdYZDFrREJHSTV5TE9nWmV5WEJcLzRTakZGMTA0WGRsZz0ifX0%3D"
+     target="_blank"
+   >
+     Log in
+   </a>
+   to your Adyen dasboard.
+2. Click the company logo or name in the top-left corner.
+3. From the list of merchant accounts, copy the **Merchant account name**  
+   (not the company account).
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-4.png"
+  width="350px"
+/>
+
+**In Payrails**
+
+- Paste the value into the **Merchant account name** field.
+
+---
+
+### Prefix (production only)
+
+<Note>
+  The prefix is required in **production** but not in **staging**. You can leave
+  this field blank in staging environments.
+</Note>
+
+**In Adyen**
+
+1. Go to **Developers** → **API URLs**.
+2. Copy the **Prefix** value.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-5.png"
+  width="80%"
+/>
+
+**In Payrails**
+
+- Paste the value into the **Prefix** field.
+
+---
+
+### API key
+
+<Tip>Use a dedicated Web Service User API key and store it securely.</Tip>
+
+**In Adyen**
+
+1. Go to **Developers** → **API credentials**.
+2. Select **Create new credential**.
+3. Choose **Web Service User**.
+4. Create the credential and copy the **API key**.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-6.png"
+  width="80%"
+/>
+
+**In Payrails**
+
+- Paste the value into the **API key** field.
+
+---
+
+### HMAC key (webhook signing key)
+
+<Tip>
+  Payrails uses Adyen webhooks to receive asynchronous chargeback status
+  updates.
+</Tip>
+
+<Warning>
+  Create the webhook in the same environment (test or live) as your Payrails
+  integration.
+</Warning>
+
+**In Payrails**
+
+- Copy the **Notification URL** from the webhook section.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-7.png"
+  width="500px"
+/>
+
+**In Adyen**
+
+1. Go to **Developers** → **Webhooks**.
+2. Create a new **Standard webhook**.
+3. Select **only** the merchant account you are configuring.
+4. Paste the Payrails notification URL into the **URL** field.
+5. In **Security**, generate a new **HMAC key** and copy it.
+6. In **Events**, enable all standard events.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-8.png"
+  width="80%"
+/>
+
+Save the webhook configuration.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-9.png"
+  width="80%"
+/>
+
+**In Payrails**
+
+- Paste the HMAC key into the **HMAC key** field.
+- Return to the integration overview after your changes are saved.
+
+---
+
+## Enable the integration
+
+**In Payrails**
+
+- Select **Save account** Save the configuration to enable the integration.
+
+The **Enabled** status confirms that the Adyen integration is active.
+
+<img
+  className="mx-auto block rounded-lg object-cover"
+  src="/images/docs/chargeback/integrations/adyen-chargeback-integration-10.png"
+  width="80%"
+/>
+
+Your Adyen integration is now ready to process chargebacks
+
+---
+
+## Next steps
+
+1. Run a test payment triggering a chargeback using a Adyen <a href="https://docs.adyen.com/risk-management/disputes-api/test-applicable-dispute-reasons" target="_blank">test card.</a>
+2. Verify that:
+   - The dispute appears in Adyen.
+   - The chargeback status updates correctly in Payrails.
+3. Once verified in test mode, repeat the setup in live mode.

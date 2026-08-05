@@ -1,38 +1,66 @@
 ---
-title: Transactions details report
+title: Transactions report
+description: >-
+  This report provides details on all transactions (event based) which impact
+  your account balance.
 ---
+
+import { DownloadTransactionsCSV } from "/snippets/analytics/download-transactions-csv.mdx";
+
 This report can be used to reconcile individual transactions.
+
+### Sample report
+
+<DownloadTransactionsCSV />
+
+(CSV file).
 
 ### Columns
 
-| Column              | Type      | Description                                                                                                   |
-| :------------------ | :-------- | :------------------------------------------------------------------------------------------------------------ |
-| transaction_id      | STRING    | A unique identifier of the transaction in UUID format.                                                        |
-| transaction_type    | STRING    | The type of transaction. Currently supported types: Capture, Refund                                           |
-| created_at          | TIMESTAMP | The timestamp at which the transaction was processed in the timezone of the report                            |
-| timezone            | STRING    | The timezone of the report in IANA timezone format.                                                           |
-| merchant_reference  | STRING    | The merchant reference related to the transaction. For example, the order_id.                                 |
-| provider_reference  | STRING    | The providers reference for the payment which this transaction relates to.                                    |
-| payment_id          | STRING    | The payment identifier to which this transaction is related to.                                               |
-| provider_code       | STRING    | The code for the provider with which the transaction was processed.                                           |
-| currency            | STRING    | The processing currency of the transaction                                                                    |
-| amount              | FLOAT     | The amount of the transaction in the processing currency.                                                     |
-| payment_method_code | STRING    | The <Glossary>Payment method code</Glossary> is a unique code for each payment method in the Payrails system. |
-| card_last4          | STRING    | If the payment_method is card, the last four digits of the card number.                                       |
-| card_network        | STRING    | If the payment_method is card, the network over which the transaction is processed.                           |
-| card_type           | STRING    | The type of card used for processing.                                                                         |
-| installment_count   | INTEGER   | The number of installments.                                                                                   |
-| installment_cost    | FLOAT     | The financial cost associated with the installments.                                                          |
-| batch_number        | INTEGER   |                                                                                                               |
-| coupon_number       | INTEGER   |                                                                                                               |
+| Column                              | Type          | Description                                                                                 |
+| :---------------------------------- | :------------ | :------------------------------------------------------------------------------------------ |
+| workspace_id                        | VARCHAR       | Workspace identifier mapped from the merchant, used for Payrails reporting.                 |
+| merchant_id                         | VARCHAR       | Unique identifier of the merchant.                                                          |
+| payrails_payment_id                 | VARCHAR       | Unique identifier of the Payment in Payrails.                                               |
+| payrails_execution_id               | VARCHAR       | Unique identifier of the execution.                                                         |
+| action_id                           | VARCHAR       | Unique identifier of this execution action.                                                 |
+| merchant_reference                  | VARCHAR       | The merchant reference related to the transaction. For example, the order_id.               |
+| action                              | VARCHAR       | Type of action (authorize, refund, cancel).                                                 |
+| created_at                          | TIMESTAMP_NTZ | Timestamp at which the action was created.                                                  |
+| completed_at                        | TIMESTAMP_NTZ | Timestamp at which the action was completed.                                                |
+| timezone                            | VARCHAR       | Timezone in which the session happened.                                                     |
+| milliseconds_to_completion          | NUMBER        | Time from request to completion in milliseconds                                             |
+| is_success                          | BOOLEAN       | Whether execution action was succeeded                                                      |
+| is_completed                        | BOOLEAN       | Whether event action is completed.                                                          |
+| currency                            | VARCHAR       | Three-letter ISO currency code, in uppercase                                                |
+| amount                              | NUMBER        | Payment amount in local currency                                                            |
+| provider_name                       | VARCHAR       | Provider who processed the payment                                                          |
+| provider_account                    | VARCHAR       | Provider account display name.                                                              |
+| provider_reference                  | STRING        | The providers reference for the payment which this transaction relates to.                  |
+| error_reason_source                 | VARCHAR       | Source of the error reason (null if payment was successful).                                |
+| error_reason_detail                 | VARCHAR       | Details of the error reason (null if payment was successful)                                |
+| error_reason_result                 | VARCHAR       | End result of the error reason (null if payment was successful).                            |
+| error_reason_category               | VARCHAR       | Category of error reason (null if payment was successful).                                  |
+| error_detail                        | VARCHAR       | Details of the error (null if payment was successful).                                      |
+| has_threeds                         | BOOLEAN       | Whether payment went through 3ds.                                                           |
+| eci                                 | VARCHAR       | Electronic commerce indicator.                                                              |
+| payment_method_type                 | VARCHAR       | Payment method type, values: card, easypaisa, jazzCash, fawryPay, etc                       |
+| card_bin                            | VARCHAR       | 4-digit BIN of the card.                                                                    |
+| card_network                        | VARCHAR       | Card network that supports the card, e.g. Visa, Mastercard, American Express. Card only.    |
+| card_type                           | VARCHAR       | The type of card used for processing, values: credit, debit, notset, prepaid.               |
+| card_type_details                   | VARCHAR       | More information about the card type, e.g. personal, commercial. Card only.                 |
+| card_segment                        | VARCHAR       | Segment of the card, e.g. gold, black, business. Card only.                                 |
+| card_issuer                         | VARCHAR       | Card issuing bank.                                                                          |
+| card_issuer_country_code            | VARCHAR       | ISO alpha-2 country code of card issuer.                                                    |
+| card_issuer_country_name            | VARCHAR       | Full country name of card issuer.                                                           |
+| token_id                            | VARCHAR       | Instrument Token ID related to the payment                                                  |
+| token_type                          | VARCHAR       | Type of the token, values: network, vault, psp, networkOffers.                              |
+| authorization_code                  | VARCHAR       | Authorization code from issuing bank.                                                       |
+| retrieval_reference_number          | VARCHAR       | Retrieval Reference Number (RRN).                                                           |
+| network_transaction_reference       | VARCHAR       | Scheme-level transaction reference.                                                         |
+| provider_response_additional_fields | VARIANT       | PSP-specific additional response fields.                                                    |
+| mapped_psp_response                 | VARIANT       | Mapped/normalized PSP result details.                                                       |
+| meta                                | VARIANT       | Complete merchant's meta details.                                                           |
+| instrument_email                    | VARCHAR       | Customer email captured on the payment instrument. Wallet only, e.g. Apple Pay, Google Pay. |
 
-### Reference
-
-| Field               | Possible values                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| :------------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| provider_code       | adyen, amex, aplazo, applepay, boku, braintree, checkout, citibank, cybersource, dlocal, fawry, flutterwave, googlepay, gosas, hyperpay, kueski, lidio, mangopay, mercadopago, mobimoney, myfatoorah, nium, nuvei, payflex, payjustnow, paypal, payu, platron, stripe, tap, telr, testhelpers, testpsp, thunes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| payment_method_code | alexBankMa7fazty, applePay, audi2pay, alfa, bankTransfer, card, cibSmartWallet, easypaisa, etisalatCash, fawryMobileWallet, fawryPay, googlePay, jazzCash, mercadoPago, monoDirectDebit, nbePhoneCash, orangeCash, oPayWallet, pagaWallet, payflex, payjustnow, payPal, pix, konnect, qnbEWallet, wafaCashWallet, weCash, genericRedirect, eftPro, upi, cashFreeWallet, paytmMWallet, netBanking.                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| card_network        | atm, amex, argencard, aura, bc, bpfuelcard, bancomat, bancontact, bankcard, belkart, chjonesfuelcard, cmi, cmr, cabal, carnet, cartesbancaires, cencosud, cirrus, codensa, cobroexpress, dankort, dinacard, diners, discover, duet, ebt, eftpos, electron, elo, euroshellfuelcard, fuelcard, gecapital, girocard, hrgstore, hipercard, humo, interac, jcb, jcblankapay, lankapay, localbrand, loyalty, lukoilfuelcard, mir, mada, maestro, maestrobancontact, mastercard, mastercardmada, meeza, naranja, newday, ourocard, phhfuelcard, prostir, pagobancomat, pagofacil, paypak, paypal, privatelabel, rapipago, redfuelcard, redliquidfuelcard, rupay, sbercard, sodexo, sol, surcredito, starrewards, troy, tarjetashopping, uatp, ukfuelcard, unionpay, unionpayuzcard, unspecified, uzcard, vpay, verve, visa, visadankort, visamada, voyager, wex. |
-| card_type           | CREDIT, DEBIT                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| currency            | Three letter ISO 4217 currency code (e.g. USD).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-
+<br />
