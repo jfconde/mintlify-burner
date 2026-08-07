@@ -2,6 +2,7 @@
 title: Apple Pay via Proxy
 description: Learn your options to tokenize Apple Pay instruments and how to use them in proxy flow.
 ---
+
 Payrails allows the use of tokenized Apple Pay instruments via the Instant Proxy integration. This allows merchants to forward sensitive Apple Pay data to supported payment providers without decrypting or storing the Apple Pay network token on their end.
 
 # Tokenize Apple Pay instruments
@@ -12,19 +13,19 @@ Payrails offers multiple ways to tokenize the card information, depending on the
 
 Here's a table comparing your options from a high-level perspective:
 
-| Tokenization Type                                                                                                                                                                                                                         | Integration Effort | PCI Scope                  |
-| :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------- | :------------------------- |
-| [Apple Button Element SDK with Payrails decryption](apple-pay-via-proxy#/1-apple-pay-button-element-sdk-with-payrails-decrypted-tokens)                                                                    | Low                | Low (SAQ and AOC)          |
-| <a href="apple-pay-via-proxy#/2-server-to-server-with-payrails-decrypted-tokens" target="_blank">Server-to-Server with Payrails decryption</a> | Medium             | Low (SAQ and AOC)          |
-| <a href="apple-pay-via-proxy#/3-server-to-server-with-merchant-decrypted-tokens" target="_blank">Server-to-Server with Merchant decryption</a> | High               | High (Level 1 ROC and AOC) |
+| Tokenization Type                                                                                                                              | Integration Effort | PCI Scope                  |
+| :--------------------------------------------------------------------------------------------------------------------------------------------- | :----------------- | :------------------------- |
+| [Apple Button Element SDK with Payrails decryption](#1-apple-pay-button-element-sdk-with-payrails-decrypted-tokens)        | Low                | Low (SAQ and AOC)          |
+| [Server-to-Server with Payrails decryption](#2-server-to-server-with-payrails-decrypted-tokens) | Medium             | Low (SAQ and AOC)          |
+| [Server-to-Server with Merchant decryption](#3-server-to-server-with-merchant-decrypted-tokens) | High               | High (Level 1 ROC and AOC) |
 
 ### 1. Apple Pay Button Element SDK with Payrails-decrypted tokens
 
-Payrails Elements are payment UI components you can assemble together to build a payment form, giving better flexibility than Drop-in with the ability to manage each element separately. Check our <a href="/docs/orchestration/checkout-sdks/web/elements" target="_blank">Elements</a> guide for more detailed information.
+Payrails Elements are payment UI components you can assemble together to build a payment form, giving better flexibility than Drop-in with the ability to manage each element separately. Check our <a href="/docs/orchestration/checkout-sdks/web-v5-legacy/elements" target="_blank">Elements</a> guide for more detailed information.
 
-Elements provides merchants with easy integration to Apple Pay tokenization without having the need to set up any integration with the Apple Pay SDK directly. Payrails manages all the keys needed for completing the Apple Pay session and detokenization, reducing all merchant overhead. Check out the [Apple Pay Button Element](/docs/orchestration/checkout-sdks/web/elements#apple-pay-element) for a detailed guide.
+Elements provides merchants with easy integration to Apple Pay tokenization without having the need to set up any integration with the Apple Pay SDK directly. Payrails manages all the keys needed for completing the Apple Pay session and detokenization, reducing all merchant overhead. Check out the [Apple Pay Button Element](/docs/orchestration/checkout-sdks/web-v5-legacy/elements#apple-pay-element) for a detailed guide.
 
-For details of how to integrate this option, move to this [section](apple-pay-via-proxy#/setting-up-the-apple-pay-button-element-for-tokenization) .
+For details of how to integrate this option, move to this [section](#setting-up-the-apple-pay-button-element-for-tokenization) .
 
 ### 2. Server-to-Server with Payrails-decrypted tokens
 
@@ -32,17 +33,17 @@ In this integration method, the merchant maintains control over their Apple Pay 
 
 For this flow, once you obtain the encrypted Apple Pay token object from your direct integration with Apple, use [Create Instrument](/reference/createinstrument#/) API endpoint to pass it to Payrails. You will use `encyrptedData` object to pass the Apple Pay token, alongside `encryptedDataType` passed as 'networkToken', since Apple Pay digital wallet uses network tokens technology. Once you create the instrument, you are returned an instrumentId in the API response, and you can start passing this instrumentId in the Proxy API requests.
 
-For details of how to integrate this option, move to this [section](apple-pay-via-proxy#2-server-to-server-with-payrails-decrypted-tokens-1).
+For details of how to integrate this option, move to this [section](#2-server-to-server-with-payrails-decrypted-tokens-2).
 
 ### 3. Server-to-Server with merchant-decrypted tokens
 
 This integration method allows merchant to maintain control over their Apple Pay integration. Merchants implement the Apple Pay SDK integration and decryption of the Apple Pay token, and directly provide the decrypted network token to Payrails. This requires the necessary level of PCI compliance to be able to store and process PCI-sensitive data on your servers.
 
-For details of how to integrate this option, move to this [section](apple-pay-via-proxy#3-server-to-server-with-merchant-decrypted-tokens-1).
+For details of how to integrate this option, move to this [section](#3-server-to-server-with-merchant-decrypted-tokens-2).
 
-You can jump to [this section](apple-pay-via-proxy#/using-apple-pay-instrument-in-instant-proxy) to learn how to pass an Apple Pay instrument in a proxy API.
+You can jump to [this section](#using-apple-pay-instrument-in-instant-proxy) to learn how to pass an Apple Pay instrument in a proxy API.
 
-***
+---
 
 ## 1. Apple Pay Button Element SDK with Payrails-decrypted tokens
 
@@ -50,29 +51,29 @@ You can jump to [this section](apple-pay-via-proxy#/using-apple-pay-instrument-i
 
 #### Perform Client init with Intent "tokenization"
 
-* Perform a [Client init](/reference/clientinit) with intent "tokenization`
+- Perform a [Client init](/reference/clientinit) with intent "tokenization`
 
 ```json
 {
-    "type": "tokenization",
-    "meta": {
-        "order": {
-            "softDescription": "Subscription"
-        },
-        "clientContext": {
-            "host": "example.merchant.com/store"
-        }
+  "type": "tokenization",
+  "meta": {
+    "order": {
+      "softDescription": "Subscription"
     },
-    "amount": {
-        "value": "0.00",
-        "currency": "EUR"
+    "clientContext": {
+      "host": "example.merchant.com/store"
     }
+  },
+  "amount": {
+    "value": "0.00",
+    "currency": "EUR"
+  }
 }
 ```
 
-* Provide the display name for the Apple Pay payment sheet in `meta.order.softDescription`
-* Provide the merchant store page initiative context in `meta.clientContext.host`
-* Provide the amount in `amount`
+- Provide the display name for the Apple Pay payment sheet in `meta.order.softDescription`
+- Provide the merchant store page initiative context in `meta.clientContext.host`
+- Provide the amount in `amount`
 
 #### Render the Apple Pay button
 
@@ -102,7 +103,7 @@ const element = payrails.applePayButton({
     },
     onApplePayAvailable() => {
       console.log('Apple Pay ready');
-      // event will fire when Apple Pay Button is initialized 
+      // event will fire when Apple Pay Button is initialized
     },
     styles: {
     	type: 'plain',
@@ -111,7 +112,7 @@ const element = payrails.applePayButton({
   },
   translations: {
     labels: {
-      paymentScreenLabel: "Checkout with applePay" 
+      paymentScreenLabel: "Checkout with applePay"
     }
   }
 });
@@ -119,9 +120,9 @@ const element = payrails.applePayButton({
 element.mount('#apple-pay-button-container');
 ```
 
-* Listen to the `onSuccess` callback for the event of type `TOKENIZE`  to get the details for the newly created Apple Pay Instrument
+- Listen to the `onSuccess` callback for the event of type `TOKENIZE` to get the details for the newly created Apple Pay Instrument
 
-Once the instrument has been created, it can be used in the instant proxy in your backend service. Jump to this [section](apple-pay-via-proxy#using-apple-pay-instrument-in-instant-proxy) to read more.
+Once the instrument has been created, it can be used in the instant proxy in your backend service. Jump to this [section](#using-apple-pay-instrument-in-instant-proxy) to read more.
 
 ## 2. Server-to-Server with Payrails-decrypted tokens
 
@@ -157,7 +158,7 @@ Use POST/ Create Instrument API endpoint, send paymentMethod=applePay, and pass 
 }
 ```
 
-Once the instrument has been created, it can be used in the instant proxy in your backend service. Jump to this [section](apple-pay-via-proxy#using-apple-pay-instrument-in-instant-proxy) to read more.
+Once the instrument has been created, it can be used in the instant proxy in your backend service. Jump to this [section](#using-apple-pay-instrument-in-instant-proxy) to read more.
 
 ## 3. Server-to-Server with merchant-decrypted tokens
 
@@ -210,11 +211,11 @@ Once you have completed the above steps, the next step will be creating an Apple
 }
 ```
 
-Once the instrument has been created, it can be used in the instant proxy in your backend service. Move to the next [section](apple-pay-via-proxy#using-apple-pay-instrument-in-instant-proxy) to read more.
+Once the instrument has been created, it can be used in the instant proxy in your backend service. Move to the next [section](#using-apple-pay-instrument-in-instant-proxy) to read more.
 
 # Using Apple Pay instrument in Instant Proxy
 
-With the instrument created, you can now forward it to your payment providers via Instant Proxy. Check out the [Instant Proxy](proxy-payment-instruments) for a detailed guide.
+With the instrument created, you can now forward it to your payment providers via Instant Proxy. Check out the [Instant Proxy](./proxy-payment-instruments) for a detailed guide.
 
 ### Prepare the request body you want to pass to the payment provider based on the provider's API contract.
 
@@ -238,45 +239,46 @@ Below you can find some examples of some well-known providers and how you should
 
 ```json Checkout
 {
-  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
-  "url":"https://api.sandbox.checkout.com/payments",
-  "headers":{
-    "x-API-key":"YOUR_API_KEY",
-    "Content-Type":"application/json"
+  "paymentInstrumentId": "eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url": "https://api.sandbox.checkout.com/payments",
+  "headers": {
+    "x-API-key": "YOUR_API_KEY",
+    "Content-Type": "application/json"
   },
-  "body":{
-    "amount":1000,
-    "currency":"USD",
-    "reference":"some_reference",
-    "source":{
-      "type":"network_token",
+  "body": {
+    "amount": 1000,
+    "currency": "USD",
+    "reference": "some_reference",
+    "source": {
+      "type": "network_token",
       "token_type": "applepay",
-      "token":"{{networkTokenNumber}}",
-      "expiry_month":"{{networkTokenExpiryMonth}}",
-      "expiry_year":"{{networkTokenExpiryYear}}",
-      "cryptogram":"{{networkTokenCryptogram}}",
-      "name":"{{cardHolderName}}"
+      "token": "{{networkTokenNumber}}",
+      "expiry_month": "{{networkTokenExpiryMonth}}",
+      "expiry_year": "{{networkTokenExpiryYear}}",
+      "cryptogram": "{{networkTokenCryptogram}}",
+      "name": "{{cardHolderName}}"
     },
-    "payment_type":"Regular",
-    "authorization_type":"Final",
-    "capture":true,
-    "processing_channel_id":"pc_xxxxxxxxxxx",
-    "risk":{
-      "enabled":false
+    "payment_type": "Regular",
+    "authorization_type": "Final",
+    "capture": true,
+    "processing_channel_id": "pc_xxxxxxxxxxx",
+    "risk": {
+      "enabled": false
     },
-    "merchant_initiated":true
+    "merchant_initiated": true
   }
 }
 ```
+
 ```json Stripe
 {
-  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
-  "url":"https://api.stripe.com/v1/payment_methods",
-  "headers":{
-    "Authorization":"***",
-    "Content-Type":"application/x-www-form-urlencoded"
+  "paymentInstrumentId": "eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url": "https://api.stripe.com/v1/payment_methods",
+  "headers": {
+    "Authorization": "***",
+    "Content-Type": "application/x-www-form-urlencoded"
   },
-  "body":"type=card&network_token[exp_month]={{networkTokenExpiryMonth}}&network_token[exp_year]={{networkTokenExpiryYear}}&network_token[number]={{networkTokenNumber}}&network_token[cryptogram]={{networkTokenCryptogram}}"
+  "body": "type=card&network_token[exp_month]={{networkTokenExpiryMonth}}&network_token[exp_year]={{networkTokenExpiryYear}}&network_token[number]={{networkTokenNumber}}&network_token[cryptogram]={{networkTokenCryptogram}}"
 }
 ```
 
@@ -288,7 +290,7 @@ Below you can find some examples of some well-known providers and how you should
    2. 2-digit expiry year of the network token, use `{{networkTokenExpiryYear2Digits}}`
 
 <Warning>
-  Apple Pay tokens will always contain a network token in them, always use the network token place holders when making a proxy request for an apple pay instrument.
+  Apple Pay tokens will always contain a network token in them, always use the
+  network token place holders when making a proxy request for an apple pay
+  instrument.
 </Warning>
-
-

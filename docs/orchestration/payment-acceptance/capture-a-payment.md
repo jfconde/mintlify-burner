@@ -5,7 +5,7 @@ By default, payments are automatically captured after authorization, without any
 # Requirements
 
 - The payment you want to capture must be authorized
-- Have [notifications](doc:receive-notifications) set up if you wish to receive them for capture results
+- Have [notifications](/docs/orchestration/payment-acceptance/receive-notifications) set up if you wish to receive them for capture results
 
 # Capture a payment via API
 
@@ -53,7 +53,7 @@ For the complete response schema, refer to the [Capture a payment](https://payra
 
 ## 4. Wait for the capture notification
 
-Successfully requested payment captures will be processed asynchronously. If you have [notifications](doc:receive-notifications) set up, you’ll receive a notification once the processing is complete, informing you whether the capture was a success or failure.
+Successfully requested payment captures will be processed asynchronously. If you have [notifications](/docs/orchestration/payment-acceptance/receive-notifications) set up, you’ll receive a notification once the processing is complete, informing you whether the capture was a success or failure.
 
 Example notification for a successful capture:
 
@@ -194,4 +194,4 @@ For further details, refer to the Timeline section of the Payment Details page. 
   width="80%"
 />
 
-If you have [notifications](doc:receive-notifications) set up, you’ll also receive a notification once your capture has been processed, informing you whether it was a success or failure.
+If you have [notifications](/docs/orchestration/payment-acceptance/receive-notifications) set up, you’ll also receive a notification once your capture has been processed, informing you whether it was a success or failure.

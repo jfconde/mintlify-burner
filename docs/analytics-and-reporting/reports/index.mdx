@@ -1,20 +1,21 @@
 ---
 title: Reports
 ---
+
 Payrails Reports let you export financial and operational data as CSV files for reconciliation, accounting, and business analysis. Reports are generated asynchronously — you request a report run, and once it completes, you download the file via a pre-signed URL. You can generate reports through the Payrails Portal or programmatically via the API.
 
 ## Available report types
 
-| Report code    | Description                                                                                                                                                          | Schema                                   |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `payments`     | Gain deep insights into your authorization funnel and processing efficiency with a unified breakdown of payment statuses, failure results, and card-level metadata.. | [View schema](/docs/report-payments)     |
-| `transactions` | This report provides details on all transactions which impact your account balance..                                                                                 | [View schema](/docs/report-transactions) |
-| `settlements`  | This report provides a comprehensive breakdown of all transaction-level movements and associated costs that impact your merchant settlement balance..                | [View schema](/docs/report-settlements)  |
-| `disputes`     | Chargeback and dispute data, linked back to the original disputed transaction where it was processed through Payrails.                                               | [View schema](/docs/report-disputes)     |
+| Report code    | Description                                                                                                                                                          | Schema                               |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `payments`     | Gain deep insights into your authorization funnel and processing efficiency with a unified breakdown of payment statuses, failure results, and card-level metadata.. | [View schema](./report-payments)     |
+| `transactions` | This report provides details on all transactions which impact your account balance..                                                                                 | [View schema](./report-transactions) |
+| `settlements`  | This report provides a comprehensive breakdown of all transaction-level movements and associated costs that impact your merchant settlement balance..                | [View schema](./report-settlements)  |
+| `disputes`     | Chargeback and dispute data, linked back to the original disputed transaction where it was processed through Payrails.                                               | [View schema](./report-disputes)     |
 
 You can list all reports available to your organization using the [Search & list reports](/reference/getreports) endpoint.
 
-***
+---
 
 ## Download reports via API
 
@@ -106,7 +107,7 @@ Once complete, the response includes a `result` object with a pre-signed downloa
 
 Execute a `GET` request on `result.url` to download the file. This URL is pre-signed and expires at `result.expiresAt` — make sure to download the file before it expires.
 
-***
+---
 
 ## Download reports via Portal
 
@@ -115,7 +116,7 @@ Execute a `GET` request on `result.url` to download the file. This URL is pre-si
 3. Select the report type and date range.
 4. Click **Download** to export a CSV file.
 
-***
+---
 
 ## Limitations
 
@@ -125,7 +126,7 @@ Execute a `GET` request on `result.url` to download the file. This URL is pre-si
 - **No webhook or push notification**: There is currently no callback or event mechanism to notify you when a report run is ready. Polling `GET /analytics/reportRuns/{id}` is the only way to check completion status. Build your integration to poll actively and handle both `Successful` and `Failed` terminal states.
 - **Report availability**: The report types available to your organization depend on your Payrails module configuration. Use the [Search & list reports](/reference/getreports) endpoint to confirm which report codes are enabled for your account.
 
-***
+---
 
 ## Error handling
 
@@ -148,50 +149,67 @@ When a run fails, the response includes an `error` field with a code describing 
 | `REPORT_UPLOAD_ERROR`     | The report was generated but failed to upload.                 | Retry the report run. If the issue persists, contact Payrails support.                                                     |
 | `REPORT_GENERATION_ERROR` | An internal error occurred during report generation.           | Retry the report run. If the issue persists, contact Payrails support.                                                     |
 
-***
+---
 
 ## FAQ
 
 <Accordion title="How long does it take for a report run to complete?">
-  Most report runs complete within 2–3 minutes. Polling every 5–10 seconds is recommended.
+  Most report runs complete within 2–3 minutes. Polling every 5–10 seconds is
+  recommended.
 </Accordion>
 
 <Accordion title="Is there a way to be notified when a report is ready, without polling?">
-  Not currently. There is no webhook or callback mechanism available — polling is the only way to check on a report run. Send a `GET` request to `/analytics/reportRuns/{id}` at a regular interval (every 5–10 seconds is recommended) until the status is `Successful` or `Failed`. Make sure your integration handles both terminal states explicitly.
+  Not currently. There is no webhook or callback mechanism available — polling
+  is the only way to check on a report run. Send a `GET` request to
+  `/analytics/reportRuns/{id}` at a regular interval (every 5–10 seconds is
+  recommended) until the status is `Successful` or `Failed`. Make sure your
+  integration handles both terminal states explicitly.
 </Accordion>
 
 <Accordion title="What happens if my report exceeds the 5 GB file size limit?">
-  The report run will fail with an error. Reduce the date range in your request and re-run the report. If you regularly need to export large volumes of data, consider breaking your date range into smaller weekly or bi-weekly batches.
+  The report run will fail with an error. Reduce the date range in your request
+  and re-run the report. If you regularly need to export large volumes of data,
+  consider breaking your date range into smaller weekly or bi-weekly batches.
 </Accordion>
 
 <Accordion title="What timezone should I use?">
-  Use a [TZ database name](https://www.iana.org/time-zones) such as `Europe/Berlin` or `America/New_York`. If you omit the `timezone` parameter, it defaults to `UTC`. Choosing the right timezone ensures that day boundaries in the report align with your local business hours.
+  Use a [TZ database name](https://www.iana.org/time-zones) such as
+  `Europe/Berlin` or `America/New_York`. If you omit the `timezone` parameter,
+  it defaults to `UTC`. Choosing the right timezone ensures that day boundaries
+  in the report align with your local business hours.
 </Accordion>
 
 <Accordion title="Can I re-download a report after the URL expires?">
-  Yes. If it has expired, calling the `GET /analytics/reportRuns/{id}`endpoint will generate a new pre-signed download URL.
+  Yes. If it has expired, calling the `GET /analytics/reportRuns/{id}`endpoint
+  will generate a new pre-signed download URL.
 </Accordion>
 
 <Accordion title="Can I scope a report to a single workspace?">
-  Yes. Pass the `workspaceId` field in the request body to filter results to a specific workspace. Omit it to include data across all workspaces your credentials have access to.
+  Yes. Pass the `workspaceId` field in the request body to filter results to a
+  specific workspace. Omit it to include data across all workspaces your
+  credentials have access to.
 </Accordion>
 
 <Accordion title="What does the Search & list report runs endpoint return if I don't pass any parameters?">
-  The endpoint returns the most recent report runs in descending order by `createdAt`, with a default page size of 10. You can paginate using `page[after]`, `page[before]`, and `page[size]`, and filter by `filters[status]`, `filters[id]`, and `filters[workspaceId]`.
+  The endpoint returns the most recent report runs in descending order by
+  `createdAt`, with a default page size of 10. You can paginate using
+  `page[after]`, `page[before]`, and `page[size]`, and filter by
+  `filters[status]`, `filters[id]`, and `filters[workspaceId]`.
 </Accordion>
 
 <Accordion title="Why are some report codes unavailable to my organization?">
-  Report availability is tied to which Payrails modules are configured for your account. Contact your Payrails account manager if you need access to a report type that is not listed.
+  Report availability is tied to which Payrails modules are configured for your
+  account. Contact your Payrails account manager if you need access to a report
+  type that is not listed.
 </Accordion>
 
 <Accordion title="How do I match records across the different report types?">
   Each report includes three reference fields you can use to link records:
 
-  | Field                 | Description                                                                                                        |
-  | --------------------- | ------------------------------------------------------------------------------------------------------------------ |
-  | `payrails_payment_id` | The ID generated by Payrails. Use this to link records across the Payments, Transactions, and Settlements reports. |
-  | `merchant_reference`  | Your own reference for the record. Use this to link report data back to records in your internal systems.          |
-  | `provider_reference`  | The payment service provider's reference for the record.                                                           |
+| Field                 | Description                                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `payrails_payment_id` | The ID generated by Payrails. Use this to link records across the Payments, Transactions, and Settlements reports. |
+| `merchant_reference`  | Your own reference for the record. Use this to link report data back to records in your internal systems.          |
+| `provider_reference`  | The payment service provider's reference for the record.                                                           |
+
 </Accordion>
-
-

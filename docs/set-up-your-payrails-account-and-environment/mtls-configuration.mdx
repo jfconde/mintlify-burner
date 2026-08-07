@@ -27,7 +27,11 @@ Certificates are scoped per environment: you will need to create one for staging
 
 Create a client certificate for your service and download it for installation.
 
-<img class="mx-auto block" width="80%" src="/images/docs/mtls-certificates-list-empty.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-certificates-list-empty.png"
+/>
 
 1. In the Payrails Portal, go to `Settings → mTLS certificates`.
 2. Select `Create certificate` and provide a description if desired: owner, rotation policy or related service.
@@ -35,7 +39,11 @@ Create a client certificate for your service and download it for installation.
    - Organization name: your legal company name.
    - Country and state/province: if unsure, use your headquarters. These inputs are not binding.
 
-  <img class="mx-auto block" width="80%" src="/images/docs/mtls-csr-organization-details.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-csr-organization-details.png"
+/>
 
 4. Generate your private key and CSR:
    - The interface displays a pre‑filled OpenSSL command. Copy it and run it in your terminal from the directory where you want the files saved.
@@ -43,12 +51,20 @@ Create a client certificate for your service and download it for installation.
    - Store the private key securely; you will use it when configuring your client later.
    - Keep the CSR file ready for submission in the next step.
 
-  <img class="mx-auto block" width="80%" src="/images/docs/mtls-csr-command-generated.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-csr-command-generated.png"
+/>
 
 5. Submit the CSR generated in step 4.
 6. The certificate is issued automatically after submission: click `Download` to download it.
 
-  <img class="mx-auto block" width="80%" src="/images/docs/mtls-certificate-issued-download.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-certificate-issued-download.png"
+/>
 
 7. Install the certificate in your service or keep it ready for local testing (see the Postman section below).
 8. Click on `Continue to configuration` to [test and configure your mTLS certificate](/docs/orchestration/getting-started#test-and-configure-your-mtls-certificate).
@@ -59,11 +75,23 @@ Create a client certificate for your service and download it for installation.
 
 You can test your mTLS certificate with cURL or Postman, follow the instructions on the screen.
 
-<img class="mx-auto block" width="80%" src="/images/docs/mtls-test-configure-overview.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-test-configure-overview.png"
+/>
 
-<img class="mx-auto block" width="80%" src="/images/docs/mtls-test-configure-curl.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-test-configure-curl.png"
+/>
 
-<img class="mx-auto block" width="80%" src="/images/docs/mtls-test-configure-postman.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-test-configure-postman.png"
+/>
 
 ### Configure curl to use mTLS
 
@@ -76,16 +104,20 @@ curl --cert domain.pem --key domain.key \
   --header 'x-api-key: <Client Secret>'
 ```
 
-- `domain.pem`: the certificate file [downloaded](/docs/orchestration/getting-started#request-and-manage-mtls-certificates) (or sent to you) in Step 2,
+- `domain.pem`: the certificate file [downloaded](#request-and-manage-mtls-certificates) (or sent to you) in Step 2,
 - `domain.key`: the private key file generated in Step 1,
   - If the private key requires a passphrase, you will also need to provide it with `--pass` argument.
-- `Client ID` and `Client Secret` are the API credentials. [See how to retrieve them](api-credentials#obtaining-api-credentials).
+- `Client ID` and `Client Secret` are the API credentials. [See how to retrieve them](./obtaining-api-credentials#obtaining-your-api-credentials).
 
 ### Configure Postman to use mTLS
 
 From certificate details
 
-<img class="mx-auto block" width="80%" src="/images/docs/mtls-certificate-details-postman-setup.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-certificate-details-postman-setup.png"
+/>
 
 1. Open the certificate from the list to view `Certificate details`.
 2. Select `Download <certificate>.pem` and save the file.
@@ -121,11 +153,19 @@ Step 3 of 3 — Test in Postman
 - Revoked certificate: issuance of a new certificate is required; revoked certificates cannot be re‑enabled.
 - Maximum number of active certificates reached: we limit the number of certificates to prevent abuse. If you reached your limit, either revoke an existing certificate that is no longer in use or contact your Payrails administrator to increase your limit.
 
-  <img class="mx-auto block" width="40%" src="/images/docs/mtls-certificate-limit-warning.png" />
+  <img
+    class="mx-auto block"
+    width="40%"
+    src="/images/docs/mtls-certificate-limit-warning.png"
+  />
 
 ## Why is my certificate marked as Deprecated?
 
-<img class="mx-auto block" width="80%" src="/images/docs/mtls-certificate-deprecated-status.png" />
+<img
+  class="mx-auto block"
+  width="80%"
+  src="/images/docs/mtls-certificate-deprecated-status.png"
+/>
 
 As part of an improvement to the stability of our platform, we are migrating away from Cloudflare as a Certificate Authority (CA) for our MTLS authentication.
 We have introduced new Payrails-managed CAs for both staging and production. These CAs are already active and currently operate in parallel with the existing Cloudflare CAs.

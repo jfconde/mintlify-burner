@@ -1,0 +1,218 @@
+---
+title: Thunes
+hidden: true
+description: >-
+  Thunes is a global payment service provider that enables you to process card
+  payments and a wide range of alternative payment methods in multiple regions
+  over the globe.
+---
+
+# Provider data
+
+| Meta-data     | Value                                                                                                      |
+| :------------ | :--------------------------------------------------------------------------------------------------------- |
+| Website       | [https://www.thunes.com/](https://www.thunes.com/)                                                         |
+| Testing guide | [https://collection-docs.thunes.com/docs/how-to-test](https://collection-docs.thunes.com/docs/how-to-test) |
+| Config fields | Merchant ID, API Key, Secret Key                                                                           |
+
+# Supported workflows and modes
+
+<table>
+  <thead>
+    <tr>
+      <th style={{ textAlign: "left" }}>
+        Workflow
+      </th>
+
+      <th style={{ textAlign: "left" }}>
+        Supported
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        Available via Payrails SDK
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        :heavy_check_mark:
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        Available via Payrails API
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        :heavy_check_mark:
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [Delayed / Manual Capture](https://docs.payrails.com/docs/cancel-and-capture-modes#capture-mode)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        :heavy_multiplication_x:
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [Instant Capture](https://docs.payrails.com/docs/cancel-and-capture-modes#capture-mode)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        :heavy_check_mark:
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [Cancel / Void](https://docs.payrails.com/docs/cancel-a-payment)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        :heavy_multiplication_x:
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [Refund / Reverse](https://docs.payrails.com/docs/refund-a-payment)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        :heavy_check_mark:
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [Save Instruments](https://docs.payrails.com/docs/tokenize-cards)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        :heavy_multiplication_x:
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [Merchant Initiated Transaction (MIT)](https://docs.payrails.com/docs/authorization-flags)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        :heavy_multiplication_x:
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        Interoperability
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        N/A
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+
+# Supported payment methods and modes
+
+<table align={["left","left","left"]}>
+  <thead>
+    <tr>
+      <th style={{ textAlign: "left" }}>
+        Payment method
+      </th>
+
+      <th style={{ textAlign: "left" }}>
+        Modes
+      </th>
+
+      <th style={{ textAlign: "left" }}>
+        Region(s)
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [Alfa (Bank Alfalah)](https://docs.payrails.com/docs/bank-alfalah)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        * Authorize
+        * Capture (Instant)
+        * Customer Initiated Transactions (CITs)
+        * Refund / Reverse
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        🇵🇰 Pakistan
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [EasyPaisa](https://docs.payrails.com/docs/easypaisa)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        * Authorize
+        * Capture (Instant)
+        * Customer Initiated Transactions (CITs)
+        * Refund / Reverse
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        🇵🇰 Pakistan
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [JazzCash](https://docs.payrails.com/docs/jazzcash)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        * Authorize
+        * Capture (Instant)
+        * Customer Initiated Transactions (CITs)
+        * Refund / Reverse
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        🇵🇰 Pakistan
+      </td>
+    </tr>
+
+    <tr>
+      <td style={{ textAlign: "left" }}>
+        [Konnect](https://docs.payrails.com/docs/konnect)
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        * Authorize
+        * Capture (Instant)
+        * Customer Initiated Transactions (CITs)
+        * Refund / Reverse
+      </td>
+
+      <td style={{ textAlign: "left" }}>
+        🇵🇰 Pakistan
+      </td>
+    </tr>
+
+  </tbody>
+</table>

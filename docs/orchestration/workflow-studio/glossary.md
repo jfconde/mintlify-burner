@@ -28,7 +28,7 @@ An operational step that performs a specific task within a workflow. Actions inc
 
 ### Condition
 
-A decision step that evaluates rules to route the workflow down different paths. Each condition has one or more custom branches plus a Default branch. Rules use operators to compare field values, and branches are evaluated from top to bottom. The first branch whose rules match is followed. See [Conditions and Branching](workflow-studio-conditions) for details.
+A decision step that evaluates rules to route the workflow down different paths. Each condition has one or more custom branches plus a Default branch. Rules use operators to compare field values, and branches are evaluated from top to bottom. The first branch whose rules match is followed. See [Conditions and Branching](./conditions/index) for details.
 
 ---
 
@@ -70,13 +70,13 @@ A configuration option available on certain action steps that lets you choose wh
 
 ### Execution
 
-A single run of a workflow from start to finish. When a trigger fires, it creates an execution that moves through the workflow's steps following the connection lines. Each execution has a unique ID, a status, and a complete record of which steps were executed and what data was processed. You can view executions in the [monitoring interface](workflow-studio-monitoring).
+A single run of a workflow from start to finish. When a trigger fires, it creates an execution that moves through the workflow's steps following the connection lines. Each execution has a unique ID, a status, and a complete record of which steps were executed and what data was processed. You can view executions in the [monitoring interface](./monitoring/index).
 
 ---
 
 ### Status Code
 
-A code assigned to an execution that indicates its current state. Status codes are color-coded by severity: **green** for success, **yellow** for in progress, and **red** for failure. Examples include `authorizeSuccessful`, `captureRequested`, and `refundFailed`. See the [Status Codes Reference](workflow-studio-status-codes) for the complete list.
+A code assigned to an execution that indicates its current state. Status codes are color-coded by severity: **green** for success, **yellow** for in progress, and **red** for failure. Examples include `authorizeSuccessful`, `captureRequested`, and `refundFailed`. See the [Status Codes Reference](./monitoring/status-codes) for the complete list.
 
 ---
 

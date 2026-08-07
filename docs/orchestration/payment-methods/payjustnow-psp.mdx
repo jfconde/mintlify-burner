@@ -1,0 +1,212 @@
+---
+title: PayJustNow
+description: >-
+  PayJustNow is a payment service provider that enables you to process Buy Now
+  Pay later (BNPL) payments in South Africa.
+hidden: true
+---
+
+# Provider data
+
+<table>
+  <thead>
+    <tr>
+      <th className="text-left">
+        Meta-data
+      </th>
+
+      <th className="text-left">
+        Value
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="text-left">
+        Website
+      </td>
+
+      <td className="text-left">
+        [https://payjustnow.com/](https://payjustnow.com/)
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Testing guide
+      </td>
+
+      <td className="text-left">
+        Test account: refer to Payrails / PayJustNow to generate one
+        Test card:-
+        VISA: 4200000000000067
+        Expiry date: Any future date
+        CVV : 123
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Config fields
+      </td>
+
+      <td className="text-left">
+        Merchant Account ID, Secret Signing Key
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+
+# Supported workflows and modes
+
+<table>
+  <thead>
+    <tr>
+      <th className="text-left">
+        Workflow
+      </th>
+
+      <th className="text-left">
+        Supported
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="text-left">
+        Available via Payrails SDK
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Available via Payrails API
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Delayed / Manual Capture](/docs/orchestration/workflow-studio/cancel-and-capture-mode#capture-mode)
+      </td>
+
+      <td className="text-left">
+        ❌
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Instant Capture](/docs/orchestration/workflow-studio/cancel-and-capture-mode#capture-mode)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Cancel / Void](/docs/orchestration/payment-acceptance/cancel-a-payment)
+      </td>
+
+      <td className="text-left">
+        ❌
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Refund / Reverse](/docs/orchestration/payment-acceptance/refund-a-payment)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Save Instruments](/docs/token-vault/tokenize-payment-instruments/index)
+      </td>
+
+      <td className="text-left">
+        ❌
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Merchant Initiated Transaction (MIT)](docs/resources/payments/authorization-flags)
+      </td>
+
+      <td className="text-left">
+        ❌
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Interoperability
+      </td>
+
+      <td className="text-left">
+        N/A
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+
+# Supported payment methods and modes
+
+<table className="text-left">
+  <thead>
+    <tr>
+      <th className="text-left">
+        Payment method
+      </th>
+
+      <th className="text-left">
+        Modes
+      </th>
+
+      <th className="text-left">
+        Region(s)
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="text-left">
+        [PayJustNow](./payjustnow)
+      </td>
+
+      <td className="text-left">
+        * Authorize
+        * Capture (Instant)
+        * Customer Initiated Transactions (CITs)
+        * Refund / Reverse
+      </td>
+
+      <td className="text-left">
+        🇿🇦 South Africa
+      </td>
+    </tr>
+
+  </tbody>
+</table>

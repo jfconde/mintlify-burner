@@ -5,7 +5,7 @@ description: Save a card to the Payrails vault for future use without initiating
 
 ## Prerequisites
 
-- An active Payrails session (see [Quick Start](/docs/android-sdk-1))
+- An active Payrails session (see [Quick Start](./index))
 - A session init payload with `vaultConfiguration` and a `saveInstrument` link (provided by the Payrails backend — contact Payrails to enable vault configuration for your merchant account)
 - Kotlin + Jetpack Compose for rendering the card form
 
@@ -195,11 +195,11 @@ launcher.authorize(storedInstrument = storedInstrument)
 `launcher.authorize(storedInstrument = ...)` is the way to charge an _existing_ stored
 instrument from a custom layout or `ViewModel`-driven flow — and, because the launcher holds
 a presenter, it transparently handles a 3DS step-up if the issuer requires one. See
-[How to Run a Payment Without an SDK Button](/docs/how-to-execute-payment-headless).
+[How to Run a Payment Without an SDK Button](./how-to-execute-payment-headless).
 
 ## See also
 
-- [Understanding Card Tokenization](/docs/sdk-concepts#card-tokenization) — why tokenization and payment are separate flows, and what `storeInstrument` and `FutureUsage` mean
-- [Card Tokenization API Reference](/docs/sdk-api-reference#card-tokenization) — complete reference for `TokenizeOptions`, `FutureUsage`, and `SaveInstrumentResponse`
-- [Stored Instruments](/docs/sdk-api-reference#stored-instruments) — how to retrieve and pay with saved instruments
-- [`PayrailsPaymentLauncher`](/docs/sdk-api-reference#payrailspaymentlauncher) — the public payment-execution API
+- [Understanding Card Tokenization](./sdk-concepts#card-tokenization) — why tokenization and payment are separate flows, and what `storeInstrument` and `FutureUsage` mean
+- [Card Tokenization API Reference](./api-reference#card-tokenization) — complete reference for `TokenizeOptions`, `FutureUsage`, and `SaveInstrumentResponse`
+- [Stored Instruments](./api-reference#stored-instruments) — how to retrieve and pay with saved instruments
+- [`PayrailsPaymentLauncher`](./api-reference#payrailspaymentlauncher) — the public payment-execution API

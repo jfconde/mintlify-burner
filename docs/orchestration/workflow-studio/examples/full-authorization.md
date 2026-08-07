@@ -41,7 +41,6 @@ This is the most comprehensive authorization workflow. It combines fraud screeni
 
 Where **C/Co** = Completed, **P/Pa** = Paused, **R/Rq** = Requested, **U** = Updated, **Cond** = Condition, **Auth** = Authorize, and **N1-N11** are Notify steps.
 
-
 ## Step-by-Step Build Instructions
 
 ### 1. Create the Workflow
@@ -63,7 +62,6 @@ Where **C/Co** = Completed, **P/Pa** = Paused, **R/Rq** = Requested, **U** = Upd
 3. Click the **Fraud Check** step to open its settings panel.
 4. Select your fraud provider from the **Provider** dropdown.
 
-
 ### 4. Handle Fraud Check Non-Completed Outcomes
 
 **Paused outcome:**
@@ -84,7 +82,6 @@ This is the key decision point of the workflow. The Condition step evaluates the
 2. Draw a connection line from the **Completed** outcome of Fraud Check to the **Condition** step.
 3. Click the Condition step to open its settings panel.
 4. Name it "Check Risk Level".
-
 
 ### 6. Configure the Risk-Level Branches
 
@@ -115,7 +112,6 @@ High-risk transactions are rejected immediately without reaching a payment provi
 1. Add a **Notify** step and connect it to the **Default** branch.
 2. Name it "Notify -- Fraud Rejected (High Risk)".
 
-
 ### 8. Build the Low-Risk Path (Direct Authorization)
 
 Low-risk transactions skip 3DS and go directly to authorization for the fastest checkout experience.
@@ -128,15 +124,14 @@ Low-risk transactions skip 3DS and go directly to authorization for the fastest 
 
 Add Notify steps for all four Authorize outcomes:
 
-| Outcome | Notify Step Name |
-|---|---|
+| Outcome       | Notify Step Name                           |
+| ------------- | ------------------------------------------ |
 | **Completed** | Notify -- Low Risk Authorization Completed |
-| **Paused** | Notify -- Low Risk Authorization Paused |
+| **Paused**    | Notify -- Low Risk Authorization Paused    |
 | **Requested** | Notify -- Low Risk Authorization Requested |
-| **Updated** | Notify -- Low Risk Authorization Updated |
+| **Updated**   | Notify -- Low Risk Authorization Updated   |
 
 Connect each outcome to its Notify step.
-
 
 ### 9. Build the Medium-Risk Path (3DS Then Authorization)
 
@@ -148,7 +143,6 @@ Medium-risk transactions require 3D Secure authentication before authorization. 
 2. Draw a connection line from the **Medium Risk** branch to the **3DS** step.
 3. Click the **3DS** step to open its settings panel.
 4. Select your 3DS provider from the **Provider** dropdown.
-
 
 **Handle 3DS non-completed outcomes:**
 
@@ -176,15 +170,14 @@ Medium-risk transactions require 3D Secure authentication before authorization. 
 
 Add Notify steps for all four Authorize outcomes:
 
-| Outcome | Notify Step Name |
-|---|---|
+| Outcome       | Notify Step Name                           |
+| ------------- | ------------------------------------------ |
 | **Completed** | Notify -- Med Risk Authorization Completed |
-| **Paused** | Notify -- Med Risk Authorization Paused |
+| **Paused**    | Notify -- Med Risk Authorization Paused    |
 | **Requested** | Notify -- Med Risk Authorization Requested |
-| **Updated** | Notify -- Med Risk Authorization Updated |
+| **Updated**   | Notify -- Med Risk Authorization Updated   |
 
 Connect each outcome to its Notify step.
-
 
 ### 10. Save and Activate
 
@@ -203,47 +196,47 @@ This workflow has **thirteen terminal paths**. Every path ends with a Notify ste
 
 ### Fraud Check outcomes (2 paths)
 
-| Path | What Happened |
-|---|---|
-| Fraud Check --> Paused --> Notify | The fraud provider needs additional information or manual review. |
-| Fraud Check --> Requested --> Notify | The fraud check was submitted but the result is pending. |
+| Path                                 | What Happened                                                     |
+| ------------------------------------ | ----------------------------------------------------------------- |
+| Fraud Check --> Paused --> Notify    | The fraud provider needs additional information or manual review. |
+| Fraud Check --> Requested --> Notify | The fraud check was submitted but the result is pending.          |
 
 ### High-risk path (1 path)
 
-| Path | What Happened |
-|---|---|
+| Path                                                           | What Happened                                                                   |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | Fraud Check --> Completed --> Condition --> Default --> Notify | The fraud score is too high. The transaction is rejected without authorization. |
 
 ### Low-risk path (4 paths)
 
-| Path | What Happened |
-|---|---|
-| ... --> Low Risk --> Authorize --> Completed --> Notify | Low-risk transaction authorized successfully. |
-| ... --> Low Risk --> Authorize --> Paused --> Notify | Low-risk authorization waiting for an external action. |
-| ... --> Low Risk --> Authorize --> Requested --> Notify | Low-risk authorization submitted for processing. |
-| ... --> Low Risk --> Authorize --> Updated --> Notify | Low-risk authorization received a status update. |
+| Path                                                    | What Happened                                          |
+| ------------------------------------------------------- | ------------------------------------------------------ |
+| ... --> Low Risk --> Authorize --> Completed --> Notify | Low-risk transaction authorized successfully.          |
+| ... --> Low Risk --> Authorize --> Paused --> Notify    | Low-risk authorization waiting for an external action. |
+| ... --> Low Risk --> Authorize --> Requested --> Notify | Low-risk authorization submitted for processing.       |
+| ... --> Low Risk --> Authorize --> Updated --> Notify   | Low-risk authorization received a status update.       |
 
 ### Medium-risk path (6 paths)
 
-| Path | What Happened |
-|---|---|
-| ... --> Medium Risk --> 3DS --> Paused --> Notify | The cardholder is completing the 3DS challenge. |
-| ... --> Medium Risk --> 3DS --> Requested --> Notify | The 3DS challenge is being processed by the provider. |
-| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Default --> Notify | 3DS finished but authentication failed. Transaction is not authorized. |
-| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Completed --> Notify | Authenticated and authorized successfully. |
-| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Paused --> Notify | Authenticated but authorization waiting for an external action. |
-| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Requested --> Notify | Authenticated and authorization submitted for processing. |
-| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Updated --> Notify | Authenticated and authorization received a status update. |
+| Path                                                                                                             | What Happened                                                          |
+| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| ... --> Medium Risk --> 3DS --> Paused --> Notify                                                                | The cardholder is completing the 3DS challenge.                        |
+| ... --> Medium Risk --> 3DS --> Requested --> Notify                                                             | The 3DS challenge is being processed by the provider.                  |
+| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Default --> Notify                                   | 3DS finished but authentication failed. Transaction is not authorized. |
+| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Completed --> Notify | Authenticated and authorized successfully.                             |
+| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Paused --> Notify    | Authenticated but authorization waiting for an external action.        |
+| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Requested --> Notify | Authenticated and authorization submitted for processing.              |
+| ... --> Medium Risk --> 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Updated --> Notify   | Authenticated and authorization received a status update.              |
 
 ## Why Risk-Based Routing Matters
 
 Applying 3DS to every transaction would maximize security but hurt conversion rates. Rejecting anything above the lowest risk would decline legitimate transactions. Risk-based routing lets you apply the right level of security for each transaction:
 
-| Risk Level | Action | Customer Experience | Security |
-|---|---|---|---|
-| **Low** | Authorize directly | Fastest checkout, no extra steps | Relies on fraud score and provider-side checks |
-| **Medium** | 3DS then Authorize | One extra authentication step | Cardholder verification plus liability shift |
-| **High** | Reject immediately | Transaction blocked | Highest protection against fraud |
+| Risk Level | Action             | Customer Experience              | Security                                       |
+| ---------- | ------------------ | -------------------------------- | ---------------------------------------------- |
+| **Low**    | Authorize directly | Fastest checkout, no extra steps | Relies on fraud score and provider-side checks |
+| **Medium** | 3DS then Authorize | One extra authentication step    | Cardholder verification plus liability shift   |
+| **High**   | Reject immediately | Transaction blocked              | Highest protection against fraud               |
 
 This approach concentrates friction where it matters most -- on the transactions that need additional verification -- while keeping the checkout smooth for your trusted customers.
 
@@ -256,5 +249,5 @@ This approach concentrates friction where it matters most -- on the transactions
 
 ## Next Steps
 
-- Review the [Simple Authorization](workflow-studio-example-simple-authorization) example if you want to start with a basic workflow and build up from there.
-- See [Authorization with Fraud Screening](workflow-studio-example-authorization-with-fraud) or [Authorization with 3D Secure](workflow-studio-example-authorization-with-3ds) for simpler workflows that use just one of the two security steps.
+- Review the [Simple Authorization](./simple-authorization) example if you want to start with a basic workflow and build up from there.
+- See [Authorization with Fraud Screening](./authorization-with-fraud) or [Authorization with 3D Secure](./authorization-with-3ds) for simpler workflows that use just one of the two security steps.

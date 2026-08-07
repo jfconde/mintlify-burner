@@ -108,7 +108,7 @@ For example:
 For the complete response schema, refer to the [Authorize a payment](https://payrails.readme.io/reference/authorizeaction) API Reference.
 
 <Note>
-  Handling 3DS yourself? If you want full control over the 3DS redirect (for example, to avoid showing a Payrails-hosted page on non-3DS payments), see [3D Secure](3d-secure)  for the manual integration pattern using `links.3ds`.
+  Handling 3DS yourself? If you want full control over the 3DS redirect (for example, to avoid showing a Payrails-hosted page on non-3DS payments), see [3D Secure](./3d-secure)  for the manual integration pattern using `links.3ds`.
 </Note>
 
 ## 4. Wait for authorization notification
@@ -242,7 +242,7 @@ Example notification for a failed authorization:
 }
 ```
 
-For more information on reasons why an authorization may fail, refer to the [Result Codes](doc:result-codes) page.
+For more information on reasons why an authorization may fail, refer to the [Result Codes](/docs/resources/payments/operation-results) page.
 
 ## 5. Fetch the execution status
 

@@ -3,17 +3,18 @@ title: Server-to-server Integration
 description: Build a backend-driven Payrails integration that tokenizes on the frontend and   your server controls the authorization steps, and webhook-first   reconciliation.
 ---
 
-The server-to-server architecture is the Payrails integration pattern where your backend owns the payment lifecycle. Your backend creates [executions](doc:executions), calls authorize against them, handles [3-D Secure](doc:3d-secure) redirects, and reconciles state from [webhooks](doc:receive-notifications). The Payrails Web SDK appears only as a thin layer on the frontend, hosting [Secure Fields](doc:secure-fields) — the iframes that tokenize card data before the data reaches your servers.
+The server-to-server architecture is the Payrails integration pattern where your backend owns the payment lifecycle. Your backend creates [executions](/docs/resources/executions), calls authorize against them, handles [3-D Secure](/docs/orchestration/payment-acceptance/3d-secure) redirects, and reconciles state from [webhooks](/docs/orchestration/receive-notifications). The Payrails Web SDK appears only as a thin layer on the frontend, hosting [Secure Fields](/docs/orchestration/secure-fields) — the iframes that tokenize card data before the data reaches your servers.
 
 This page documents the architecture end to end. It covers the components, the two sequence flows (frictionless and 3-D Secure), and the canonical frontend and backend code for each step.
 
 <Note>
-  If your frontend can host the [Drop-in SDK](doc:drop-in) — the SDK that drives
-  the full payment lifecycle from the client — choose that pattern instead. Use
-  the Drop-in SDK when your frontend owns the customer session and Payrails
-  should drive the full payment lifecycle. Use the server-to-server pattern when
-  your backend owns order creation, fraud checks, and customer messaging, or
-  when your tech stack cannot host a single-page application.
+  If your frontend can host the [Drop-in
+  SDK](/docs/orchestration/checkout-sdks/web-v5-legacy/drop-in) — the SDK that
+  drives the full payment lifecycle from the client — choose that pattern
+  instead. Use the Drop-in SDK when your frontend owns the customer session and
+  Payrails should drive the full payment lifecycle. Use the server-to-server
+  pattern when your backend owns order creation, fraud checks, and customer
+  messaging, or when your tech stack cannot host a single-page application.
 </Note>
 
 ## When to choose this pattern
@@ -46,7 +47,7 @@ flowchart TB
 
 Read the diagram in two passes. The three solid arrows trace the main request path. The customer places an order against your backend. Your backend creates the execution and authorizes it against Payrails. Payrails routes the authorization through one or more Payment Service Providers (PSPs).
 
-The three dashed arrows are the exceptions to that path. The browser tokenizes card data directly with Payrails through the [Vault](doc:vault) so the PAN never reaches your servers. The PSP routes a 3-D Secure challenge to the customer's browser when the issuer requires one. Payrails sends an `executionActionCompleted` webhook to your backend once the authorization resolves.
+The three dashed arrows are the exceptions to that path. The browser tokenizes card data directly with Payrails through the [Vault](/docs/overview/vault) so the PAN never reaches your servers. The PSP routes a 3-D Secure challenge to the customer's browser when the issuer requires one. Payrails sends an `executionActionCompleted` webhook to your backend once the authorization resolves.
 
 The Payrails platform handles four jobs in this architecture: card tokenization through the Vault, workflow orchestration including the PSP cascade, 3-D Secure handoff, and webhook delivery. The PSP cascade is the workflow-configured chain of providers Payrails retries the authorize against on a decline. Your backend orchestrates everything else.
 
@@ -1502,7 +1503,7 @@ On the frictionless path, the execution moves straight to status `authorized`, `
 
 Your backend confirms every order on the `executionActionCompleted` webhook, not on the storefront event. The storefront's state is optimistic; the webhook is the source of truth.
 
-Every webhook delivery carries an HMAC signature header. Verify the signature before processing the body; the [Receive notifications](doc:receive-notifications) page documents the algorithm and header name.
+Every webhook delivery carries an HMAC signature header. Verify the signature before processing the body; the [Receive notifications](/docs/orchestration/payment-acceptance/receive-notifications) page documents the algorithm and header name.
 
 <Tabs>
   <Tab title="Python">
@@ -1659,7 +1660,7 @@ Every webhook delivery carries an HMAC signature header. Verify the signature be
 
 The handler exits with `200` as soon as the handler records the event. Anything that can fail — order-database updates, downstream messaging, analytics — runs asynchronously after the response returns. A slow handler causes Payrails to retry the delivery, which forces your idempotency logic to do extra work.
 
-Implement `verify_payrails_signature` per the [Receive notifications](doc:receive-notifications) documentation.
+Implement `verify_payrails_signature` per the [Receive notifications](/docs/orchestration/payment-acceptance/receive-notifications) documentation.
 
 ## Long-poll patterns
 
@@ -1862,7 +1863,7 @@ The [3-D Secure handling](#3-d-secure-handling) section explains the reason to r
 
 ## Next steps
 
-- Review the [Secure Fields reference](doc:secure-fields) for the per-field event surface (`READY`, `CHANGE`, `FOCUS`, `BLUR`) and the styling options available on the iframes.
-- Read [Notifications](/docs/resources/notifications/notifications) for the canonical HMAC signing format and the full event catalog.
-- See [Payment status](doc:payment-status) for the meaning of every status value your reconciliation logic must handle, including `Unknown` (which routes to manual reconciliation, not automatic retry).
-- Use [Test payments](doc:test-payments) to exercise both the frictionless and 3-D Secure paths during testing, including the Test PSP for simulating declines and challenges.
+- Review the [Secure Fields reference](/docs/orchestration/checkout-sdks//web-v5-legacy/secure-fields) for the per-field event surface (`READY`, `CHANGE`, `FOCUS`, `BLUR`) and the styling options available on the iframes.
+- Read [Receive notifications](/docs/orchestration/payment-acceptance/receive-notifications) for the canonical HMAC signing format and the full event catalog.
+- See [Payment status](/docs/resources/payments/payment-status) for the meaning of every status value your reconciliation logic must handle, including `Unknown` (which routes to manual reconciliation, not automatic retry).
+- Use [Test payments](/docs/orchestration/payment-acceptance/test-payments) to exercise both the frictionless and 3-D Secure paths during testing, including the Test PSP for simulating declines and challenges.

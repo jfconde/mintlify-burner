@@ -1,0 +1,218 @@
+---
+title: Mercado Pago
+description: >-
+  Mercado Pago is a payment service provider that enables you to process card
+  payments and a wide range of alternative payment methods in almost every
+  country in North and South America.
+hidden: true
+---
+
+# Provider data
+
+<table className="text-left">
+  <thead>
+    <tr>
+      <th className="text-left">
+        Meta-data
+      </th>
+
+      <th className="text-left">
+        Value
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="text-left">
+        Website
+      </td>
+
+      <td className="text-left">
+        [https://www.mercadopago.com.ar/](https://www.mercadopago.com.ar/)
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Testing guide
+      </td>
+
+      <td className="text-left">
+        [https://www.mercadopago.com.ar/developers/en/docs/checkout-pro/integration-test/test-accounts](https://www.mercadopago.com.ar/developers/en/docs/checkout-pro/integration-test/test-accounts)
+        [https://www.mercadopago.com.ar/developers/en/docs/checkout-pro/integration-test/test-purchase](https://www.mercadopago.com.ar/developers/en/docs/checkout-pro/integration-test/test-purchase)
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Config fields
+      </td>
+
+      <td className="text-left">
+        Application ID, Platform ID, Access Token, HMAC
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+
+# Supported workflows and modes
+
+<table className="text-left">
+  <thead>
+    <tr>
+      <th className="text-left">
+        Workflow
+      </th>
+
+      <th className="text-left">
+        Supported
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="text-left">
+        Available via Payrails SDK
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Available via Payrails API
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Delayed / Manual Capture](/docs/orchestration/workflow-studio/cancel-and-capture-mode#capture-mode)
+      </td>
+
+      <td className="text-left">
+        ❌
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Instant Capture](/docs/orchestration/workflow-studio/cancel-and-capture-mode#capture-mode)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Cancel / Void](/docs/orchestration/payment-acceptance/cancel-a-payment)
+      </td>
+
+      <td className="text-left">
+        ❌
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Refund / Reverse](/docs/orchestration/payment-acceptance/refund-a-payment)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Save Instruments](/docs/token-vault/tokenize-payment-instruments/index)
+      </td>
+
+      <td className="text-left">
+        ✅
+
+        (on Mercado Pago side)
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Merchant Initiated Transaction (MIT)](/docs/resources/payments/authorization-flags)
+      </td>
+
+      <td className="text-left">
+        ❌
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Interoperability
+      </td>
+
+      <td className="text-left">
+        ❌
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+
+# Supported payment methods and modes
+
+<table className="text-left">
+  <thead>
+    <tr>
+      <th className="text-left">
+        Payment method
+      </th>
+
+      <th className="text-left">
+        Modes
+      </th>
+
+      <th className="text-left">
+        Region(s)
+      </th>
+    </tr>
+
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="text-left">
+        [Mercado Pago](./mercadopago):
+
+        * Cards (including Installment)
+        * Wallet
+      </td>
+
+      <td className="text-left">
+        * Authorize
+        * Capture (Instant)
+        * Customer Initiated Transactions (CITs)
+        * Refund / Reverse
+      </td>
+
+      <td className="text-left">
+        Americas:\
+        🇦🇷 Argentina, 🇧🇷 Brazil, 🇨🇱 Chile,
+        🇨🇴 Colombia, :mexico: Mexico, :peru: Peru,
+        :uruguay: Uruguay
+      </td>
+    </tr>
+
+  </tbody>
+</table>

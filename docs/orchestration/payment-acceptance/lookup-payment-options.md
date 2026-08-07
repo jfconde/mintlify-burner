@@ -1,6 +1,6 @@
 # Introduction
 
-[Payment Options](doc:payment-options) are the payment methods and instruments available to a customer in a given context. You configure rules for their availability in the Payrails Portal and then use the lookup endpoint to synchronously determine and present the right payment options to customers on the client side.
+[Payment Options](/docs/overview/payment-options.mdx) are the payment methods and instruments available to a customer in a given context. You configure rules for their availability in the Payrails Portal and then use the lookup endpoint to synchronously determine and present the right payment options to customers on the client side.
 
 # Steps
 

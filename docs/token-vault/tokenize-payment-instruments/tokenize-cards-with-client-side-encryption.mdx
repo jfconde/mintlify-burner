@@ -1,6 +1,7 @@
 ---
 title: Tokenize cards with Client-side Encryption
 ---
+
 Tokenization refers to the process of collecting sensitive payment information and returning a short-term, single-use token that represents this information. Client-side Encryption is used for card data details to be sent directly to Payrails in an encrypted form to tokenize a Payment Instrument. If you need to know more about tokenization and Payrails Token Vault, we recommend you to first read this guide to [tokenize cards](index).
 
 Card details are encrypted on the client side with a public key given by Payrails. The encrypted data is then sent to Payrails and is then tokenized and returned to the client as a Payment Instrument.
@@ -296,7 +297,7 @@ func tokenizeWithPayrails() async {
 }
 ```
 
-- Optionally, you can encrypt the card to use it in another use case, like the [Proxy payment instruments](doc:proxy-payment-instruments) feature. This feature is available as of version `v0.2.0`.
+- Optionally, you can encrypt the card to use it in another use case, like the [Proxy payment instruments](/docs/token-vault/vault-proxy/proxy-payment-instruments/proxy-payment-instruments) feature. This feature is available as of version `v0.2.0`.
 
 ```swift
 import PayrailsCSE
@@ -399,5 +400,3 @@ Call the Tokenize an instrument endpoint with the encrypted payment details.
   "futureUsage": "CardOnFile"
 }
 ```
-
-

@@ -2,7 +2,8 @@
 title: Cards via Proxy
 description: Learn how to send instant proxy requests for payments with cards.
 ---
-This feature is used to execute payment authorization requests **with cards as a payment method**. When a merchant user's card is stored as a payment instrument in Payrails Vault, you can use it with any request to a payment provider. As an example, you can make a request to Adyen to make a payment authorization, or make a request to Checkout.com to make a store card-on-file request. Payrails proxy API supports you to forward any request to a provider by replacing the instrumentId with sensitive card values and keeping the rest of the request payload as is. 
+
+This feature is used to execute payment authorization requests **with cards as a payment method**. When a merchant user's card is stored as a payment instrument in Payrails Vault, you can use it with any request to a payment provider. As an example, you can make a request to Adyen to make a payment authorization, or make a request to Checkout.com to make a store card-on-file request. Payrails proxy API supports you to forward any request to a provider by replacing the instrumentId with sensitive card values and keeping the rest of the request payload as is.
 
 The following is a high-level sequence diagram of the interaction between the services.
 
@@ -38,132 +39,135 @@ Below you can find some examples of some well-known providers and how you should
 
 ```json Adyen
 {
-  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
-  "url":"https://checkout-test.adyen.com/v69/payments",
-  "headers":{
-    "x-API-key":"YOUR_API_KEY",
-    "Content-Type":"application/json"
+  "paymentInstrumentId": "eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url": "https://checkout-test.adyen.com/v69/payments",
+  "headers": {
+    "x-API-key": "YOUR_API_KEY",
+    "Content-Type": "application/json"
   },
-  "body":{
-    "paymentMethod":{
-      "type":"scheme",
-      "number":"{{cardNumber}}",
-      "expiryMonth":"{{cardExpiryMonth}}",
-      "expiryYear":"{{cardExpiryYear}}",
-      "cvc":"{{cardSecurityCode}}",
-      "holderName":"{{cardHolderName}}"
+  "body": {
+    "paymentMethod": {
+      "type": "scheme",
+      "number": "{{cardNumber}}",
+      "expiryMonth": "{{cardExpiryMonth}}",
+      "expiryYear": "{{cardExpiryYear}}",
+      "cvc": "{{cardSecurityCode}}",
+      "holderName": "{{cardHolderName}}"
     },
-    "amount":{
-      "currency":"USD",
-      "value":1000
+    "amount": {
+      "currency": "USD",
+      "value": 1000
     },
-    "reference":"your-order-number",
-    "returnUrl":"https://your-company.com/...",
-    "merchantAccount":"YOUR_MERCHANT_ACCOUNT"
+    "reference": "your-order-number",
+    "returnUrl": "https://your-company.com/...",
+    "merchantAccount": "YOUR_MERCHANT_ACCOUNT"
   }
 }
 ```
+
 ```json Checkout
 {
-  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
-  "url":"https://api.sandbox.checkout.com/payments",
-  "headers":{
-    "x-API-key":"YOUR_API_KEY",
-    "Content-Type":"application/json"
+  "paymentInstrumentId": "eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url": "https://api.sandbox.checkout.com/payments",
+  "headers": {
+    "x-API-key": "YOUR_API_KEY",
+    "Content-Type": "application/json"
   },
-  "body":{
-    "amount":1000,
-    "currency":"USD",
-    "reference":"some_reference",
-    "source":{
-      "type":"card",
-      "number":"{{cardNumber}}",
-      "expiry_month":"{{cardExpiryMonth}}",
-      "expiry_year":"{{cardExpiryYear}}",
-      "cvv":"{{cardSecurityCode}}",
-      "name":"{{cardHolderName}}"
+  "body": {
+    "amount": 1000,
+    "currency": "USD",
+    "reference": "some_reference",
+    "source": {
+      "type": "card",
+      "number": "{{cardNumber}}",
+      "expiry_month": "{{cardExpiryMonth}}",
+      "expiry_year": "{{cardExpiryYear}}",
+      "cvv": "{{cardSecurityCode}}",
+      "name": "{{cardHolderName}}"
     },
-    "payment_type":"Regular",
-    "authorization_type":"Final",
-    "capture":true,
-    "processing_channel_id":"pc_xxxxxxxxxxx",
-    "risk":{
-      "enabled":false
+    "payment_type": "Regular",
+    "authorization_type": "Final",
+    "capture": true,
+    "processing_channel_id": "pc_xxxxxxxxxxx",
+    "risk": {
+      "enabled": false
     },
-    "merchant_initiated":true
+    "merchant_initiated": true
   }
 }
 ```
+
 ```json Mangopay
 {
-  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
-  "url":"https://pci.mangopay.com/pci/v2.01/YOUR_CLIENT_ID/payins/card/direct/raw",
-  "headers":{
-    "Content-Type":"application/json"
+  "paymentInstrumentId": "eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url": "https://pci.mangopay.com/pci/v2.01/YOUR_CLIENT_ID/payins/card/direct/raw",
+  "headers": {
+    "Content-Type": "application/json"
   },
-  "body":{
-    "Tag":"Custom meta",
-    "AuthorId":"205062273",
-    "DebitedFunds":{
-      "Currency":"EUR",
-      "Amount":5000
+  "body": {
+    "Tag": "Custom meta",
+    "AuthorId": "205062273",
+    "DebitedFunds": {
+      "Currency": "EUR",
+      "Amount": 5000
     },
-    "SecureModeReturnURL":"https://mangopay.com/docs/please-ignore",
-    "Culture":"EN",
-    "BrowserInfo":{
-      "AcceptHeader":"text/html, application/xhtml+xml, application/xml;q=0.9, /;q=0.8",
-      "JavaEnabled":true,
-      "Language":"en-EN",
-      "ColorDepth":4,
-      "ScreenHeight":1800,
-      "ScreenWidth":400,
-      "TimeZoneOffset":60,
-      "UserAgent":"Mozilla/5.0 (iPhone; CPU iPhone OS 13_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
-      "JavascriptEnabled":true
+    "SecureModeReturnURL": "https://mangopay.com/docs/please-ignore",
+    "Culture": "EN",
+    "BrowserInfo": {
+      "AcceptHeader": "text/html, application/xhtml+xml, application/xml;q=0.9, /;q=0.8",
+      "JavaEnabled": true,
+      "Language": "en-EN",
+      "ColorDepth": 4,
+      "ScreenHeight": 1800,
+      "ScreenWidth": 400,
+      "TimeZoneOffset": 60,
+      "UserAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+      "JavascriptEnabled": true
     },
-    "IpAddress":"b02a:7967:ecc2:d827:cdd0:67d3:6d2f:4fef",
-    "Billing":{
-      "FirstName":"Alex",
-      "LastName":"Smith",
-      "Address":{
-        "AddressLine1":"100 rue Rivoli",
-        "AddressLine2":null,
-        "City":"Paris",
-        "Region":"Ile-de-France",
-        "PostalCode":"75001",
-        "Country":"FR"
+    "IpAddress": "b02a:7967:ecc2:d827:cdd0:67d3:6d2f:4fef",
+    "Billing": {
+      "FirstName": "Alex",
+      "LastName": "Smith",
+      "Address": {
+        "AddressLine1": "100 rue Rivoli",
+        "AddressLine2": null,
+        "City": "Paris",
+        "Region": "Ile-de-France",
+        "PostalCode": "75001",
+        "Country": "FR"
       }
     },
-    "Shipping":{
-      "FirstName":"Alex",
-      "LastName":"Smith",
-      "Address":{
-        "AddressLine1":"100 rue Rivoli",
-        "AddressLine2":null,
-        "City":"Paris",
-        "Region":"Ile-de-France",
-        "PostalCode":"75001",
-        "Country":"FR"
+    "Shipping": {
+      "FirstName": "Alex",
+      "LastName": "Smith",
+      "Address": {
+        "AddressLine1": "100 rue Rivoli",
+        "AddressLine2": null,
+        "City": "Paris",
+        "Region": "Ile-de-France",
+        "PostalCode": "75001",
+        "Country": "FR"
       }
     },
-    "Card":{
-      "Number":"{{cardNumber}}",
-      "ExpirationDate":"{{cardExpiryMonth}}{{cardExpiryYear2Digits}}",
-      "CVX":"{{cardSecurityCode}}"
+    "Card": {
+      "Number": "{{cardNumber}}",
+      "ExpirationDate": "{{cardExpiryMonth}}{{cardExpiryYear2Digits}}",
+      "CVX": "{{cardSecurityCode}}"
     },
-    "CardType":"CB_VISA_MASTERCARD"
+    "CardType": "CB_VISA_MASTERCARD"
   }
 }
 ```
+
 ```json Stripe
 {
-  "paymentInstrumentId":"eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
-  "url":"https://api.stripe.com/v1/payment_methods",
-  "headers":{
-    "Authorization":"***",
-    "Content-Type":"application/x-www-form-urlencoded"
+  "paymentInstrumentId": "eeaac45c-f032-49bc-a8c5-ec99d79b74e2",
+  "url": "https://api.stripe.com/v1/payment_methods",
+  "headers": {
+    "Authorization": "***",
+    "Content-Type": "application/x-www-form-urlencoded"
   },
-  "body":"type=card&card[exp_month]={{cardExpiryMonth}}&card[exp_year]={{cardExpiryYear}}&card[number]={{cardNumber}}&card[cvc]={{cardSecurityCode}}"
+  "body": "type=card&card[exp_month]={{cardExpiryMonth}}&card[exp_year]={{cardExpiryYear}}&card[number]={{cardNumber}}&card[cvc]={{cardSecurityCode}}"
 }
 ```
 
@@ -175,22 +179,22 @@ You can use the below `{{key}}`s for **cards** and **network tokens**, when send
 
 #### Cards
 
-* For card number, use`{{cardNumber}}`
-* For cardholder name, use`{{cardHolderName}}`
-* For card security code (or CVV, CVC, etc), use `{{cardSecurityCode}}`
-* For card expiry month, use`{{cardExpiryMonth}}` or `{{MM}}`
-* For card expiry year, if:
-* 4-digit card expiry year, use `{{cardExpiryYear}}` or `{{YYYY}}`
-* 2-digit card expiry year, use`{{cardExpiryYear2Digits}}` or `{{YY}}`.
+- For card number, use`{{cardNumber}}`
+- For cardholder name, use`{{cardHolderName}}`
+- For card security code (or CVV, CVC, etc), use `{{cardSecurityCode}}`
+- For card expiry month, use`{{cardExpiryMonth}}` or `{{MM}}`
+- For card expiry year, if:
+- 4-digit card expiry year, use `{{cardExpiryYear}}` or `{{YYYY}}`
+- 2-digit card expiry year, use`{{cardExpiryYear2Digits}}` or `{{YY}}`.
 
 #### Network tokens
 
-* For network token number, use `{{networkTokenNumber}}`
-* For cryptogram, use`{{networkTokenCryptogram}}`
-* Expiry month of the network token, use`{{networkTokenExpiryMonth}}`
-* For expiry year of the network token, if:
-* 4-digit expiry year of the network token, use`{{networkTokenExpiryYear}}`
-* 2-digit expiry year of the network token, use `{{networkTokenExpiryYear2Digits}}`.
+- For network token number, use `{{networkTokenNumber}}`
+- For cryptogram, use`{{networkTokenCryptogram}}`
+- Expiry month of the network token, use`{{networkTokenExpiryMonth}}`
+- For expiry year of the network token, if:
+- 4-digit expiry year of the network token, use`{{networkTokenExpiryYear}}`
+- 2-digit expiry year of the network token, use `{{networkTokenExpiryYear2Digits}}`.
 
 If you would like to send any other field that does not exist in the above list, please contact our team to support you to enable custom records for your environment.
 
@@ -229,6 +233,7 @@ curl --location 'http://127.0.0.1/payment/providers/97d028f0-24bd-4705-924f-6c95
   }
 }
 ```
+
 ```shell XML
 curl --location 'http://127.0.0.1/payment/providers/97d028f0-24bd-4705-924f-6c956b9a7a1c/proxy' \
 --header 'x-idempotency-key: 75b4db76-bd2d-429c-b757-ebff73f72d56' \
@@ -245,6 +250,7 @@ curl --location 'http://127.0.0.1/payment/providers/97d028f0-24bd-4705-924f-6c95
 },
 "body": "<request><card_number><{{cardNumber}}</card_number><exp_month>{{cardExpiryMonth}}</pg_exp_month><exp_year>{{cardExpiryYear}}</exp_year></request>..."
 ```
+
 ```shell urlencoded
 curl --location 'http://127.0.0.1/payment/providers/97d028f0-24bd-4705-924f-6c956b9a7a1c/proxy' \
 --header 'x-idempotency-key: 75b4db76-bd2d-429c-b757-ebff73f72d56' \
@@ -263,9 +269,7 @@ curl --location 'http://127.0.0.1/payment/providers/97d028f0-24bd-4705-924f-6c95
 }'
 ```
 
-<Note>
-  The keys in the `headers` object must be case insensitive unique.
-</Note>
+<Note>The keys in the `headers` object must be case insensitive unique.</Note>
 
 ### Obtaining providerId
 
@@ -294,7 +298,7 @@ Some payment providers may require passing a field containing a calculated signa
    2. `preProcessor.parameters` has 5 fields, the values are defined by you depending on the provider's requirements.
       1. Required parameters:
          1. `algorithm`: The algorithm to calculate the specified payload. (i.e. md5)
-         2. `payload`: The string of the request body from which the signature has to be calculated. You can use the string `{{requestBodyString}}` to use what is sent in your request body, or you can build a string by putting all the fields, including placeholders, like `{{cardNumber}}`.  Before calculating the hash data, placeholders will be replaced with actual data so that the signature will include actual values.
+         2. `payload`: The string of the request body from which the signature has to be calculated. You can use the string `{{requestBodyString}}` to use what is sent in your request body, or you can build a string by putting all the fields, including placeholders, like `{{cardNumber}}`. Before calculating the hash data, placeholders will be replaced with actual data so that the signature will include actual values.
       2. Optional parameters:
          1. `hashEncoding`: The format of the desired result after calculating the payload with the specified algorithm (i.e. base64, hex). It's an optional field that is by default hex.
          2. `payloadEncoding`: If you want to set how data should be escaped, you can use this parameter. (i.e., for calculating the hash of JSON, set payloadEncoding to application/json).
@@ -305,44 +309,38 @@ Some payment providers may require passing a field containing a calculated signa
 
 ```json JSON
 {
-    "headers":
-    {
-        "x-API-key": "YOUR_API_KEY",
-        "Content-Type": "application/json",
-        "signature": "{{requestHashSignature}}"
+  "headers": {
+    "x-API-key": "YOUR_API_KEY",
+    "Content-Type": "application/json",
+    "signature": "{{requestHashSignature}}"
+  },
+  "url": "https://psp.com/authorize?signature={{requestHashSignature}}",
+  "body": {
+    "amount": {
+      "currency": "USD",
+      "value": 1000
     },
-    "url": "https://psp.com/authorize?signature={{requestHashSignature}}",
-    "body":
-    {
-        "amount":
-        {
-            "currency": "USD",
-            "value": 1000
-        },
-        "reference": "your-order-number",
-        "paymentMethod":
-        {
-            "type": "scheme",
-            "number": "{{cardNumber}}",
-            "expiryMonth": "{{cardExpiryMonth}}",
-            "expiryYear": "{{cardExpiryYear}}",
-            "cvc": "{{cardSecurityCode}}",
-            "holderName": "{{cardHolderName}}"
-        },
-        "signature": "{{requestHashSignature}}"
+    "reference": "your-order-number",
+    "paymentMethod": {
+      "type": "scheme",
+      "number": "{{cardNumber}}",
+      "expiryMonth": "{{cardExpiryMonth}}",
+      "expiryYear": "{{cardExpiryYear}}",
+      "cvc": "{{cardSecurityCode}}",
+      "holderName": "{{cardHolderName}}"
     },
-    "preProcessors":
-    [
-        {
-            "code": "calculatehash",
-            "parameters":
-            {
-                "hashEncoding": "base64",
-                "algorithm": "sha256",
-                "payload": "{{requestBodyString}}"
-            }
-        }
-    ]
+    "signature": "{{requestHashSignature}}"
+  },
+  "preProcessors": [
+    {
+      "code": "calculatehash",
+      "parameters": {
+        "hashEncoding": "base64",
+        "algorithm": "sha256",
+        "payload": "{{requestBodyString}}"
+      }
+    }
+  ]
 }
 ```
 
@@ -354,13 +352,11 @@ If the provider you want to send a proxy request that requires another type of c
 
 According to PCI DSS rules, we can only retain the card security code during a payment authorization. This means that when including the `{{cardSecurityCode}}` in your request body, you must ensure that the value is still available in our Vault.
 
-If the card was initially stored with the correct [authorization flags](doc:authorization-flags), you should not need the security code to authorize a payment. However, we provide this option in case you have one of the following use cases:
+If the card was initially stored with the correct [authorization flags](/docs/resources/payments/authorization-flags), you should not need the security code to authorize a payment. However, we provide this option in case you have one of the following use cases:
 
-* You want to ask for the security code to prevent fraud due to account takeover attacks,
-* A Provider requires you to include this field even if the card is already stored.
+- You want to ask for the security code to prevent fraud due to account takeover attacks,
+- A Provider requires you to include this field even if the card is already stored.
 
 Our [Vault Proxy](ref:vaultproxy-1) endpoint has an optional parameter called `encryptedSecurityCode` that allows you to override the stored value (if any) of the `{{cardSecurityCode}}` variable in the `body` you intend to send to your Provider.
 
-To obtain the value of the `encryptedSecurityCode`, you can use our client-side SDK function called `encryptCardData`. Check the documentation for it [here](doc:tokenize-cards-with-client-side-encryption).
-
-
+To obtain the value of the `encryptedSecurityCode`, you can use our client-side SDK function called `encryptCardData`. Check the documentation for it [here](/docs/token-vault/tokenize-payment-instruments/tokenize-cards-with-client-side-encryption).

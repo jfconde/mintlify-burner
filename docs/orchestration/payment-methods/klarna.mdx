@@ -1,0 +1,160 @@
+---
+description: "Klarna is a global buy now, pay later (BNPL) payment method available across a large number of countries in Europe, North America, and beyond. When a customer selects Klarna at checkout, they are redirected to Klarna to authenticate and confirm their purchase as a single one-time payment."
+title: "Klarna"
+---
+## Introduction
+Klarna uses a **redirect-based payment flow**. When a customer selects Klarna at checkout, they are redirected to the Klarna interface to authenticate and confirm the payment, then redirected back to your website or app upon completion. Klarna is a single-use, customer-initiated payment method.
+
+This guide explains the process of integrating Klarna into your app or website using Payrails via Stripe.
+
+## Pre-requisites
+
+Before you start accepting Klarna payments with Payrails, there are a few requirements you must meet:
+
+1. Integrate with Payrails using one of our SDKs or our API
+2. Configure a new integration account for Klarna via **Stripe** as a Payment Service Provider.
+3. Enable Klarna as a payment method in your Stripe integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your Stripe integration instance, and enable the **Klarna** checkbox under Payment methods, then save the account. Ensure your account is eligible for Klarna in the Stripe Dashboard under Payment methods settings.
+4. Enable Klarna as a payment option in your workflow.
+5. Make sure you're sending the Klarna-specific required meta fields in your requests (see Required meta fields below).
+
+## Ways to integrate Klarna
+
+### Payrails SDK
+
+The simplest way to use Klarna with Payrails is to use our drop-in in your checkout flow. With this integration type, no additional work is required to accept payments with Klarna except for handling success/failure screens for your users.
+
+For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions here for your client-side implementation.
+
+### Server-to-server integration
+
+You can integrate Klarna by completely managing your own client-side implementation, and using Payrails APIs with a server-to-server integration to process Klarna payments.
+
+#### Parse Klarna from lookup response
+
+With a server-to-server integration, you can call our lookup payment options endpoint to get available payment options. As shown in the example below, you can see `klarna` returned as an option of the `paymentCompositionOptions`.
+
+```json
+{
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2026-03-26T12:00:00.000000000Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "redirect",
+        "paymentMethodCode": "klarna",
+        "description": "Klarna"
+      }
+    ]
+  },
+  "links": {
+    "execution": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+    "authorize": {
+      "method": "POST",
+      "href": "https://api.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
+    }
+  }
+}
+```
+
+#### Pass Klarna payment method in request to authorize payment with Payrails
+
+You can then make a request to our authorize a payment endpoint with `klarna` as the `paymentMethodCode`. See an example below:
+
+```json
+{
+  "executionId": "c0fd1c51-e709-47e5-bfd1-5d1c98f7d990",
+  "amount": {
+    "value": "10990",
+    "currency": "EUR"
+  },
+  "paymentComposition": [
+    {
+      "integrationType": "redirect",
+      "paymentMethodCode": "klarna",
+      "amount": {
+        "value": "10990",
+        "currency": "EUR"
+      }
+    }
+  ],
+  "meta": {
+    "order": {
+      "billingAddress": {
+        "name": "Anna",
+        "lastName": "Müller",
+        "country": {
+          "code": "DE"
+        }
+      }
+    }
+  },
+  "returnInfo": {
+    "success": "https://mysuccessurl.com",
+    "error": "https://myerrorurl.com"
+  }
+}
+```
+
+> **Note on amounts:** EUR uses 2 decimal places. Amounts should be provided in the smallest currency unit — e.g., `10990` for €109.90.
+
+\>
+
+> **Note:** Klarna is a redirect-based, single-use payment method. After calling the authorize endpoint, the customer will be redirected to Klarna's interface to authenticate and confirm the payment. Once confirmed, the customer will be redirected back to the `returnInfo.success` URL. Make sure to provide valid `returnInfo` URLs in your authorization request.
+
+#### Handle the redirect response
+
+After the customer completes the payment with Klarna, they will be redirected back to your `success` or `error` URL. You should then verify the payment status by checking the workflow execution status via the Payrails API or by listening to webhook notifications.
+
+## Required meta fields
+
+Klarna requires the following fields to be present in every authorize request:
+
+| Field                                     | Required | Notes                          |
+| ----------------------------------------- | -------- | ------------------------------ |
+| `meta.order.billingAddress.name`          | ✅ Yes    | Customer's first name          |
+| `meta.order.billingAddress.lastName`      | ✅ Yes    | Customer's last name           |
+| `meta.order.billingAddress.country.code`  | ✅ Yes    | ISO-2 country code (e.g. `DE`) |
+| `returnInfo.success` / `returnInfo.error` | ✅ Yes    | Required for all redirect APMs |
+
+## Supported currencies
+
+Klarna via Stripe supports multiple currencies. The available currencies depend on the customer's country. Common supported currencies include:
+
+- EUR — Euro
+- GBP — British Pound
+- USD — US Dollar
+- SEK — Swedish Krona
+- NOK — Norwegian Krone
+- DKK — Danish Krone
+- AUD — Australian Dollar
+- CAD — Canadian Dollar
+- NZD — New Zealand Dollar
+- CHF — Swiss Franc
+- PLN — Polish Złoty
+- CZK — Czech Koruna
+
+## Supported regions / countries
+
+### Customer regions
+
+Klarna is available to customers based in a wide range of countries including:
+
+- Austria 🇦🇹, Belgium 🇧🇪, Czech Republic 🇨🇿, Denmark 🇩🇰, Finland 🇫🇮, France 🇫🇷, Germany 🇩🇪, Greece 🇬🇷, Ireland 🇮🇪, Italy 🇮🇹, Netherlands 🇳🇱, Norway 🇳🇴, Poland 🇵🇱, Portugal 🇵🇹, Spain 🇪🇸, Sweden 🇸🇪, Switzerland 🇨🇭, UK 🇬🇧, US 🇺🇸, Australia 🇦🇺, Canada 🇨🇦, New Zealand 🇳🇿, and more.
+
+### Merchant regions
+
+Stripe accounts in Europe, US, CA, AU, and NZ can accept Klarna payments.
+
+## Supported workflows and services
+
+| Workflow                             | Supported |
+| ------------------------------------ | --------- |
+| Available via Payrails SDK           | ✔️        |
+| Available via Payrails API           | ✔️        |
+| Delayed / Manual Capture             | ✖️        |
+| Instant Capture                      | ✔️        |
+| Cancel / Void                        | ✖️        |
+| Refund / Reverse                     | ✔️        |
+| Save Instruments                     | ✖️        |
+| Merchant Initiated Transaction (MIT) | ✖️        |

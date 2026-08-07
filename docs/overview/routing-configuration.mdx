@@ -1,0 +1,164 @@
+---
+title: Routing configuration
+hidden: true
+---
+
+# Overview
+
+With Payrails you can configure your own routing rules to make sure that each transaction is processed via the most efficient route, to maximize your acceptance rates.
+
+The routing rules are a part of a workflow configuration, together with [Payment options](https://docs.payrails.com/docs/configure-your-payment-options). Both steps need to be configured before the workflow version can be used for processing payments.
+
+If you are creating an entirely new workflow configuration using “+ New version”, after clicking on Routing you will be redirected to an empty canvas where you can configure the rules.
+If you are making changes to an existing version using “Edit as new version”, you will see all the routing rules of this version.
+
+# Routing configuration
+
+Routing configuration consists of two parts:
+
+- Authorization settings configuration
+- Routing configuration, separately for each payment method you added in [Payment options](https://docs.payrails.com/docs/configure-your-payment-options)
+
+<br />
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/3f680cac1162c9f5bc1b8aa2ec8e1ce2ee91e30ca7233331f30656a51fe178b8-Auth_settings_and_routing_rules.png"
+  className="border"
+/>
+
+<br />
+
+## Authorization settings
+
+To configure authorization settings, simply click on “Authorization settings” in the upper right part. Here you can configure:
+
+- capture mode
+- cancel mode
+- [Instrument future usage](https://docs.payrails.com/docs/authorization-flags)
+
+<br />
+
+## Routing rules
+
+Routing rules have to be configured for every payment method separately. To add a routing rule, simply click on “+ Add Routing rule”. As a first step you need to define the default routing - this is the provider to which the payment will be routed if no other rules are configured or no other rules apply.
+
+<Image
+  align="center"
+  border={true}
+  width="75% "
+  src="https://files.readme.io/1f238279799351edb5bc859ae91841039e7831bd4751c6713a060fd7339660c4-Default_routing_rule.png"
+  className="border"
+/>
+
+Once you confirm, you will see your first rule on the canvas.
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/df6ae910ae31b064929ef36ac53a699f5c5f5479d7a68f043e6e645d2f670449-Canvas_with_a_default_routing_rule_configured.png"
+  className="border"
+/>
+
+After configuring your default route, you can add more rules. A rule can consist of a single condition, or multiple conditions with an AND operator.
+
+- Example: “**IF** Card Network is equal to Visa **THEN** authorize with Adyen”
+- Example: “**IF** Authorization Currency is one of EUR,GBP **THEN** authorize via Stripe”
+- Example: “**IF** Card Issuer Country is one of AT,DE,CH AND Authorization Currency is equal to EUR **THEN** authorize via Braintree”
+
+After adding the above rules, your canvas should look like this:
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/5c301293074896d955c9ebaba6056ee6a1774763b594058afc4ce0fb395b139d-Routing_rules_config_1.png"
+  className="border"
+/>
+
+<br />
+
+> 📘 It is important to remember that the rules are evaluated in the order of configuration.
+
+In the example above, rule 3 will never happen, because rule 2 already takes care of all the EUR payments. If you want to keep rule 3, you need to have it evaluated before rule 2. To do it, simply drag and drop the rule higher.
+
+<Image
+  align="center"
+  border={true}
+  src="https://files.readme.io/b96d51f4b822cc92198ae86aef37b36bc4429781f790090386575f547cd3dacc-aa28387d39ff64a7f3ab5744ed114ea67b8854fc74ec89676ff61a19cc0598ac-workflow-drag-and-drop-opt.gif"
+  className="border"
+/>
+
+You can configure the Routing rules based on any fields related to the authorization request body or workflow execution context. This includes but is not limited to:
+
+- Authorization request body fields
+- [Meta fields](https://docs.payrails.com/docs/configure-meta-fields-for-your-providers)
+- Workflow execution context fields, e.g., `Card Issuer Country` or `Card Network`
+
+<br />
+
+Additionally, Payrails allows you to split the traffic between providers using `Routing Randomizer` field and assigning a value between 0-100. In the below example the traffic is split 50/50 between Stripe and Checkout.com.
+
+<Image
+  align="center"
+  border={true}
+  width="80% "
+  src="https://files.readme.io/cec75523e0d821c8549c5feb19a43936777659c3eb73b8f78e973d501e04958f-Routing_rules_using_randomizer.png"
+  className="border"
+/>
+
+<br />
+
+## Retries rules
+
+Payrails also supports [Retries](https://docs.payrails.com/docs/retries#/retries-configuration-in-the-merchant-portal) to automatically retry a failed authorization attempt. Retry rules allow configuring “fallback” providers, to recover failed payment authorizations.
+
+> 📘 To enable Retries, please reach out to your Payrails account manager.
+
+Once the retry configuration is enabled and set up, you can create Routing rules for the retry authorizations. Retry rules decide when and in what situation a retry should happen (for example, “retry InsufficientFunds decline reason in 24 hours”), whereas Routing rules decide where the retried authorization should be routed (for example, “retry all failed Stripe authorizations with Adyen”).
+
+You can configure a retry either with the same PSP or a different PSP. In case you configure a retry with a different PSP, Payrails will handle transforming the request body and automatically making the authorization request with the configured fallback PSP.
+
+To set up the Routing rules for retries, you can use the following fields to specify the fallback rule:
+
+- `Last authorize provider`
+- `Current authorize attempt`
+
+In this example, if the first failed authorization attempt was processed with Stripe, then the authorization retry will happen with Adyen.
+
+<Image
+  align="center"
+  border={true}
+  width="80% "
+  src="https://files.readme.io/47eeda29814bad80fb499d505dcaba74353066b6060f7fb31f8d9c9bc4032260-Routing_and_retries_-_Last_authorize_provider.png"
+  className="border"
+/>
+
+<br />
+
+In this example, the second authorization attempt will be processed with Checkout.com, regardless of the provider used for the first authorization attempt.
+
+<Image
+  align="center"
+  border={true}
+  width="80% "
+  src="https://files.readme.io/5918b82d4d968bd9378c3677f981ab3a141223dde3049fb5f43a1c7dffc4457a-Routing_and_retries_-_Current_authorize_attempt.png"
+  className="border"
+/>
+
+<br />
+
+## Tips for routing configuration
+
+- If you want to use a specific provider for a single authorization attempt, you can override the rules by sending Payment Provider Override in the authorization attempt, and making sure that a related rule is created
+
+<Image
+  align="center"
+  border={true}
+  width="80% "
+  src="https://files.readme.io/84d071752bba351251e1744fb0e8b9ac8fb5469d825a1ed794ad21cb99af54e1-Routing_with_provider_override.png"
+  className="border"
+/>
+
+- You can create rules based on Customers’ data, for example `Customer country code` or `Customer email`
+- For text values you can use operators like `contains` or `does not contain` as well as `starts with` or `ends with`

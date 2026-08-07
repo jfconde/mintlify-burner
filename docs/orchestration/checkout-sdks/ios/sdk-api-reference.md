@@ -467,7 +467,7 @@ public enum FutureUsage: String {
 }
 ```
 
-See [How to Tokenize a Card](tokenize-payment-instruments).
+See [How to Tokenize a Card](/docs/token-vault/tokenize-payment-instruments/index).
 
 ---
 
@@ -488,7 +488,7 @@ public enum InstrumentAPIResponse {
 
 ## Card form configuration
 
-See [Styling Guide](styling-guide-1) for full details.
+See [Styling Guide](./styling-guide) for full details.
 
 ```swift
 public struct CardFormConfig {

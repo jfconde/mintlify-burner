@@ -22,7 +22,7 @@ Before you start accepting PayPal payments with Payrails, there are a few requir
 
 ## Payrails SDK
 
-The simplest way to use PayPal with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional development work is required to accept payments with PayPal.
+The simplest way to use PayPal with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web-v5-legacy/drop-in) in your checkout flow. With this integration type, no additional development work is required to accept payments with PayPal.
 
 ## Server-to-server integration
 

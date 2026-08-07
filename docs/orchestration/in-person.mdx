@@ -209,9 +209,9 @@ PayrailsInPersonSDK.Configuration config
 PayrailsInPersonSDK payrailsClient = PayrailsInPersonSDK.Companion.init(config);
 ```
 
-For a proper production deployment, your backend needs to call the [Initialize a client SDK](in-person#33-create-the-initialisation-data-via-your-backend--receive-webhooks) endpoint to define amount, currency and further transaction-related settings. You simply have to forward the response to SDK via your POS App.
+For a proper production deployment, your backend needs to call the [Initialize a client SDK](./in-person#33-create-the-initialisation-data-via-your-backend--receive-webhooks) endpoint to define amount, currency and further transaction-related settings. You simply have to forward the response to SDK via your POS App.
 
-To quickly start running test transactions without having to change your backend yet, [you can also generate the required init data via the Payrails Portal](in-person#32-create-the-initialisation-data-via-the-portal-testing-only).
+To quickly start running test transactions without having to change your backend yet, [you can also generate the required init data via the Payrails Portal](./in-person#32-create-the-initialisation-data-via-the-portal-testing-only).
 
 ### Launch the Payrails Payment App
 
@@ -380,7 +380,7 @@ Make sure to always replace _clientInitResponse_ with the latest response you ge
 
 ## 3.3 Create the initialisation data via your Backend & receive Webhooks
 
-For production, the backend of your POS software needs to [integrate with the **Payrails Backend**](/reference/clientinit), with your [API credentials](/docs/set-up-your-payrails-account-and-environment/api-credentials) and [MTLS certificate](getting-started), to automatically create the Execution and retrieve the required data to initialise the Payrails SDK by calling the [Initialize client SDK endpoint](/reference/clientinit).
+For production, the backend of your POS software needs to [integrate with the **Payrails Backend**](/reference/clientinit), with your [API credentials](/docs/set-up-your-payrails-account-and-environment/api-credentials) and [MTLS certificate](./getting-started), to automatically create the Execution and retrieve the required data to initialise the Payrails SDK by calling the [Initialize client SDK endpoint](/reference/clientinit).
 
 ```Text JSON
 {
@@ -411,7 +411,7 @@ For production, the backend of your POS software needs to [integrate with the **
 
 By providing a `merchantReference`, you can query the status of the execution/payment later on.
 
-Your **Webhook server** also receives notifications that inform you about the outcome of each payment, [just like for online payments via Payrails](payment-acceptance/receive-notifications).
+Your **Webhook server** also receives notifications that inform you about the outcome of each payment, [just like for online payments via Payrails](/docs/orchestration/payment-acceptance/receive-notifications).
 
 ## 3.4 Extend your receipt to include required payment data
 

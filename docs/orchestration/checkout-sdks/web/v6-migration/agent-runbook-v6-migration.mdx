@@ -6,7 +6,7 @@ You are a coding agent migrating a merchant codebase from `@payrails/web-sdk`
 5.x to 6.x. This runbook tells you how to detect what needs migrating, route
 each finding to the right instructions, execute the changes, and verify the
 result. The detailed before/after for every breaking change lives in the
-[migration guide](v6-migration-guide) — this document routes you through it; it
+[migration guide](./v6-migration-guide) — this document routes you through it; it
 does not repeat it. If you are a human, read the migration guide directly.
 
 ## Ground rules
@@ -18,7 +18,7 @@ does not repeat it. If you are a human, read the migration guide directly.
   disagrees with the TypeScript types shipped in the installed
   `@payrails/web-sdk`, the types win. Never invent an API: before writing a call
   you have not seen in the codebase, confirm it exists in the package's `.d.ts`
-  or in the [reference docs](/docs/orchestration/checkout-sdks/web/api-references/event-api-reference).
+  or in the [reference docs](/docs/orchestration/checkout-sdks/web/references/event-api-reference).
 - **Minimal diffs.** Change only what the migration requires. Do not refactor,
   rename, or restyle surrounding code.
 - **Preserve behavior.** Every v5 callback's logic must land in an equivalent v6
@@ -54,17 +54,17 @@ Every hit is a work item; the section column links to the instructions.
 
 | #   | Search for                                                                                                                                                                                                                                                                 | Meaning                                | Fix per                                                                                                                    |
 | --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `Payrails.init(`                                                                                                                                                                                                                                                           | Init calls that must become awaited    | [guide §1](v6-migration-guide#1-payrailsinit-is-asynchronous)                               |
-| 2   | `payrails-styles.css`                                                                                                                                                                                                                                                      | CSS import that no longer resolves     | [guide §1](v6-migration-guide#1-payrailsinit-is-asynchronous)                               |
-| 3   | `preloadCardForm`                                                                                                                                                                                                                                                          | Removed static method                  | [guide §2](v6-migration-guide#2-payrailspreloadcardform-is-removed)                         |
-| 4   | `onClientInitialized`                                                                                                                                                                                                                                                      | Argument/helper changes inside handler | [guide §3](v6-migration-guide#3-onclientinitialized-receives-the-execution-response-object) |
-| 5   | `events:` inside options of `dropin(`, `cardForm(`, `paymentButton(`, `googlePayButton(`, `applePayButton(`, `paypalButton(`, `leanButton(`, `genericRedirectButton(`, `dynamicElement(`                                                                                   | Removed callback bags                  | [guide §4](v6-migration-guide#4-typed-on-event-api-replaces-events--callback-bags)          |
-| 6   | `onAuthorizeSuccess`, `onAuthorizeFailed`, `onAuthorizePending`, `onSuccess`, `onFailed`, `onPending`, `onRequestStart`, `onButtonClicked`, `onPaymentButtonClicked`, `onThreeDSecureChallenge`, `onDeliveryAddressChanged`, `onSessionExpired`, `onPaymentSessionExpired` | Instance-level bag callbacks           | [guide §4 tables](v6-migration-guide#instance-events)                                       |
-| 7   | `onChange`, `onFocus`, `onReady`, `onValidate`, `onValidationChange`, `onStateChanged`, `onSaveInstrumentCheckboxChanged`, `onPreferredSchemeChanged`, `onBillingAddressChanged`, `onPaymentOptionSelected` (in Payrails element options)                                  | Element-level bag callbacks            | [guide §4 tables](v6-migration-guide#element-events)                                        |
-| 8   | `onGooglePayAvailable`, `onApplePayAvailable`, `onPaypalAvailable`                                                                                                                                                                                                         | Availability callbacks → promise       | [guide §5](v6-migration-guide#5-wallet-availability-is-a-promise-not-an-event)              |
-| 9   | `styles:` inside options of `cardForm(`, `paymentButton(`, `dropin(`, `cardList(`, `dynamicElement(`, `genericRedirectButton(`, `leanButton(`, `collectContainer(`                                                                                                         | Structured styles → appearance         | [guide §6](v6-migration-guide#6-styles-becomes-appearance)                                  |
-| 10  | `inputStyles`, `labelStyles`, `errorTextStyles`                                                                                                                                                                                                                            | Dead collect-element style fields      | [guide §6](v6-migration-guide#collect-elements-field-by-field-mapping)                      |
-| 11  | `PayrailsContainerType`, `containerType`                                                                                                                                                                                                                                   | Removed type / option                  | [guide §7](v6-migration-guide#7-typescript-changes)                                         |
+| 1   | `Payrails.init(`                                                                                                                                                                                                                                                           | Init calls that must become awaited    | [guide §1](./v6-migration-guide#1-payrailsinit-is-asynchronous)                               |
+| 2   | `payrails-styles.css`                                                                                                                                                                                                                                                      | CSS import that no longer resolves     | [guide §1](./v6-migration-guide#1-payrailsinit-is-asynchronous)                               |
+| 3   | `preloadCardForm`                                                                                                                                                                                                                                                          | Removed static method                  | [guide §2](./v6-migration-guide#2-payrailspreloadcardform-is-removed)                         |
+| 4   | `onClientInitialized`                                                                                                                                                                                                                                                      | Argument/helper changes inside handler | [guide §3](./v6-migration-guide#3-onclientinitialized-receives-the-execution-response-object) |
+| 5   | `events:` inside options of `dropin(`, `cardForm(`, `paymentButton(`, `googlePayButton(`, `applePayButton(`, `paypalButton(`, `leanButton(`, `genericRedirectButton(`, `dynamicElement(`                                                                                   | Removed callback bags                  | [guide §4](./v6-migration-guide#4-typed-on-event-api-replaces-events--callback-bags)          |
+| 6   | `onAuthorizeSuccess`, `onAuthorizeFailed`, `onAuthorizePending`, `onSuccess`, `onFailed`, `onPending`, `onRequestStart`, `onButtonClicked`, `onPaymentButtonClicked`, `onThreeDSecureChallenge`, `onDeliveryAddressChanged`, `onSessionExpired`, `onPaymentSessionExpired` | Instance-level bag callbacks           | [guide §4 tables](./v6-migration-guide#instance-events)                                       |
+| 7   | `onChange`, `onFocus`, `onReady`, `onValidate`, `onValidationChange`, `onStateChanged`, `onSaveInstrumentCheckboxChanged`, `onPreferredSchemeChanged`, `onBillingAddressChanged`, `onPaymentOptionSelected` (in Payrails element options)                                  | Element-level bag callbacks            | [guide §4 tables](./v6-migration-guide#element-events)                                        |
+| 8   | `onGooglePayAvailable`, `onApplePayAvailable`, `onPaypalAvailable`                                                                                                                                                                                                         | Availability callbacks → promise       | [guide §5](./v6-migration-guide#5-wallet-availability-is-a-promise-not-an-event)              |
+| 9   | `styles:` inside options of `cardForm(`, `paymentButton(`, `dropin(`, `cardList(`, `dynamicElement(`, `genericRedirectButton(`, `leanButton(`, `collectContainer(`                                                                                                         | Structured styles → appearance         | [guide §6](./v6-migration-guide#6-styles-becomes-appearance)                                  |
+| 10  | `inputStyles`, `labelStyles`, `errorTextStyles`                                                                                                                                                                                                                            | Dead collect-element style fields      | [guide §6](./v6-migration-guide#collect-elements-field-by-field-mapping)                      |
+| 11  | `PayrailsContainerType`, `containerType`                                                                                                                                                                                                                                   | Removed type / option                  | [guide §7](./v6-migration-guide#7-typescript-changes)                                         |
 
 Do **not** flag these — they are unchanged or correct in v6:
 
@@ -89,17 +89,17 @@ localize to the step that caused them.
 2. **Make init awaited** (inventory 1): add `await`, propagate async up through
    the callers, and add rejection handling for `PAYRAILS_INIT_FAILED` where
    other init errors are handled. In SSR frameworks, ensure the call runs only
-   in the browser ([guide §1](v6-migration-guide#1-payrailsinit-is-asynchronous)).
+   in the browser ([guide §1](./v6-migration-guide#1-payrailsinit-is-asynchronous)).
 3. **Delete the CSS import** (inventory 2) and any bundler config that
    referenced it.
 4. **Delete&#x20;**`preloadCardForm()`**&#x20;calls** (inventory 3).
 5. **Update&#x20;**`onClientInitialized`**&#x20;handler bodies** (inventory 4): the argument
    is the plain response object; helper calls move to the `payrails` instance
    per
-   [guide §3](/docs/v6-migration-guide#3-onclientinitialized-receives-the-execution-response-object).
+   [guide §3](./v6-migration-guide#3-onclientinitialized-receives-the-execution-response-object).
 6. **Replace event bags with&#x20;**`.on()` (inventory 5–7) using the mapping tables
    in
-   [guide §4](/docs/v6-migration-guide#4-typed-on-event-api-replaces-events--callback-bags).
+   [guide §4](./v6-migration-guide#4-typed-on-event-api-replaces-events--callback-bags).
    Three semantic traps — a mechanical rename is NOT enough:
    - Boolean-return gates (`onRequestStart`, `onButtonClicked`,
      `onDeliveryAddressChanged`) must call `event.preventDefault()`; a thrown
@@ -111,15 +111,15 @@ localize to the step that caused them.
      the top level.
 7. **Replace availability callbacks** (inventory 8) with
    `await button.isAvailable`
-   ([guide §5](/docs/v6-migration-guide#5-wallet-availability-is-a-promise-not-an-event)).
+   ([guide §5](./v6-migration-guide#5-wallet-availability-is-a-promise-not-an-event)).
 8. **Migrate styling** (inventory 9–10) to `appearance` using the per-element
-   mapping tables in [guide §6](/docs/v6-migration-guide#6-styles-becomes-appearance).
+   mapping tables in [guide §6](./v6-migration-guide#6-styles-becomes-appearance).
    Translate each v5 style key via the tables; do not guess selectors. Watch the
    three special cases: drop-in wallet-button chrome moves to
    `paymentMethodsConfiguration.<method>.styles`, Revolut Pay uses
    `revolutOptions`, the Lean dialog uses `dialogCustomization`.
 9. **Clean up types** (inventory 11) per
-   [guide §7](/docs/v6-migration-guide#7-typescript-changes).
+   [guide §7](./v6-migration-guide#7-typescript-changes).
 
 ## Phase 3 — Verify
 
@@ -141,7 +141,7 @@ Report these instead of deciding yourself:
 - **CSP changes** — `assets.payrails.io` in `script-src`/`style-src` is usually
   infrastructure config outside the repo.
 - **Visual sign-off** — v6 ships a redesign
-  ([guide §8](/docs/v6-migration-guide#8-refreshed-visual-design)); a human must approve
+  ([guide §8](./v6-migration-guide#8-refreshed-visual-design)); a human must approve
   the new look and any re-created custom styling.
 - **Real payment verification** — completing a test payment in the `TEST`
   environment, 3DS challenges, wallet sheets, and session-expiry refresh need a
@@ -152,13 +152,13 @@ Report these instead of deciding yourself:
 
 ## Reference map
 
-- [Migration guide](v6-migration-guide) — every breaking change with before/after
+- [Migration guide](./v6-migration-guide) — every breaking change with before/after
   code. Your primary instruction source.
-- [Payrails class reference](/docs/orchestration/checkout-sdks/web/api-references/payrails-api-reference) — option types,
+- [Payrails class reference](/docs/orchestration/checkout-sdks/web/references/payrails-api-reference) — option types,
   methods, exports.
-- [Events reference](/docs/orchestration/checkout-sdks/web/api-references/event-api-reference) — every event with
+- [Events reference](/docs/orchestration/checkout-sdks/web/references/event-api-reference) — every event with
   payload types and cancelation semantics.
-- [Migration guide §6](v6-migration-guide#6-styles-becomes-appearance) — the
+- [Migration guide §6](./v6-migration-guide#6-styles-becomes-appearance) — the
   authoritative `styles` → `appearance` mapping.
 - [Appearance reference](/docs/orchestration/checkout-sdks/web/references/appearance-api-reference) — the
   `appearance` types, rule semantics, and per-element class contract.

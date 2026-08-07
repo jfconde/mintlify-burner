@@ -11,15 +11,15 @@ When a card authorization requires 3DS, Payrails returns the information needed 
 - The two integration patterns for handling the 3DS redirect
 - The `threeDS` response object you receive when authentication completes
 
-If you're using the Payrails Drop-in or any of our SDKs, 3DS is handled for you and you can skip to the [`threeDS` object reference](3d-secure#the-threeds-object).
+If you're using the Payrails Drop-in or any of our SDKs, 3DS is handled for you and you can skip to the [`threeDS` object reference](./3d-secure#the-threeds-object).
 
 ## Handling 3DS during authorization
 
-When you [authorize a card payment via API](authorize-a-payment), the response always includes a `links.consumerWait` URL. You can use it in one of two ways.
+When you [authorize a card payment via API](./authorize-a-payment), the response always includes a `links.consumerWait` URL. You can use it in one of two ways.
 
 ### Managed redirect with `consumerWait`
 
-Redirect the customer to `links.consumerWait` after authorizing. Payrails handles the 3DS challenge if one is required, and returns the customer to your `returnInfo.success` URL when the session is complete. This is the integration pattern documented in our [accept payments via API](/docs/orchestration/checkout-sdks/accept-payments-via-api) and [authorize a payment](authorize-a-payment) guides.
+Redirect the customer to `links.consumerWait` after authorizing. Payrails handles the 3DS challenge if one is required, and returns the customer to your `returnInfo.success` URL when the session is complete. This is the integration pattern documented in our [accept payments via API](/docs/orchestration/checkout-sdks/accept-payments-via-api) and [authorize a payment](./authorize-a-payment) guides.
 
 The customer sees a Payrails-hosted intermediate page while the execution resolves, followed by either the 3DS challenge or your return URL.
 
@@ -33,7 +33,7 @@ If you'd rather handle the 3DS redirect yourself (for example, to avoid showing 
   width="80%"
 />
 
-1. After calling [Authorize a payment](authorize-a-payment), long-poll the execution:
+1. After calling [Authorize a payment](./authorize-a-payment), long-poll the execution:
 
    ```http
    GET /merchant/workflows/{workflowCode}/executions/{executionId}?waitWhile[status]=authorizeRequested
@@ -62,7 +62,7 @@ If you'd rather handle the 3DS redirect yourself (for example, to avoid showing 
 
 ## The `threeDS` object
 
-The `threeDS` object encapsulates various parameters related to the 3DS authentication process. It provides detailed information about the authentication status, transaction identifiers, and relevant parameters. You can expect to receive the `threeDS` object in the [Notifications](doc:notifications) under `paymentComposition`. Below is a breakdown of the key components within the `threeDS` object:
+The `threeDS` object encapsulates various parameters related to the 3DS authentication process. It provides detailed information about the authentication status, transaction identifiers, and relevant parameters. You can expect to receive the `threeDS` object in the [Notifications](/docs/resources/notifications) under `paymentComposition`. Below is a breakdown of the key components within the `threeDS` object:
 
 ```json
 "threeDS": {

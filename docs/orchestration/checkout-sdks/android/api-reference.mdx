@@ -1,9 +1,9 @@
 ---
 title: SDK API Reference
-description: This document describes the public API surface of the Payrails Android SDK, including payment methods, configuration, styling, translations, and event delegates. For setup and dependencies, see the [Quick Start](/docs/android-sdk-1).
+description: This document describes the public API surface of the Payrails Android SDK, including payment methods, configuration, styling, translations, and event delegates. For setup and dependencies, see the [Quick Start](./index).
 ---
 
-> **Looking for guides?** [Quick Start](/docs/android-sdk-1) | [Styling Guide](/docs/styling-guide) | [Troubleshooting](/docs/troubleshooting) | [SDK Concepts](/docs/sdk-concepts)
+> **Looking for guides?** [Quick Start](./index) | [Styling Guide](./styling-guide) | [Troubleshooting](./troubleshooting) | [SDK Concepts](./sdk-concepts)
 
 ## Table of Contents
 
@@ -456,7 +456,7 @@ fun CheckoutScreen(session: Session) {
 }
 ```
 
-See [How to Build a Custom Pay Button](/docs/how-to-custom-pay-button) for a full
+See [How to Build a Custom Pay Button](./how-to-custom-pay-button) for a full
 dropdown-plus-single-button walkthrough.
 
 ---
@@ -1477,7 +1477,7 @@ Errors are represented by `PayrailsError` (e.g., `authenticationError`, `missing
 
 ## Co-Branded Cards
 
-Support for cards carrying two networks (a local scheme like `mada` plus an international one like `mastercard`). Activates only when the session is co-branded-enabled (backend `featureConfig.coBrandedCardsRollout` flag + a `binLookup` link). See the [how-to](/docs/how-to-co-branded-cards) and the [concept](/docs/sdk-concepts#co-branded-cards).
+Support for cards carrying two networks (a local scheme like `mada` plus an international one like `mastercard`). Activates only when the session is co-branded-enabled (backend `featureConfig.coBrandedCardsRollout` flag + a `binLookup` link). See the [how-to](./how-to-co-branded-cards) and the [concept](./sdk-concepts#co-branded-cards).
 
 ### `Session.binLookup(bin)`
 
@@ -1485,7 +1485,7 @@ Support for cards carrying two networks (a local scheme like `mada` plus an inte
 suspend fun binLookup(bin: String): BinLookupResponse?
 ```
 
-One-shot BIN lookup against the session's `binLookup` endpoint. **Non-throwing**: returns `null` on invalid input (not 6–8 digits), an inactive session, a missing endpoint, or a network error (coroutine cancellation propagates). No throttling or caching — the card form's internal as-you-type lookup handles that.
+One-shot BIN lookup against the session's `binLookup` endpoint. **Non-throwing**: returns `null` on invalid input (not 6-8 digits), an inactive session, a missing endpoint, or a network error (coroutine cancellation propagates). No throttling or caching — the card form's internal as-you-type lookup handles that.
 
 ```kotlin
 val result = session.binLookup("529741")
@@ -1540,7 +1540,7 @@ Invoked when the shopper's preferred scheme changes: on resolution to a co-brand
 The Card Brand selector renders automatically inside `CardForm` for co-branded cards. Customize:
 
 - **Text** — `CardTranslations.Labels.cardBrandSelectorTitle` / `cardBrandSelectorSubtitle` (defaults `"Card Brand"` / `"Select your preferred network"`).
-- **Look** — `CardFormStylesConfig.cardBrandSelector: CardBrandSelectorStyle?`; see the [Card Brand Selector styling reference](/docs/styling-guide#card-brand-selector).
+- **Look** — `CardFormStylesConfig.cardBrandSelector: CardBrandSelectorStyle?`; see the [Card Brand Selector styling reference](./styling-guide#card-brand-selector).
 
 ### Payment
 
@@ -1550,10 +1550,10 @@ When a co-branded card is paid, the selected scheme is submitted as `paymentInst
 
 ## Further Reading
 
-- **[Quick Start](/docs/android-sdk-1)** — Get a card payment working in 15 minutes
-- **[How to Tokenize a Card](/docs/how-to-tokenize-card)** — Save a card without charging the customer
-- **[How to Accept Redirect Payments](/docs/how-to-accept-redirect-payments)** — Accept iDEAL, Bancontact, Sofort, and other redirect-based methods
-- **[How to Update the Checkout Amount](/docs/update-checkout-amount)** — Apply tips, discounts, or shipping costs after session creation
-- **[Styling Guide](/docs/styling-guide)** — Customize form and button appearance
-- **[SDK Concepts](/docs/sdk-concepts)** — Architecture, payment flows, 3DS, security model
-- **[Troubleshooting](/docs/troubleshooting)** — Common issues and solutions
+- **[Quick Start](./index)** — Get a card payment working in 15 minutes
+- **[How to Tokenize a Card](./how-to-tokenize-card)** — Save a card without charging the customer
+- **[How to Accept Redirect Payments](./how-to-accept-redirect-payments)** — Accept iDEAL, Bancontact, Sofort, and other redirect-based methods
+- **[How to Update the Checkout Amount](./update-checkout-amount)** — Apply tips, discounts, or shipping costs after session creation
+- **[Styling Guide](./styling-guide)** — Customize form and button appearance
+- **[SDK Concepts](./sdk-concepts)** — Architecture, payment flows, 3DS, security model
+- **[Troubleshooting](./troubleshooting)** — Common issues and solutions

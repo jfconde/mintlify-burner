@@ -156,7 +156,7 @@ Looks up available payment options. Typically used in checkout initialization fl
 
 ### Condition
 
-Evaluates a set of rules and branches the workflow into different paths based on the results. This is the primary way to add decision logic to your workflows. For details on configuring conditions, see the [Conditions](workflow-studio-conditions) section.
+Evaluates a set of rules and branches the workflow into different paths based on the results. This is the primary way to add decision logic to your workflows. For details on configuring conditions, see the [Conditions](./conditions) section.
 
 **Outcomes:** Custom condition branches + Default branch
 

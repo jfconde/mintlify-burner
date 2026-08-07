@@ -8,12 +8,12 @@ Use our APIs and build your own payment experience if you want full control over
   Building your own payment experience requires significantly more effort for
   handling all alternative flows, while Payrails provides built-in components
   that you can customize. So if you'd rather not build your own payment
-  experience, check our [Drop-in](doc:drop-in) solution.
+  experience, check our [Drop-in](./web-v5-legacy/drop-in) solution.
 </Callout>
 
 With our API-only solution, you have two options for accepting card payments:
 
-- Use our [Secure fields](doc:secure-fields) card tokenization to collect the card details. This helps you ensure PCI compliance, as you're only required to submit [SAQ A](https://listings.pcisecuritystandards.org/documents/SAQ_A_v3.pdf).
+- Use our [Secure fields](./web-v5-legacy/secure-fields) card tokenization to collect the card details. This helps you ensure PCI compliance, as you're only required to submit [SAQ A](https://listings.pcisecuritystandards.org/documents/SAQ_A_v3.pdf).
 - Collect and pass raw card data. This requires you to assess your PCI compliance according to [SAQ D](https://listings.pcisecuritystandards.org/documents/PCI-DSS-v3_2_1-SAQ-D_Merchant.pdf), the most extensive form of self-certification.
 
 On this page, we describe server-side integration and the client-side implementation that you have to build. Please note this is just an example of what Payrails can offer so that you picture the process better. If you have specific requirements on how you would prefer to accept payments, let us know and we'll guide you throw our API reference.
@@ -29,8 +29,8 @@ On this page, we describe server-side integration and the client-side implementa
 
 To initialize your payment form with Payrails, you need to achieve 3 operations:
 
-1. [Create a workflow execution](doc:create-a-workflow-execution). The execution is the equivalent of a customer payment session, so you want to save the `executionId` as a reference to perform the next steps.
-2. [Lookup payment options](doc:lookup-payment-options) available for the customer in this context. Eventually, you want to bundle this operation with the workflow creation as an `initialAction` to save an API call (like in the example above).
+1. [Create a workflow execution](/docs/orchestration/payment-acceptance/create-a-workflow-execution). The execution is the equivalent of a customer payment session, so you want to save the `executionId` as a reference to perform the next steps.
+2. [Lookup payment options](/docs/orchestration/payment-acceptance/lookup-payment-options) available for the customer in this context. Eventually, you want to bundle this operation with the workflow creation as an `initialAction` to save an API call (like in the example above).
 3. [Initialize a client SDK](ref:clientinit) to collect card information on the client side. Eventually, you want to perform this call in parallel to optimize your latency (like in the example above).
 
 <Callout icon="📘" theme="info">
@@ -41,7 +41,7 @@ To initialize your payment form with Payrails, you need to achieve 3 operations:
 
 # (Optional) Tokenize a new card
 
-This step happens when the customer selects a new card as a payment instrument to authorize with. It is described in detail in the [Payrails SDK](doc:sdk) guide.
+This step happens when the customer selects a new card as a payment instrument to authorize with. It is described in detail in the [Payrails SDK](./index) guide.
 
 ![](https://files.readme.io/1c45d67-addCard.svg)
 
@@ -51,15 +51,15 @@ Make sure to save the tokenized card output provided by the SDK, you will need i
 
 ![](https://files.readme.io/f4cc962-authorizePayment.svg)
 
-When the customer chooses a payment method and an instrument and then clicks the "Pay" button of your checkout form, it is time to [Authorize a payment](doc:authorize-a-payment)!
+When the customer chooses a payment method and an instrument and then clicks the "Pay" button of your checkout form, it is time to [Authorize a payment](/docs/orchestration/payment-acceptance/authorize-a-payment)!
 
 This process is asynchronous, after your server-side application sent the authorization request, it will immediately receive an HTTP `202 ACCEPTED` acknowledgment from Payrails.
 
 It doesn't mean that your request was successful, but that it is in progress and Payrails will notify you about the success (or failure) later.
 
-Meanwhile, you can decide to [Receive notifications](doc:receive-notifications) or long poll the execution to fetch the status with the [Get an execution by ID](ref:getexecution) endpoint.
+Meanwhile, you can decide to [Receive notifications](/docs/orchestration/payment-acceptance/receive-notifications) or long poll the execution to fetch the status with the [Get an execution by ID](ref:getexecution) endpoint.
 
-For understanding the possible results of payment authorization, you should check the [Result Codes](doc:result-codes) page.
+For understanding the possible results of payment authorization, you should check the [Result Codes](/docs/resources/payments/operation-results.mdx) page.
 
 # Handle redirects for 3-D Secure
 
@@ -111,4 +111,4 @@ When the challenge is resolved, Payrails will take your client back to the addre
 
 For [Apple Pay](https://developer.apple.com/documentation/passkit/apple_pay/) and [Google Pay](https://developers.google.com/pay/api/android/overview), you will have to install their vendor SDK and fetch their payment token directly on the Client.
 
-Then you pass the payment token with your [Authorize a payment](doc:authorize-a-payment) endpoint call.
+Then you pass the payment token with your [Authorize a payment](/docs/orchestration/payment-acceptance/authorize-a-payment) endpoint call.

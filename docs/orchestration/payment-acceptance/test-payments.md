@@ -28,11 +28,11 @@ Payrails provides a testing feature in the Portal to simulate real-life scenario
 
 To further increase your testing capabilities and simplify your integration process, we developed a **Test PSP**. This "fake" or "mock" payment provider helps you simulate the entire payment flow without using an external provider.
 
-This provider is enabled by default since the creation of your Payrails environment. This way, you can start integrating Payrails even before having a contract with an external provider loaded into our system. Once you create your [provider integrations](provider-accounts), you should have already tested many possible flows. Hence, the only thing left is to adapt to any particular flow for that provider.
+This provider is enabled by default since the creation of your Payrails environment. This way, you can start integrating Payrails even before having a contract with an external provider loaded into our system. Once you create your [provider integrations](/docs/orchestration/integrations/provider-accounts), you should have already tested many possible flows. Hence, the only thing left is to adapt to any particular flow for that provider.
 
 ## How to use the Test PSP
 
-You should first configure the Test PSP to be the default routing option on your workflow, or choose a specific [Meta fields](doc:meta-fields) to route your payment to it.
+You should first configure the Test PSP to be the default routing option on your workflow, or choose a specific [Meta fields](/docs/orchestration/meta-fields) to route your payment to it.
 
 <img
   className="mx-auto block rounded-lg object-cover"
@@ -40,7 +40,7 @@ You should first configure the Test PSP to be the default routing option on your
   width="80%"
 />
 
-By default, the Test PSP will always reply to your payment requests with `Success`. If you want to simulate a specific response flow, add a [Meta fields](doc:meta-fields) specifying it with one of the values of our [operation results](doc:operation-results).
+By default, the Test PSP will always reply to your payment requests with `Success`. If you want to simulate a specific response flow, add a [Meta fields](/docs/orchestration/meta-fields) specifying it with one of the values of our [operation results](/docs/resources/payments/operation-results).
 
 <img
   className="mx-auto block rounded-lg object-cover"

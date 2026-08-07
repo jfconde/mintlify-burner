@@ -1,7 +1,9 @@
 ---
 description: "Payflex is an alternative payment method (BNPL) in South Africa. With Payflex, customers can enjoy a seamless checkout experience, with a choice of fulfilling their payments instantly via their Payflex account through paying a downpayment via card and scheduling the remaining amount on installments to be debited from the same card."
 ---
+
 # Introduction
+
 Payflex is an alternative payment method (BNPL) in South Africa that offers a convenient way for customers to pay for goods and services. Integrating Payflex with Payrails allows you to provide a fast and easy-to-use payment option for your customers. This guide will explain the process of integrating Payflex into your app or website using Payrails.
 
 # Pre-requisites
@@ -9,15 +11,15 @@ Payflex is an alternative payment method (BNPL) in South Africa that offers a co
 Before you start accepting Payflex payments with Payrails, there are a few requirements you must meet:
 
 1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
-2. Configure a new [integration account](/docs/orchestration/integrations/index) for Payflex via one of the following Payment Service Providers: [Payflex](payflex) or [dLocal](/docs/orchestration/integrations/dlocal).
-3. Enable Payflex as a [payment option](set-up-payment-methods).
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for Payflex via one of the following Payment Service Providers: [Payflex](./payflex-psp) or [dLocal](/docs/orchestration/integrations/dlocal).
+3. Enable Payflex as a [payment option](./set-up-payment-methods).
 4. Make sure you're sending the Payflex specific meta fields (found under Merchant configurations -> Meta fields on your Payrails dashboard and in the examples below) in your requests.
 
 # Ways to integrate Payflex
 
 ## Payrails SDK
 
-The simplest way to use Payflex with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional development work is required to accept payments with Payflex.
+The simplest way to use Payflex with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web-v5-legacy/drop-in) in your checkout flow. With this integration type, no additional development work is required to accept payments with Payflex.
 
 ## Server-to-server integration
 
@@ -29,25 +31,25 @@ With a server-to-server integration, you can call our [lookup payment options](/
 
 ```json
 {
-    "name": "lookup",
-    "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
-    "executedAt": "2024-05-08T12:33:21.527395295Z",
-    "data": {
-        "paymentCompositionOptions": [
-            {
-                "integrationType": "api",
-                "paymentMethodCode": "payflex",
-                "description": "Payflex"
-            }
-        ]
-    },
-    "links": {
-        "execution": "http://payrails-api.staging.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
-        "authorize": {
-            "method": "POST",
-            "href": "http://payrails-api.staging.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
-        }
+  "name": "lookup",
+  "actionId": "0bb6413e-cabb-4074-99e6-9e815c69f25b",
+  "executedAt": "2024-05-08T12:33:21.527395295Z",
+  "data": {
+    "paymentCompositionOptions": [
+      {
+        "integrationType": "api",
+        "paymentMethodCode": "payflex",
+        "description": "Payflex"
+      }
+    ]
+  },
+  "links": {
+    "execution": "http://payrails-api.staging.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424",
+    "authorize": {
+      "method": "POST",
+      "href": "http://payrails-api.staging.payrails.io/merchant/workflows/payment-acceptance/executions/83c534ac-13b7-43e6-b04b-f3e8b4eb4424/authorize"
     }
+  }
 }
 ```
 
@@ -62,25 +64,29 @@ You can then make a request to our [authorize a payment endpoint](/reference/aut
     "value": "1000",
     "currency": "ZAR"
   },
-  "paymentComposition": [{
-    "integrationType": "api",
-    "paymentMethodCode": "payflex",
-    "amount": {
-      "value": "1000",
-      "currency": "ZAR"
+  "paymentComposition": [
+    {
+      "integrationType": "api",
+      "paymentMethodCode": "payflex",
+      "amount": {
+        "value": "1000",
+        "currency": "ZAR"
+      }
     }
-  }],
+  ],
   "meta": {
     "order": {
-      "lines": [{
-        "id": "UUID",
-        "name": "Order Name",
-        "quantity": 1,
-        "unitPrice": {
-          "currency": "ZAR",
-          "value": "1000"
+      "lines": [
+        {
+          "id": "UUID",
+          "name": "Order Name",
+          "quantity": 1,
+          "unitPrice": {
+            "currency": "ZAR",
+            "value": "1000"
+          }
         }
-      }]
+      ]
     }
   },
   "returnInfo": {
@@ -103,6 +109,7 @@ You can then make a request to our [authorize a payment endpoint](/reference/aut
         Countries
       </th>
     </tr>
+
   </thead>
 
   <tbody>
@@ -115,6 +122,7 @@ You can then make a request to our [authorize a payment endpoint](/reference/aut
         :south_africa: South Africa
       </td>
     </tr>
+
   </tbody>
 </Table>
 
@@ -131,6 +139,7 @@ You can then make a request to our [authorize a payment endpoint](/reference/aut
         Supported
       </th>
     </tr>
+
   </thead>
 
   <tbody>
@@ -223,5 +232,6 @@ You can then make a request to our [authorize a payment endpoint](/reference/aut
         N/A
       </td>
     </tr>
+
   </tbody>
 </Table>
