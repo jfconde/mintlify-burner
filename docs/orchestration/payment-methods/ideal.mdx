@@ -18,16 +18,16 @@ Before you start accepting iDEAL payments with Payrails, there are a few require
    * For **Checkout.com**: If you do not have a Checkout.com integration already configured in your workspace, please follow the [Checkout.com integration setup guide](/docs/orchestration/integrations/checkout-com) first. You may need to contact CKO Support to enable iDEAL on the provider config.
    * For **Stripe**: If you do not have a Stripe integration already configured in your workspace, please follow the [Stripe integration setup guide](/docs/orchestration/integrations/stripe) first.
 3. Enable iDEAL as a payment method in your chosen PSP integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your integration instance, enable the **iDEAL** checkbox under Payment methods, then save the account.
-4. Enable iDEAL as a [payment option](set-up-payment-methods) in your workflow.
+4. Enable iDEAL as a [payment option](./set-up-payment-methods) in your workflow.
 5. Make sure you are sending the iDEAL-specific meta fields in your requests (see examples below).
 
 ## Ways to integrate iDEAL
 
 ### Payrails SDK
 
-The simplest way to use iDEAL with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with iDEAL — the customer clicks iDEAL in the drop-in and is redirected to their bank automatically.
+The simplest way to use iDEAL with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web-v5-legacy/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with iDEAL — the customer clicks iDEAL in the drop-in and is redirected to their bank automatically.
 
-For a more flexible implementation using our SDK, you can use the `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#generic-redirect-element) for your client-side implementation.
+For a more flexible implementation using our SDK, you can use the `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web-v5-legacy/elements#generic-redirect-element) for your client-side implementation.
 
 ### Server-to-server integration
 

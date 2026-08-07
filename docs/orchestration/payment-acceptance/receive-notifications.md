@@ -22,7 +22,7 @@ When adding a new notification URL, Payrails will generate an HMAC key for that 
 
 You can also rotate the HMAC key for a notification endpoint. When rotating the HMAC key, the previous HMAC will no longer work, and you’ll need to replace it with the newly generated HMAC in your systems. For security purposes, the new HMAC will only be revealed once.
 
-You will now start receiving notifications for new executions at your saved URL(s), and each URL will receive for each execution the notifications detailed in our [Notifications](doc:notifications) guide. Notifications for existing executions will continue to be delivered to the URLs in place when those executions are created.
+You will now start receiving notifications for new executions at your saved URL(s), and each URL will receive for each execution the notifications detailed in our [Notifications](/docs/resources/notifications/index) guide. Notifications for existing executions will continue to be delivered to the URLs in place when those executions are created.
 
 You can review, add, or delete the URLs from this page anytime.
 
@@ -163,6 +163,6 @@ Click on any completed event in the timeline to view the corresponding notificat
 
 ## 5. Understand Notification Types
 
-Payrails sends notifications for various events related to execution and payment state changes. Consult the exhaustive [list of notification types](doc:notifications) to understand the notifications you might receive.
+Payrails sends notifications for various events related to execution and payment state changes. Consult the exhaustive [list of notification types](/docs/resources/notifications/index) to understand the notifications you might receive.
 
 By following this guide, you'll be well-equipped to receive and handle webhook notifications from Payrails, ensuring that you're always up-to-date with the status of your payment transactions.

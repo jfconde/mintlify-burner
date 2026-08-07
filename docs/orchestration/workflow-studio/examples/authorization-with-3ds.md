@@ -35,7 +35,6 @@ This workflow adds 3D Secure (3DS) cardholder authentication before the authoriz
 
 Where **C** = Completed, **P** = Paused, **R** = Requested, **U** = Updated, and **N1-N4** are Notify steps.
 
-
 ## Step-by-Step Build Instructions
 
 ### 1. Create the Workflow
@@ -56,7 +55,6 @@ Where **C** = Completed, **P** = Paused, **R** = Requested, **U** = Updated, and
 2. Draw a connection line from **Start Authorize** to the **3DS** step.
 3. Click the **3DS** step to open its settings panel.
 4. Select your 3DS provider from the **Provider** dropdown. The 3DS action supports provider selection, letting you choose which 3DS service handles the authentication challenge.
-
 
 ### 4. Handle 3DS Outcomes
 
@@ -83,7 +81,6 @@ The 3DS Completed outcome means the 3DS challenge finished -- but **Completed do
 3. Click the Condition step to open its settings panel.
 4. Name it "Check 3DS Result".
 
-
 ### 6. Configure the Condition Branches
 
 Add a branch for authenticated transactions:
@@ -99,7 +96,6 @@ The **Default** branch handles cases where authentication was not successful. If
 1. Add a **Notify** step and connect it to the **Default** branch of the Condition step.
 2. Name it "Notify -- 3DS Not Authenticated". This notification informs your system that cardholder authentication failed and the transaction should not proceed.
 
-
 ### 8. Add the Authorize Step on the Authenticated Path
 
 1. Click **Add step** and select **Authorize** under Actions.
@@ -107,20 +103,18 @@ The **Default** branch handles cases where authentication was not successful. If
 3. Click the **Authorize** step to open its settings panel.
 4. Select your payment provider from the **Provider** dropdown.
 
-
 ### 9. Add Notify Steps for Each Authorize Outcome
 
 The Authorize step has four outcomes. Add a Notify step for each:
 
-| Outcome | Notify Step Name |
-|---|---|
+| Outcome       | Notify Step Name                  |
+| ------------- | --------------------------------- |
 | **Completed** | Notify -- Authorization Completed |
-| **Paused** | Notify -- Authorization Paused |
+| **Paused**    | Notify -- Authorization Paused    |
 | **Requested** | Notify -- Authorization Requested |
-| **Updated** | Notify -- Authorization Updated |
+| **Updated**   | Notify -- Authorization Updated   |
 
 Connect each outcome to its Notify step with a connection line.
-
 
 ### 10. Save and Activate
 
@@ -135,15 +129,15 @@ Connect each outcome to its Notify step with a connection line.
 
 This workflow has **seven terminal paths**, each ending with a Notify step:
 
-| Path | What Happened |
-|---|---|
-| 3DS --> Paused --> Notify | The cardholder has been prompted to complete the 3DS challenge. The workflow pauses until they respond. |
-| 3DS --> Requested --> Notify | The 3DS challenge was sent to the provider and is being processed. |
-| 3DS --> Completed --> Condition --> Default --> Notify | The 3DS challenge finished but the cardholder was not authenticated. The transaction is not authorized. |
-| 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Completed --> Notify | The cardholder was authenticated and the authorization completed. |
-| 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Paused --> Notify | The cardholder was authenticated but the authorization is waiting for an external action. |
-| 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Requested --> Notify | The cardholder was authenticated and the authorization was submitted for processing. |
-| 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Updated --> Notify | The cardholder was authenticated and the authorization received a status update. |
+| Path                                                                                     | What Happened                                                                                           |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 3DS --> Paused --> Notify                                                                | The cardholder has been prompted to complete the 3DS challenge. The workflow pauses until they respond. |
+| 3DS --> Requested --> Notify                                                             | The 3DS challenge was sent to the provider and is being processed.                                      |
+| 3DS --> Completed --> Condition --> Default --> Notify                                   | The 3DS challenge finished but the cardholder was not authenticated. The transaction is not authorized. |
+| 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Completed --> Notify | The cardholder was authenticated and the authorization completed.                                       |
+| 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Paused --> Notify    | The cardholder was authenticated but the authorization is waiting for an external action.               |
+| 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Requested --> Notify | The cardholder was authenticated and the authorization was submitted for processing.                    |
+| 3DS --> Completed --> Condition --> Authenticated --> Authorize --> Updated --> Notify   | The cardholder was authenticated and the authorization received a status update.                        |
 
 ## Key Concept: Completed Does Not Mean Authenticated
 
@@ -157,9 +151,9 @@ Always add a **Condition** step after 3DS Completed to verify that the cardholde
 
 - **Regulatory requirement:** In regions with SCA requirements (such as the European Economic Area), 3DS is mandatory for most card payments. There is no tradeoff to make -- authentication is required.
 - **Liability shift:** Even where not required, 3DS shifts fraud liability from the merchant to the card issuer. This can be valuable for high-value transactions.
-- **Conversion impact:** Additional verification steps can lead to cart abandonment. For lower-risk transactions, you may want to skip 3DS. See the [Full Authorization with Fraud and 3DS](workflow-studio-example-full-authorization) example for a risk-based approach.
+- **Conversion impact:** Additional verification steps can lead to cart abandonment. For lower-risk transactions, you may want to skip 3DS. See the [Full Authorization with Fraud and 3DS](./full-authorization) example for a risk-based approach.
 
 ## Next Steps
 
-- Add [Fraud Screening](workflow-studio-example-authorization-with-fraud) before 3DS to filter out high-risk transactions before the cardholder is even prompted.
-- Combine both in the [Full Authorization with Fraud and 3DS](workflow-studio-example-full-authorization) workflow for risk-based routing that only triggers 3DS when the fraud score is elevated.
+- Add [Fraud Screening](./authorization-with-fraud) before 3DS to filter out high-risk transactions before the cardholder is even prompted.
+- Combine both in the [Full Authorization with Fraud and 3DS](./full-authorization) workflow for risk-based routing that only triggers 3DS when the fraud score is elevated.

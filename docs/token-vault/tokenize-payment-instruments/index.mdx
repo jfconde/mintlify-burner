@@ -1,11 +1,12 @@
 ---
 title: Tokenize Cards via SDK
 ---
+
 # Choosing the right tokenization method
 
 Payrails offers multiple ways to tokenize the card information, depending on the PCI DSS scope you are willing to own, the requirements about the level of control you need on your checkout page, and ease of implementation. You can refer to this [guide](/docs/token-vault/getting-started) to read more about how to choose the right integration method.
 
-All of our client-side SDKs as well as our client-side encryption solution leverage our PCI-compliant token vault and enable you to minimize your PCI scope. However, if you want to collect and tokenize card data yourself you can also integrate with Payrails using only our API, which also ensures the maximum level of security with the encrypted objects when passing sensitive data, to read more about how it works can refer to this [guide](tokenize-cards-with-api-only). For more details about implementing our tokenization, and choosing the best option, keep reading the next sections.
+All of our client-side SDKs as well as our client-side encryption solution leverage our PCI-compliant token vault and enable you to minimize your PCI scope. However, if you want to collect and tokenize card data yourself you can also integrate with Payrails using only our API, which also ensures the maximum level of security with the encrypted objects when passing sensitive data, to read more about how it works can refer to this [guide](./tokenize-cards-with-api-only). For more details about implementing our tokenization, and choosing the best option, keep reading the next sections.
 
 # What is tokenization?
 
@@ -13,9 +14,9 @@ Tokenization refers to the process of collecting sensitive payment information a
 
 There are many ways to use our Token Vault, depending on your needs. Our vault can be used as:
 
-* An easy-to-implement solution, that you can use solely for managing sensitive data while you manage all your third-party integrations and business decisions on your platform while using the vault as a **proxy in any inbound or outbound sensitive data flows**.
-* An optimization solution, that you use **as part of payment orchestration, tokenizing securely** while adding new payment flows and integrations to your platform with one single Payrails integration.
-* **Combination** of both, according to what is optimal for you.
+- An easy-to-implement solution, that you can use solely for managing sensitive data while you manage all your third-party integrations and business decisions on your platform while using the vault as a **proxy in any inbound or outbound sensitive data flows**.
+- An optimization solution, that you use **as part of payment orchestration, tokenizing securely** while adding new payment flows and integrations to your platform with one single Payrails integration.
+- **Combination** of both, according to what is optimal for you.
 
 We recommend consulting our solutions team before choosing one of the options so we can help you decide which one best adapts to your use case.
 
@@ -37,27 +38,27 @@ Here's a table comparing your options from a high-level perspective:
 
 ### Secure Fields
 
-Secure Fields provides developers with pre-built form fields to securely collect sensitive data from the client side. These fields are hosted by Payrails and injected into your web page as iFrames. This reduces your PCI compliance scope by not exposing your front-end application to sensitive data. Follow the steps below to collect data securely with Payrails Fields on your web page. Check our [Secure Fields](doc:tokenize-cards-with-secure-fields) guide for more detailed information.
+Secure Fields provides developers with pre-built form fields to securely collect sensitive data from the client side. These fields are hosted by Payrails and injected into your web page as iFrames. This reduces your PCI compliance scope by not exposing your front-end application to sensitive data. Follow the steps below to collect data securely with Payrails Fields on your web page. Check our [Secure Fields](./tokenize-cards-with-secure-fields) guide for more detailed information.
 
 ### Client-Side Encryption
 
-Client-side encryption is used for payment details to be sent directly to Payrails by card details being encrypted on the client side with a public key given by Payrails. The encrypted data is then sent to Payrails and is then tokenized and returned to the client as a Payrails payment instrument. Check our [Client-Side Encryption](doc:tokenize-cards-with-client-side-encryption) guide for more detailed information.
+Client-side encryption is used for payment details to be sent directly to Payrails by card details being encrypted on the client side with a public key given by Payrails. The encrypted data is then sent to Payrails and is then tokenized and returned to the client as a Payrails payment instrument. Check our [Client-Side Encryption](./tokenize-cards-with-client-side-encryption) guide for more detailed information.
 
 ### API-only
 
-If you want full control over collecting card details from your customers and complying with the required level of PCI DSS, you can send card details to us via API. We are following the highest standards in our API in which the card details are encrypted while they travel from your system to Payrails, thus raw card data is not exposed. Check our [API-only](doc:tokenize-cards-with-api-only) guide for more detailed information.
+If you want full control over collecting card details from your customers and complying with the required level of PCI DSS, you can send card details to us via API. We are following the highest standards in our API in which the card details are encrypted while they travel from your system to Payrails, thus raw card data is not exposed. Check our [API-only](./tokenize-cards-with-api-only) guide for more detailed information.
 
 ### Drop-in
 
 Payrails Drop-in is our pre-built UI solution for tokenizing payment methods and accepting payments on your application. Drop-in shows all payment methods as a list, in the same block.
 
-Tokenizing new cards, adding new payment methods, and managing 3D-Secure or APM redirect flows usually don't require more development work than simply integrating our drop-in into your user journey. Check our [Drop-in](doc:drop-in) guide for more detailed information.
+Tokenizing new cards, adding new payment methods, and managing 3D-Secure or APM redirect flows usually don't require more development work than simply integrating our drop-in into your user journey. Check our [Drop-in](/docs/orchestration/checkout-sdks/web-v5-legacy/drop-in) guide for more detailed information.
 
 ### Elements
 
-Payrails Elements are payment UI components you can assemble together to build a payment form, giving better flexibility than Drop-in with the ability to manage each element separately. Check our [Elements](doc:elements) guide for more detailed information.
+Payrails Elements are payment UI components you can assemble together to build a payment form, giving better flexibility than Drop-in with the ability to manage each element separately. Check our [Elements](/docs/orchestration/checkout-sdks/web-v5-legacy/elements) guide for more detailed information.
 
-If you want to learn more about storing other payment methods such as [Apple Pay](https://dash.readme.com/project/payrails/v1.0/docs/apple-pay), [Google Pay](/docs/orchestration/payment-methods/google-pay), and [PayPal](/docs/orchestration/integrations/paypal), you can refer to their guides.
+If you want to learn more about storing other payment methods such as [Apple Pay](/docs/orchestration/payment-methods/apple-pay), [Google Pay](/docs/orchestration/payment-methods/google-pay), and [PayPal](/docs/orchestration/integrations/paypal), you can refer to their guides.
 
 ## Clarification about PCI DSS scope
 
@@ -67,14 +68,12 @@ However, merchants remain responsible for securing their own infrastructure and 
 
 To maintain a secure integration, merchants must:
 
-* Enforce HTTPS across the entire application (TLS 1.2 or higher)
-* Maintain proper patch and update management
-* Implement Content Security Policy (CSP) and Subresource Integrity (SRI)
-* Protect the application against cross-site scripting (XSS) and script injection
-* Prevent supply chain and Magecart-style attacks
-* Load the Payrails SDK only from trusted Payrails domains
-* Apply appropriate security monitoring and due diligence practices
+- Enforce HTTPS across the entire application (TLS 1.2 or higher)
+- Maintain proper patch and update management
+- Implement Content Security Policy (CSP) and Subresource Integrity (SRI)
+- Protect the application against cross-site scripting (XSS) and script injection
+- Prevent supply chain and Magecart-style attacks
+- Load the Payrails SDK only from trusted Payrails domains
+- Apply appropriate security monitoring and due diligence practices
 
 Reducing PCI scope does not remove the need to maintain strong application and infrastructure security controls.
-
-

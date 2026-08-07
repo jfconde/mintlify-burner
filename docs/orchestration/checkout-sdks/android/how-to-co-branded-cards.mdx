@@ -4,11 +4,11 @@ title: How to Let Shoppers Choose a Card Network (Co-Branded Cards)
 
 Some cards carry two networks — a local/domestic scheme (e.g. `mada`, `cartesbancaires`) and an international one (e.g. `visa`, `mastercard`). This guide shows how to let the shopper pick which network the payment routes over and submit that choice. Also known as **co-badged cards** or **card brand choice**.
 
-> Background: [Co-Branded Cards](/docs/sdk-concepts#co-branded-cards).
+> Background: [Co-Branded Cards](./sdk-concepts#co-branded-cards).
 
 ## Prerequisites
 
-- An active Payrails session (see [Quick Start](/docs/android-sdk-1)) rendering a `CardForm` + `CardPaymentButton`.
+- An active Payrails session (see [Quick Start](./index)) rendering a `CardForm` + `CardPaymentButton`.
 - Co-branded handling **enabled for the session**: the init response must include the `binLookup` link **and** `featureConfig.coBrandedCardsRollout` greater than 0 (configured by the Payrails backend — contact Payrails to enable it for your merchant account).
 - A genuinely co-branded test card (e.g. a mada/Mastercard dual-scheme card).
 
@@ -52,7 +52,7 @@ val config = CardFormConfig(
 )
 ```
 
-See the [Card Brand Selector styling reference](/docs/styling-guide#card-brand-selector) for all tokens.
+See the [Card Brand Selector styling reference](./styling-guide#card-brand-selector) for all tokens.
 
 ### 4. Pay
 
@@ -69,10 +69,10 @@ if (result?.localNetwork != null) {
 }
 ```
 
-See [`Session.binLookup`](/docs/sdk-api-reference#co-branded-cards) for the full contract.
+See [`Session.binLookup`](./api-reference#co-branded-cards) for the full contract.
 
 ## Related
 
-- [Co-Branded Cards (concept)](/docs/sdk-concepts#co-branded-cards)
-- [API Reference — Co-Branded Cards](/docs/sdk-api-reference#co-branded-cards)
-- [Styling Guide — Card Brand Selector](/docs/styling-guide#card-brand-selector)
+- [Co-Branded Cards (concept)](./sdk-concepts#co-branded-cards)
+- [API Reference — Co-Branded Cards](./api-reference#co-branded-cards)
+- [Styling Guide — Card Brand Selector](./styling-guide#card-brand-selector)

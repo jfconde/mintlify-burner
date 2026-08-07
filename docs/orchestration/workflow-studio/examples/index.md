@@ -14,12 +14,12 @@ All examples follow these best practices:
 
 ## Example Workflows
 
-| Example | Description | Key Steps |
-|---|---|---|
-| [Simple Authorization](workflow-studio-example-simple-authorization) | The most basic authorization workflow. A single Authorize step with Notify on every outcome. | Start Authorize, Authorize, Notify |
-| [Authorization with Fraud Screening](workflow-studio-example-authorization-with-fraud) | Adds a Fraud Check before authorization to screen transactions for risk. Uses a Condition to evaluate the fraud result and reject high-risk transactions. | Start Authorize, Fraud Check, Condition, Authorize, Notify |
-| [Authorization with 3D Secure](workflow-studio-example-authorization-with-3ds) | Adds 3D Secure cardholder authentication before authorization for PSD2/SCA compliance and liability shift. | Start Authorize, 3DS, Condition, Authorize, Notify |
-| [Full Authorization with Fraud and 3DS](workflow-studio-example-full-authorization) | The most comprehensive authorization flow. Combines fraud screening with risk-based 3DS routing to balance security and customer experience. | Start Authorize, Fraud Check, Condition, 3DS, Authorize, Notify |
+| Example                                                          | Description                                                                                                                                               | Key Steps                                                       |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| [Simple Authorization](./simple-authorization)                   | The most basic authorization workflow. A single Authorize step with Notify on every outcome.                                                              | Start Authorize, Authorize, Notify                              |
+| [Authorization with Fraud Screening](./authorization-with-fraud) | Adds a Fraud Check before authorization to screen transactions for risk. Uses a Condition to evaluate the fraud result and reject high-risk transactions. | Start Authorize, Fraud Check, Condition, Authorize, Notify      |
+| [Authorization with 3D Secure](./authorization-with-3ds)         | Adds 3D Secure cardholder authentication before authorization for PSD2/SCA compliance and liability shift.                                                | Start Authorize, 3DS, Condition, Authorize, Notify              |
+| [Full Authorization with Fraud and 3DS](./full-authorization)    | The most comprehensive authorization flow. Combines fraud screening with risk-based 3DS routing to balance security and customer experience.              | Start Authorize, Fraud Check, Condition, 3DS, Authorize, Notify |
 
 ## How to Use These Examples
 

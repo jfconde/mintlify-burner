@@ -4,24 +4,24 @@ title: How to Run a Payment Without an SDK Button (Headless)
 
 Drive checkout from your **own** UI — a custom layout, a `ViewModel`-driven flow, your own
 "Pay" button — instead of rendering a prebuilt SDK button component. The single public
-payment trigger is [`PayrailsPaymentLauncher`](/docs/sdk-api-reference#payrailspaymentlauncher):
+payment trigger is [`PayrailsPaymentLauncher`](./api-reference#payrailspaymentlauncher):
 you draw the controls, the SDK owns the post-tap work (Google Pay sheet, 3DS / PayPal /
 redirect Custom Tab, polling).
 
 > There is no public `Session.authorize(...)`. Payment execution is launcher-only, so a
 > single `authorize(...)` call handles **both** frictionless and 3DS outcomes — you never
 > branch on whether a charge will need a step-up. See
-> [Custom UI: the launcher and the internal client](/docs/sdk-concepts#custom-ui-the-launcher-and-the-internal-client).
+> [Custom UI: the launcher and the internal client](./sdk-concepts#custom-ui-the-launcher-and-the-internal-client).
 
 ## Prerequisites
 
-- An active Payrails session (see [Quick Start](/docs/android-sdk-1)) — hold the `Session`
+- An active Payrails session (see [Quick Start](./index)) — hold the `Session`
   returned by `Payrails.createSession(...)`.
 - A `ComponentActivity` host. The launcher is lifecycle-bound; it cannot live in a bare
   `ViewModel` (it registers a Google Pay Activity Result contract), but your `ViewModel` can
   drive *when* it fires.
 - For stored-instrument payments: at least one saved instrument
-  (see [How to Tokenize a Card](/docs/how-to-tokenize-card)).
+  (see [How to Tokenize a Card](./how-to-tokenize-card)).
 
 ## Steps
 
@@ -73,7 +73,7 @@ launcher.authorize(PaymentMethod.genericRedirect, paymentMethodCode = "klarna")
 ### 5. Handle the result
 
 Every `authorize(...)` resolves to exactly one
-[`ActionResult`](/docs/sdk-api-reference#actionresult), delivered to the callback from step 1:
+[`ActionResult`](./api-reference#actionresult), delivered to the callback from step 1:
 
 ```kotlin
 when (result) {
@@ -130,13 +130,13 @@ superseded it). Obtain a fresh `Session` from `Payrails.createSession()`.
 
 **Problem**: `ActionResult.Failed` with `code == UNKNOWN_ERROR` (rawError `unsupportedPayment`)
 **Solution**: The payment method is not configured on the session. Call
-[`session.getPaymentMethodConfig()`](/docs/sdk-api-reference#sessiongetpaymentmethodconfigfilter)
+[`session.getPaymentMethodConfig()`](./api-reference#sessiongetpaymentmethodconfigfilter)
 to confirm what is available before triggering.
 
 ## See also
 
-- [How to Build a Custom Pay Button](/docs/how-to-custom-pay-button) — the launcher with a method picker + single button
-- [`PayrailsPaymentLauncher` API Reference](/docs/sdk-api-reference#payrailspaymentlauncher) — all factories, `authorize(...)` overloads, and parameters
-- [`ActionResult` API Reference](/docs/sdk-api-reference#actionresult) — every terminal payment outcome
-- [How to Tokenize a Card](/docs/how-to-tokenize-card) — save a card, then charge it from your own UI
-- [Custom UI: the launcher and the internal client](/docs/sdk-concepts#custom-ui-the-launcher-and-the-internal-client) — why payment execution is launcher-only
+- [How to Build a Custom Pay Button](./how-to-custom-pay-button) — the launcher with a method picker + single button
+- [`PayrailsPaymentLauncher` API Reference](./api-reference#payrailspaymentlauncher) — all factories, `authorize(...)` overloads, and parameters
+- [`ActionResult` API Reference](./api-reference#actionresult) — every terminal payment outcome
+- [How to Tokenize a Card](./how-to-tokenize-card) — save a card, then charge it from your own UI
+- [Custom UI: the launcher and the internal client](./sdk-concepts#custom-ui-the-launcher-and-the-internal-client) — why payment execution is launcher-only

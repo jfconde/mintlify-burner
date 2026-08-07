@@ -156,4 +156,4 @@ After your trigger fires, the data from the incoming request or event becomes av
 * Define conditions that branch the workflow based on request properties.
 * Include relevant details in Notify steps sent back to your integration.
 
-For details on the actions you can add after a trigger, see the [Actions](workflow-studio-actions) section.
+For details on the actions you can add after a trigger, see the [Actions](./actions) section.

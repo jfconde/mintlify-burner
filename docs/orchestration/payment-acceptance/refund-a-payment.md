@@ -5,7 +5,7 @@ With Payrails, you can refund payments to customers either in part or in full, v
 # Requirements
 
 - The payment you want to refund must have been captured or have a capture in progress
-- Have [notifications](doc:receive-notifications) set up if you wish to receive them for refund results
+- Have [notifications](/docs/orchestration/payment-acceptance/receive-notifications) set up if you wish to receive them for refund results
 
 # Refund a payment via API
 
@@ -47,7 +47,7 @@ For the complete response schema, refer to the [Refund a payment](https://payrai
 
 ## 4. Wait for refund notification
 
-Successfully requested payment refunds will be processed asynchronously. If you have [notifications](doc:receive-notifications) set up, you’ll receive a notification once the processing is complete, informing you whether the refund was a success or failure.
+Successfully requested payment refunds will be processed asynchronously. If you have [notifications](/docs/orchestration/payment-acceptance/receive-notifications) set up, you’ll receive a notification once the processing is complete, informing you whether the refund was a success or failure.
 
 Example notification for a successful refund:
 
@@ -178,4 +178,4 @@ You can review the status of the payment by returning to its Payment Details pag
 
 ## 5. Receive refund notification
 
-If you have [notifications](doc:receive-notifications) set up, you’ll also receive a notification once your refund has been processed, informing you whether it was a success or failure.
+If you have [notifications](/docs/orchestration/payment-acceptance/receive-notifications) set up, you’ll also receive a notification once your refund has been processed, informing you whether it was a success or failure.

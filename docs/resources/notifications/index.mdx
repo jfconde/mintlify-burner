@@ -1,0 +1,453 @@
+---
+title: Notifications
+description: This page describes how our Notifications work and what they include.
+hidden: false
+---
+
+Workflow actions often call external providers. Those calls can take time or fail, so Payrails sends a notification to your server when each action finishes.
+
+Configure your server for [receiving notifications](/docs/orchestration/payment-acceptance/receive-notifications) before you continue.
+
+Every notification uses the same envelope:
+
+- `event`: Type of event that happened.
+- `time`: Date and time of the event.
+- `details`: Event-specific details.
+- `workspaceId`: Workspace identifier.
+- `eventTrigger`: Reason the event was triggered. One of `api`, `action`, or `external`.
+
+# Event types
+
+The following events trigger notifications during a workflow.
+
+| Event type                         | Description                                                                                                      | Example                                                                                             |
+| :--------------------------------- | :--------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- |
+| `executionCreated`                 | A new execution started for a workflow, such as a payment for an order.                                          | An execution for order `3573894940903` started.                                                     |
+| `executionActionRequested`         | A specific action, such as authorization, was requested for an execution.                                        | A request authorized a payment for €12.50 with a credit card.                                       |
+| `ruleEngineExecuted`               | The rule engine evaluated rules for a transaction to determine provider or payment priorities.                   | A rule evaluated the customer's country (`DE`) and operating system (`ios`) for provider selection. |
+| `executionActionCompleted`         | A specific action in the workflow completed successfully.                                                        | A card authorization processed successfully.                                                        |
+| `executionActionUpdated`           | A previously requested action changed status or result, such as an authorization moving from pending to success. | An authorization moved to a successful state.                                                       |
+| `networkOffersEnrollmentCompleted` | A payment instrument enrolled successfully in a network offers program.                                          | A Visa card enrolled in a rewards program during a transaction.                                     |
+
+# Structure of the `details` object
+
+The `details` object has a small set of top-level envelope fields. Most payment-specific fields — `operationType`, `operationResult`, `authorizationCode`, `acquirerReference`, `providerReference`, `paymentInstrument`, `threeDS`, and others — sit inside each entry of the `paymentComposition` array.
+
+<Callout icon="📘" theme="info">
+  The `actionId` in each notification matches the one returned in the response
+  to the action you performed on the execution.
+</Callout>
+
+## Top-level `details` fields
+
+| Field                | Type    | Description                                                                                                                                                                     | Example                                                                |
+| :------------------- | :------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------- |
+| `action`             | Enum    | Type of action that was completed.                                                                                                                                              | One of: `authorize`, `confirm`, `capture`, `cancel`, `refund`.         |
+| `actionId`           | UUID    | Identifier of the action, also returned when the action started.                                                                                                                | `"b0c28520-eca0-4be6-8771-99c43144bdaf"`                               |
+| `actionMeta`         | Object  | Meta fields for this specific action. Different from `execution.meta`, which is set when the execution is created.                                                              | `"actionMeta": { "customer": { "deliveryAddress": "Street A ****" } }` |
+| `success`            | Boolean | Whether the full action succeeded.                                                                                                                                              | `true`                                                                 |
+| `errors`             | Array   | Errors for the action. Populated when `success` is `false`. See [errors](#errors-details).                                                                                      | `[]`                                                                   |
+| `execution`          | Object  | Summary of the execution. See [execution details](#execution-details).                                                                                                          | \*                                                                     |
+| `amount`             | Amount  | Total amount of the execution. With multiple payments, this is the sum. Each `paymentComposition` entry carries its own per-payment `amount`.                                   | `{ "currency": "EUR", "value": "10" }`                                 |
+| `paymentComposition` | Array   | Payment attempts in the execution. Present on payment workflows. See [paymentComposition details](#paymentcomposition-details).                                                 | \*                                                                     |
+| `payoutComposition`  | Array   | Payout attempts in the execution. Present on payout workflows in place of `paymentComposition`. Same structure as `paymentComposition`, with the equivalent payout-side fields. | \*                                                                     |
+
+## `execution` details
+
+| Field               | Type   | Description                                                                                       | Example                                  |
+| :------------------ | :----- | :------------------------------------------------------------------------------------------------ | :--------------------------------------- |
+| `id`                | UUID   | Identifier of the execution. Use this ID with the [Get an execution by ID](ref:getexecution) API. | `"b0c28520-eca0-4be6-8771-99c43144bdaf"` |
+| `workflowCode`      | String | Code of the workflow that ran.                                                                    | `"payment-acceptance"`                   |
+| `merchantReference` | String | Merchant-specific identifier for the execution.                                                   | `"order-12345"`                          |
+| `holderReference`   | String | Merchant-specific identifier for the holder that owns the execution.                              | `"user-12345"`                           |
+| `holderId`          | UUID   | Identifier of the holder. Use this ID with the [Get a holder by ID](ref:getholder) API.           | `"b0c28520-eca0-4be6-8771-99c43144bdaf"` |
+| `meta`              | Object | Meta fields supplied with the execution as context.                                               | `{}`                                     |
+
+The `execution.providerReference` field is deprecated. Use `paymentComposition[i].providerReference` instead.
+
+## `paymentComposition` details
+
+Each entry in `paymentComposition` represents one payment attempt within the execution.
+
+| Field                              | Type    | Description                                                                                                                                                                                                         | Example                                  |
+| :--------------------------------- | :------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :--------------------------------------- |
+| `success`                          | Boolean | Whether the operation succeeded.                                                                                                                                                                                    | `true`                                   |
+| `errors`                           | Array   | Errors for the operation. Populated when `success` is `false`. See [errors](#errors-details).                                                                                                                       | `[]`                                     |
+| `operationType`                    | Enum    | Type of operation. Usually matches the action type. See [operation types](/docs/resources/payments/operation-types).                                                                                                | `"Authorize"`                            |
+| `operationResult`                  | Enum    | Payrails-mapped result for the operation. See [result codes](/docs/resources/payments/operation-results).                                                                                                           | `"Success"`                              |
+| `operationResultProviderDetails`   | Object  | Raw provider fields used to derive `operationResult`. Populated on failed operations. See [provider-specific details](#provider-specific-details).                                                                  | `{}`                                     |
+| `integrationType`                  | Enum    | Integration used to communicate with the provider.                                                                                                                                                                  | `"api"`                                  |
+| `paymentMethodCode`                | String  | Payment method used.                                                                                                                                                                                                | `"card"`                                 |
+| `captureMode`                      | Enum    | Capture mode for the payment. One of `Instant`, `Delayed`.                                                                                                                                                          | `"Instant"`                              |
+| `paymentInstrumentId`              | UUID    | Identifier of the stored instrument. Returned when `storeInstrument` is `true`. Full data in `paymentInstrument`.                                                                                                   | `"a4a7ed2d-bdcc-46a3-a9f2-701b5d7924b0"` |
+| `paymentInstrument`                | Object  | The instrument used for the operation. See [paymentInstrument structure](#paymentinstrument-structure).                                                                                                             | `{}`                                     |
+| `paymentInstrumentToken`           | Object  | The token used for this operation. One entry from `paymentInstrument.tokens[]`. See [tokens structure](#tokens-structure).                                                                                          | `{}`                                     |
+| `paymentInstrumentTokenId`         | UUID    | Identifier of the token used for this operation.                                                                                                                                                                    | `"a4a7ed2d-bdcc-46a3-a9f2-701b5d7924b0"` |
+| `storeInstrument`                  | Boolean | Whether the operation requested storing the instrument for future use.                                                                                                                                              | `true`                                   |
+| `paymentId`                        | UUID    | Identifier of the payment attempt in Payrails. Use with the [Get payment by ID](ref:getpayment) API.                                                                                                                | `"b0c28520-eca0-4be6-8771-99c43144bdaf"` |
+| `amount`                           | Amount  | Amount for this payment attempt. Differs from `details.amount` when an execution has multiple payments.                                                                                                             | `{ "currency": "EUR", "value": "10" }`   |
+| `providerId`                       | UUID    | Identifier of the provider used.                                                                                                                                                                                    | `"b0c28520-eca0-4be6-8771-99c43144bdaf"` |
+| `providerConfigId`                 | UUID    | Identifier of the provider configuration used. Use with the [Provider config by ID](ref:providerconfiggetbyid) API.                                                                                                 | `"b0c28520-eca0-4be6-8771-99c43144bdaf"` |
+| `provider`                         | Object  | Summary of the provider used. For full provider details, use the [Get provider by ID](ref:getprovider) API.                                                                                                         | `{}`                                     |
+| `providerConfig`                   | Object  | Provider configuration for this operation. Contains an `additionalData` object with the custom key-value data set on the provider configuration.                                                                    | `{ "additionalData": { ... } }`          |
+| `providerReference`                | String  | Identifier of the top-level payment in the provider. For Stripe, the `pi_*` value; for Adyen, the `pspReference`.                                                                                                   | `"pi_3QtlWTG5MqUZQUfk0udJAwfX"`          |
+| `operationProviderReference`       | String  | Identifier of this specific operation in the provider. Equals `providerReference` at authorize for most providers. Diverges on operations that get their own reference, such as a Stripe refund (`re_*`).           | `"operation-12345"`                      |
+| `providerResponseAdditionalFields` | Object  | Provider-specific response data requested for your integration. Empty by default. To add fields, contact your Payrails representative.                                                                              | `{}`                                     |
+| `authorizationCode`                | String  | Acquirer authorization code, when the payment was authorized. See the [acquirer field availability](#acquirer-field-availability) note.                                                                             | `"50"`                                   |
+| `acquirerReference`                | String  | Acquirer Reference Number (ARN) assigned to the payment. See the [acquirer field availability](#acquirer-field-availability) note.                                                                                  | `"1233524535345"`                        |
+| `retrievalReference`               | String  | Retrieval Reference Number (RRN) assigned to the payment. See the [acquirer field availability](#acquirer-field-availability) note.                                                                                 | `"8657867867867"`                        |
+| `acquirerMID`                      | String  | Merchant Identifier (MID) on the acquirer that processed the payment. See the [acquirer field availability](#acquirer-field-availability) note.                                                                     | `"245243"`                               |
+| `acquirerAccountCode`              | String  | Account code on the acquirer that processed the payment. See the [acquirer field availability](#acquirer-field-availability) note.                                                                                  | `"MI21"`                                 |
+| `acquirerCountryCode`              | String  | Country code on the acquirer that processed the payment. See the [acquirer field availability](#acquirer-field-availability) note.                                                                                  | `"NL"`                                   |
+| `accountFundingTransaction`        | Boolean | Whether the payment was an Account Funding Transaction, such as loading a prepaid card, topping up a wallet, or person-to-person funding. See the [acquirer field availability](#acquirer-field-availability) note. | `false`                                  |
+| `threeDS`                          | Object  | 3DS authentication parameters. Populated only when 3DS ran. Absent when `threeDSMode` is `Skip`. See [3D Secure](/docs/orchestration/payment-acceptance/3d-secure.md).                                              | `{}`                                     |
+
+### Acquirer field availability
+
+The acquirer fields `acquirerReference`, `retrievalReference`, `acquirerMID`, `acquirerAccountCode`, `acquirerCountryCode`, `accountFundingTransaction`, and `authorizationCode` are populated only when the provider returns them. Coverage varies by provider.
+
+If a field your integration needs is missing and the provider does return it, contact your Payrails representative.
+
+### `paymentInstrument` structure
+
+The `paymentInstrument` object describes the instrument used for the operation.
+
+| Field                         | Type    | Description                                                                                                                                                      |
+| :---------------------------- | :------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                          | UUID    | Identifier of the instrument in Payrails.                                                                                                                        |
+| `holderId`                    | UUID    | Identifier of the holder that owns the instrument.                                                                                                               |
+| `paymentMethod`               | String  | Payment method of the instrument, such as `card` or `applePay`.                                                                                                  |
+| `status`                      | Enum    | Current status of the instrument, such as `created`, `enabled`, or `disabled`.                                                                                   |
+| `displayName`                 | String  | Human-readable name for the instrument, such as `Visa **** 1111`.                                                                                                |
+| `description`                 | String  | Description of the instrument.                                                                                                                                   |
+| `fingerprint`                 | UUID    | System-wide unique identifier of the instrument. Two holders that store the same card share a fingerprint. Use for analytics or fraud signals, not for payments. |
+| `default`                     | Boolean | Whether this instrument is the default for the holder.                                                                                                           |
+| `futureUsage`                 | String  | Intended future use, such as `CardOnFile`.                                                                                                                       |
+| `merchantReference`           | String  | Merchant-supplied reference for the instrument, when provided at creation.                                                                                       |
+| `networkTransactionReference` | String  | Network Transaction Reference (NTR) used for MIT scenarios. Populated when the provider returns it.                                                              |
+| `createdAt`                   | String  | When the instrument was created.                                                                                                                                 |
+| `updatedAt`                   | String  | When the instrument was last updated.                                                                                                                            |
+| `data`                        | Object  | Method-specific data. Structure varies by `paymentMethod`. For cards, see the table below.                                                                       |
+| `tokens`                      | Array   | Tokens associated with the instrument. See [tokens structure](#tokens-structure).                                                                                |
+| `meta`                        | Object  | Additional metadata for the instrument.                                                                                                                          |
+
+For cards, `paymentInstrument.data` contains:
+
+| Field                | Type   | Description                                                                                                     |
+| :------------------- | :----- | :-------------------------------------------------------------------------------------------------------------- |
+| `bin`                | String | Bank Identification Number (first digits of the card).                                                          |
+| `suffix`             | String | Last four digits of the card.                                                                                   |
+| `network`            | String | Card network, such as `visa` or `mastercard`.                                                                   |
+| `networkDisplayName` | String | Display name of the network, such as `Mastercard`.                                                              |
+| `expiryMonth`        | String | Card expiry month.                                                                                              |
+| `expiryYear`         | String | Card expiry year.                                                                                               |
+| `holderName`         | String | Cardholder name. Present only when supplied at instrument creation, either via the SDK or in `createExecution`. |
+| `email`              | String | Cardholder email. Present only when supplied at instrument creation.                                            |
+| `billingAddress`     | Object | Billing address. Present only when supplied at instrument creation.                                             |
+| `binLookup`          | Object | Issuer information derived from the BIN.                                                                        |
+
+The `binLookup` object contains:
+
+| Field            | Type    | Description                                                                              |
+| :--------------- | :------ | :--------------------------------------------------------------------------------------- |
+| `bin`            | String  | The BIN that was looked up.                                                              |
+| `network`        | String  | Card network identified by the BIN.                                                      |
+| `localNetwork`   | String  | Local card network where applicable, such as `cartesBancaires`, `mada`, or `bancontact`. |
+| `issuer`         | String  | Name of the issuing bank or institution.                                                 |
+| `issuerCountry`  | Object  | Issuing-country code and name.                                                           |
+| `type`           | String  | Card type, such as `CREDIT` or `DEBIT`.                                                  |
+| `typeDetails`    | String  | Further detail on card type, such as `personal` or `commercial`.                         |
+| `segment`        | String  | Card segment, such as `gold` or `business`.                                              |
+| `isNetworkToken` | Boolean | Whether the card credential is a network token rather than a PAN.                        |
+
+### `tokens` structure
+
+Each entry in `paymentInstrument.tokens[]` describes a token associated with the instrument.
+
+| Field       | Type   | Description                                                                                                                                                                |
+| :---------- | :----- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `type`      | Enum   | Token type. Common values: `psp` (provider-side token, such as Stripe `pm_*`), `vault` (Payrails vault token), `network` (network token).                                  |
+| `reference` | String | Token identifier in the corresponding system.                                                                                                                              |
+| `meta`      | Object | Provider-specific context stored with the token. For provider tokens, typically includes `holderReference` (the provider-side customer reference, such as Stripe `cus_*`). |
+
+# Provider-specific details
+
+To process a requested action, Payrails calls the external provider in its expected format and maps the response to a unified result.
+
+Payrails extracts and maps the most important fields to unified fields and result codes. Two fields preserve the provider context:
+
+- `operationProviderReference` — identifier of the operation in the provider's system.
+- `operationResultProviderDetails` — provider fields used to derive `operationResult`. Populated on failures.
+
+The following extract shows how Payrails reached the `InsufficientBalance` result based on three fields from Hyperpay's response. The `message` field contains the provider's human-readable description of the decline reason.
+
+```json Payrails
+{
+  "operationResult": "InsufficientBalance",
+  "operationResultProviderDetails": {
+    "message": "transaction declined (amount exceeds credit)",
+    "additionalData": {
+      "result.code": "800.100.155",
+      "resultDetails.ExtendedDescription": "No sufficient funds",
+      "resultDetails.response.acquirerMessage": ""
+    }
+  }
+}
+```
+
+The keys in `additionalData` are [JSON Paths](https://jsonpath.com/) to fields in the provider response. Hyperpay's response looked like this:
+
+```json Hyperpay
+{
+  "result": {
+    "code": "800.100.155",
+    "description": "transaction declined (amount exceeds credit)"
+  },
+  "resultDetails": {
+    "ExtendedDescription": "No sufficient funds",
+    "clearingInstituteName": "MADA via Postilion",
+    "ConnectorTxID1": "90002550",
+    "ConnectorTxID3": "|51|1008|929292||81374134||",
+    "ConnectorTxID2": "299630|1231231232|123123123",
+    "AcquirerResponse": "51"
+  }
+}
+```
+
+To include more provider-specific fields in your notifications, contact your Payrails representative to add them to `providerResponseAdditionalFields` inside each `paymentComposition` entry.
+
+For the full raw request and response sent to a provider, use the [Get Payment Operation Logs](ref:getpaymentoperationlogs) endpoint.
+
+# `errors` details
+
+Notifications describe errors at two levels:
+
+- The top-level `errors` array describes the overall action result.
+- The `errors` array inside each `paymentComposition` entry describes the errors for that specific payment attempt. This separation matters most for workflows that generate multiple payments per execution.
+
+For the structure of each error item, see [error structure](/docs/resources/error-codes#error-structure).
+
+# Examples
+
+## Success
+
+```json Success
+{
+  "action": "authorize",
+  "actionId": "9a72c5a3-8894-435f-aea6-8b305a4dc29f",
+  "actionMeta": {
+    "customer": {
+      "deliveryAddress": "Street A ******"
+    }
+  },
+  "amount": {
+    "currency": "EUR",
+    "value": "24.00"
+  },
+  "execution": {
+    "holderReference": "customer123",
+    "holderId": "9d113e2a-35a0-40e1-828b-35a18ac35b41",
+    "id": "f8c36786-008d-4352-a0cf-b799955dbfc2",
+    "merchantReference": "order_3573894940903",
+    "meta": {
+      "order": {
+        "reference": "order_3573894940903"
+      },
+      "customer": {
+        "reference": "1231905323475",
+        "country": {
+          "code": "DE"
+        }
+      },
+      "clientContext": {
+        "ipAddress": "217.110.239.132",
+        "osType": "ios"
+      }
+    },
+    "workflowCode": "payment-acceptance"
+  },
+  "paymentComposition": [
+    {
+      "operationType": "Authorize",
+      "amount": {
+        "currency": "EUR",
+        "value": "24.00"
+      },
+      "integrationType": "api",
+      "operationResult": "Success",
+      "operationProviderReference": "pi_3QtlWTG5MqUZQUfk0udJAwfX",
+      "providerId": "5eb08624-ecce-4cbc-9a8a-61d484172815",
+      "providerConfigId": "1e308624-e5ce-4cvc-9a8a-61d482172817",
+      "providerReference": "pi_3QtlWTG5MqUZQUfk0udJAwfX",
+      "paymentId": "c9e1a8ea-a0de-42bd-bcfd-46d3f437b5fe",
+      "paymentInstrumentId": "b8fe6271-5d71-4d28-b8e8-89e64acc0c49",
+      "storeInstrument": true,
+      "captureMode": "Instant",
+      "paymentMethodCode": "card",
+      "accountFundingTransaction": false,
+      "acquirerMID": "245243",
+      "acquirerReference": "1233524535345",
+      "retrievalReference": "8657867867867",
+      "authorizationCode": "50",
+      "acquirerAccountCode": "MI21",
+      "acquirerCountryCode": "NL",
+      "success": true,
+      "provider": {
+        "id": "5eb08624-ecce-4cbc-9a8a-61d484172815",
+        "name": "checkout",
+        "displayName": "Checkout.com",
+        "type": "Payment",
+        "status": "active",
+        "createdAt": "2021-01-05T10:20:00.000Z",
+        "updatedAt": "2022-06-14T11:50:00.000Z"
+      },
+      "threeDS": {
+        "authenticationValue": "AAABAVIREQAAAAAAAAAAAAAAAAA=",
+        "challenged": true,
+        "dsTransId": "5ed5d1d0-982f-45f4-97a1-68651ac429d0",
+        "eci": "05",
+        "enrolled": "Y",
+        "exemptionApplied": "none",
+        "exemptionIndicator": "none",
+        "transStatus": "Y",
+        "version": "2.2.0"
+      },
+      "paymentInstrument": {
+        "id": "b8fe6271-5d71-4d28-b8e8-89e64acc0c49",
+        "holderId": "788c7c09-a490-4603-915a-e2a957a6cca1",
+        "createdAt": "2022-04-22T17:53:36.814Z",
+        "updatedAt": "2022-04-22T17:53:36.814Z",
+        "paymentMethod": "card",
+        "displayName": "Visa **** 1111",
+        "description": "Personal card.",
+        "fingerprint": "739abff0-406a-4d32-8cfb-701e12be5848",
+        "status": "created",
+        "futureUsage": "CardOnFile",
+        "networkTransactionReference": "987654321234567",
+        "data": {
+          "network": "visa",
+          "networkDisplayName": "Visa",
+          "bin": "411111",
+          "suffix": "1111",
+          "expiryMonth": "10",
+          "expiryYear": "2026",
+          "holderName": "John Doe",
+          "binLookup": {
+            "bin": "411111",
+            "network": "visa",
+            "issuer": "EXAMPLE BANK N.A.",
+            "type": "CREDIT",
+            "typeDetails": "personal",
+            "issuerCountry": {
+              "code": "US",
+              "iso3": "USA",
+              "name": "UNITED STATES OF AMERICA"
+            }
+          }
+        },
+        "meta": {
+          "communityCode": "GAP",
+          "userKey": "9890124569"
+        },
+        "tokens": [
+          {
+            "type": "psp",
+            "reference": "provider-token",
+            "meta": {
+              "holderReference": "provider-customer-reference"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "success": true
+}
+```
+
+## Failure
+
+```json Failure
+{
+  "action": "authorize",
+  "actionId": "d31d96a5-979b-4f0b-bc31-a20e820e1816",
+  "amount": {
+    "currency": "EUR",
+    "value": "24.00"
+  },
+  "errors": [
+    {
+      "id": "a24bc325-3929-4d9d-9c08-b3aa532685b7",
+      "code": "workflow.action.failed",
+      "detail": "The execution of the requested workflow action failed",
+      "docUrl": "https://docs.payrails.com/docs/error-codes#workflow.action.failed",
+      "reason": {
+        "category": "Instrument",
+        "result": "BlockedInstrument",
+        "source": "Customer",
+        "detail": "LostInstrument"
+      }
+    }
+  ],
+  "execution": {
+    "holderReference": "customer123",
+    "holderId": "9d113e2a-35a0-40e1-828b-35a18ac35b41",
+    "id": "f8c36786-008d-4352-a0cf-b799955dbfc2",
+    "merchantReference": "order_3573894940903",
+    "meta": {
+      "order": { "reference": "order_3573894940903" },
+      "customer": { "reference": "1231905323475", "country": { "code": "DE" } },
+      "clientContext": { "ipAddress": "217.110.239.132", "osType": "ios" }
+    },
+    "workflowCode": "payment-acceptance"
+  },
+  "paymentComposition": [
+    {
+      "errors": [
+        {
+          "id": "a24bc325-3929-4d9d-9c08-b3aa532685b7",
+          "code": "workflow.action.failed",
+          "detail": "The execution of the requested workflow action failed",
+          "docUrl": "https://docs.payrails.com/docs/error-codes#workflow.action.failed",
+          "reason": {
+            "category": "Instrument",
+            "result": "BlockedInstrument",
+            "source": "Customer",
+            "detail": "LostInstrument"
+          }
+        }
+      ],
+      "operationResult": "BlockedInstrument",
+      "operationResultDetail": "LostInstrument",
+      "operationResultProviderDetails": {
+        "additionalData": {
+          "result.code": "800.100.999",
+          "resultDetails.extendedDescription": "Lost instrument"
+        },
+        "message": "the instrument is marked as lost"
+      },
+      "operationType": "Authorize",
+      "success": false,
+      "amount": { "currency": "EUR", "value": "24.00" },
+      "integrationType": "api",
+      "operationProviderReference": "provider-reference-example",
+      "providerId": "5eb08624-ecce-4cbc-9a8a-61d484172815",
+      "providerConfigId": "1e308624-e5ce-4cvc-9a8a-61d482172817",
+      "paymentId": "c9e1a8ea-a0de-42bd-bcfd-46d3f437b5fe",
+      "paymentInstrumentId": "a4a7ed2d-bdcc-46a3-a9f2-701b5d7924b0",
+      "storeInstrument": true,
+      "paymentMethodCode": "card",
+      "paymentInstrument": {
+        "tokens": [
+          {
+            "type": "psp",
+            "reference": "provider-token",
+            "meta": { "holderReference": "provider-customer-reference" }
+          }
+        ]
+      }
+    }
+  ],
+  "success": false
+}
+```

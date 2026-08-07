@@ -103,4 +103,4 @@ Use Workflow Studio when you need to:
 
 ## Next Steps
 
-Ready to build your first workflow? Continue to the [Quick Start Guide](workflow-studio-quick-start) to walk through creating a simple authorization workflow step by step.
+Ready to build your first workflow? Continue to the [Quick Start Guide](./quick-start.md) to walk through creating a simple authorization workflow step by step.

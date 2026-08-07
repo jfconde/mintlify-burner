@@ -1003,4 +1003,4 @@ class CheckoutViewController: UIViewController {
 
 ---
 
-**Need help?** Check the [SDK API Reference](sdk-api-reference) or the [Troubleshooting Guide](troubleshooting) for common issues.
+**Need help?** Check the [SDK API Reference](./sdk-api-reference) or the [Troubleshooting Guide](./troubleshooting) for common issues.

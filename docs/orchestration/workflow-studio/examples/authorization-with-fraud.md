@@ -153,6 +153,6 @@ Always add a **Condition** step after Fraud Check Completed to check the actual 
 
 ## Next Steps
 
-- Add [3D Secure](workflow-studio-example-authorization-with-3ds) to the authorized path for cardholder authentication.
-- Combine fraud screening and 3DS in the [Full Authorization with Fraud and 3DS](workflow-studio-example-full-authorization) workflow for risk-based routing.
+- Add [3D Secure](./authorization-with-3ds) to the authorized path for cardholder authentication.
+- Combine fraud screening and 3DS in the [Full Authorization with Fraud and 3DS](./full-authorization) workflow for risk-based routing.
 - Add a **Fraud Update** step after the Authorize Completed outcome to feed the authorization result back to the fraud provider, improving future risk assessments.

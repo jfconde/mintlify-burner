@@ -10,15 +10,15 @@ PayJustNow is an alternative payment method (BNPL) in South Africa that offers a
 Before you start accepting PayJustNow payments with Payrails, there are a few requirements you must meet:
 
 1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
-2. Configure a new [integration account](/docs/orchestration/integrations/index) for PayJustNow via [PayJustNow](payjustnow)
-3. Enable PayJustNow as a [payment option](set-up-payment-methods).
+2. Configure a new [integration account](/docs/orchestration/integrations/index) for PayJustNow via [PayJustNow](./payjustnow-psp)
+3. Enable PayJustNow as a [payment option](./set-up-payment-methods).
 4. Make sure you're sending the PayJustNow specific meta fields (found under Merchant configurations -> Meta fields on your Payrails dashboard and in the examples below) in your requests.
 
 # Ways to integrate PayJustNow
 
 ## Payrails SDK
 
-The simplest way to use PayJustNow with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional development work is required to accept payments with PayJustNow.
+The simplest way to use PayJustNow with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web-v5-legacy/drop-in) in your checkout flow. With this integration type, no additional development work is required to accept payments with PayJustNow.
 
 ## Server-to-server integration
 

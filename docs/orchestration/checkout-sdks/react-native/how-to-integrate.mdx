@@ -11,7 +11,7 @@ Drop-in is a pre-built UI that bundles all your payment methods into a single, r
 
 - `@payrails/react-native-sdk` installed.
 - A backend endpoint that calls `/client/init` and returns the session response.
-- See the [Getting Started](how-to-integrate#getting-started-with-the-sdk) guide for provider setup.
+- See the [Getting Started](./index) guide for provider setup.
 
 ## Steps
 
@@ -49,9 +49,9 @@ Use `events.onAuthorizeSuccess` and `events.onAuthorizeFailure` to navigate or s
 
 ## Customising the Drop-in
 
-- **Styles**: pass a `DropinStyles` object to the `styles` property. See the [Drop-in API Reference](api-references#styling) for the full type.
-- **Payment method visibility**: use `paymentMethodsConfiguration` to show or hide logos, stored instruments, and cardholder name. See the [Drop-in API Reference](api-references#payment-methods-configuration).
-- **Translations**: pass a `Translations` object to localise all labels. See the [Drop-in API Reference](api-references#translations).
+- **Styles**: pass a `DropinStyles` object to the `styles` property. See the [Drop-in API Reference](./api-references#styling) for the full type.
+- **Payment method visibility**: use `paymentMethodsConfiguration` to show or hide logos, stored instruments, and cardholder name. See the [Drop-in API Reference](./api-references#payment-methods-configuration).
+- **Translations**: pass a `Translations` object to localise all labels. See the [Drop-in API Reference](./api-references#translations).
   ***
   <br />
 
@@ -59,9 +59,9 @@ Use `events.onAuthorizeSuccess` and `events.onAuthorizeFailure` to navigate or s
 
 Each Element handles a single payment method — drop it anywhere in your UI for full control over layout and placement.
 
-- Elements must be rendered inside a `PayrailsProvider`. See the [Getting Started](how-to-integrate#getting-started-with-the-sdk) guide for provider setup.
+- Elements must be rendered inside a `PayrailsProvider`. See the [Getting Started](./index#getting-started-with-the-sdk) guide for provider setup.
 
-- For configuration options for each element, see the [Elements API Reference](api-references#elements-api-reference).
+- For configuration options for each element, see the [Elements API Reference](./api-references#elements-api-reference).
 
 ## How to Pay with a Stored Card
 
@@ -327,4 +327,4 @@ import { PayrailsProvider, Lean } from '@payrails/react-native-sdk';
 </PayrailsProvider>
 ```
 
-For payment completion mode options (polling, background polling, return URLs), see [Payment Completion Modes](how-to-integrate#payment-completion-modes).
+For payment completion mode options (polling, background polling, return URLs), see [Payment Completion Modes](./sdk-concepts#payment-completion-modes).

@@ -91,6 +91,7 @@
                   "docs/overview/workflows",
                   "docs/overview/checkout",
                   "docs/overview/routing",
+                  "docs/overview/routing-configuration",
                   "docs/overview/payment-options",
                   "docs/overview/vault"
                 ]
@@ -100,6 +101,7 @@
                 "root": "docs/set-up-your-payrails-account-and-environment/index",
                 "pages": [
                   "docs/set-up-your-payrails-account-and-environment/api-credentials",
+                  "docs/set-up-your-payrails-account-and-environment/obtaining-api-credentials",
                   "docs/set-up-your-payrails-account-and-environment/mtls-configuration",
                   {
                     "group": "User Management",
@@ -123,6 +125,7 @@
             "icon": "circle-nodes",
             "pages": [
               "docs/orchestration/getting-started",
+              "docs/orchestration/meta-fields",
               {
                 "group": "Payrails Checkout SDKs",
                 "root": "docs/orchestration/checkout-sdks/index",
@@ -252,10 +255,12 @@
                   "docs/orchestration/payment-methods/easypaisa",
                   "docs/orchestration/payment-methods/eft-pro",
                   "docs/orchestration/payment-methods/fawrypay",
+                  "docs/orchestration/payment-methods/fawrypay-psp",
                   "docs/orchestration/payment-methods/google-pay",
                   "docs/orchestration/payment-methods/jazzcash",
                   "docs/orchestration/payment-methods/konnect",
                   "docs/orchestration/payment-methods/mercadopago",
+                  "docs/orchestration/payment-methods/mercadopago-psp",
                   "docs/orchestration/payment-methods/mobile-wallets",
                   "docs/orchestration/payment-methods/direct-carrier-billing",
                   "docs/orchestration/payment-methods/mono",
@@ -265,6 +270,7 @@
                   "docs/orchestration/payment-methods/paga-wallet",
                   "docs/orchestration/payment-methods/payflex",
                   "docs/orchestration/payment-methods/payjustnow",
+                  "docs/orchestration/payment-methods/payjustnow-psp",
                   {
                     "group": "PayPal",
                     "root": "docs/orchestration/payment-methods/paypal/index",
@@ -306,7 +312,8 @@
                   "docs/orchestration/payment-methods/multibanco",
                   "docs/orchestration/payment-methods/blik",
                   "docs/orchestration/payment-methods/bancontact",
-                  "docs/orchestration/payment-methods/klarna-1"
+                  "docs/orchestration/payment-methods/klarna",
+                  "docs/orchestration/payment-methods/thunes"
                 ]
               },
               {
@@ -316,18 +323,19 @@
                   "docs/orchestration/workflow-studio/quick-start",
                   "docs/orchestration/workflow-studio/triggers",
                   "docs/orchestration/workflow-studio/actions",
+                  "docs/orchestration/workflow-studio/cancel-and-capture-mode",
                   {
                     "group": "Conditions and Branching",
                     "root": "docs/orchestration/workflow-studio/conditions/index",
                     "pages": [
-                      "docs/orchestration/workflow-studio/conditions/workflow-studio-condition-operators"
+                      "docs/orchestration/workflow-studio/conditions/operators"
                     ]
                   },
                   {
                     "group": "Monitoring Workflow Executions",
                     "root": "docs/orchestration/workflow-studio/monitoring/index",
                     "pages": [
-                      "docs/orchestration/workflow-studio/monitoring/workflow-studio-status-codes"
+                      "docs/orchestration/workflow-studio/monitoring/status-codes"
                     ]
                   },
                   {
@@ -496,7 +504,8 @@
                   "docs/chargeback/integrations/checkout",
                   "docs/chargeback/integrations/stripe",
                   "docs/chargeback/integrations/klarna",
-                  "docs/chargeback/integrations/nuvei"
+                  "docs/chargeback/integrations/nuvei",
+                  "docs/chargeback/integrations/provider-accounts"
                 ]
               }
             ]
@@ -524,7 +533,7 @@
               "docs/resources/manage-instruments",
               {
                 "group": "Notifications",
-                "root": "docs/resources/notifications/notifications",
+                "root": "docs/resources/notifications/index",
                 "pages": ["docs/resources/notifications/dispute-notifications"]
               },
               "docs/resources/error-codes",

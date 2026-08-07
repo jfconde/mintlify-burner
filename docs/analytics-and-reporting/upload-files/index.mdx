@@ -1,33 +1,34 @@
 ---
 title: Upload files
 ---
+
 In order to extend your data set with us directly we provide you with the option to upload files. These files are processed to enhance our data models and improve the accuracy of visualizations and insights available through our analytics tools. This option also gives ability to share files that are specifically needed in order to run our reconciliation product for you.
 
 You can upload files in the following ways
 
-* Upload files programmatically using our FileUpload API
-* _Upload files through the Portal view (coming soon)_
+- Upload files programmatically using our FileUpload API
+- _Upload files through the Portal view (coming soon)_
 
 Supported Files
 
-* Generic transactions- or order files
-* Adyen reports
-* Checkout reports
+- Generic transactions- or order files
+- Adyen reports
+- Checkout reports
 
 ## Structure Overview
 
 To ensure successful processing, please adhere to the following specifications:
 
-* **Format:** Only **CSV** files are currently supported.
-* **Size Limit:** Maximum **5GB** per file.
-* **Number Format:** In order to prevent possible ambiguities in the numbers interpretation, we are restricting the format to only support **decimal dot separators** in the files that are being uploaded.
-* **Schema:** Files must follow the same schema as defined in our Orders Report [orders-report#/](orders-report)
+- **Format:** Only **CSV** files are currently supported.
+- **Size Limit:** Maximum **5GB** per file.
+- **Number Format:** In order to prevent possible ambiguities in the numbers interpretation, we are restricting the format to only support **decimal dot separators** in the files that are being uploaded.
+- **Schema:** Files must follow the same schema as defined in our Orders Report [orders-report#/](./orders-report)
 
 ## Upload files via API - How It Works
 
 1. **Request an Upload URL**
 
-   Call the `POST /analytics/files/upload` endpoint to request a temporary, pre-signed S3 URL. This URL acts as a secure, one-time gateway to our storage.  Request Body as below:
+   Call the `POST /analytics/files/upload` endpoint to request a temporary, pre-signed S3 URL. This URL acts as a secure, one-time gateway to our storage. Request Body as below:
 
    ```
    {
@@ -52,8 +53,8 @@ To ensure successful processing, please adhere to the following specifications:
      --write-out "\nHTTP_STATUS:%{http_code}\n"
    ```
 
-   * **Note:** The `-write-out` portion is optional but highly useful for debugging; a successful upload will return an `HTTP 200`.
-   * **Expiration:** The pre-signed URL is valid for **1 hour**. If the upload does not start within this window, you must request a new URL.
+   - **Note:** The `-write-out` portion is optional but highly useful for debugging; a successful upload will return an `HTTP 200`.
+   - **Expiration:** The pre-signed URL is valid for **1 hour**. If the upload does not start within this window, you must request a new URL.
 
 3. **Processing & Validation**
 
@@ -62,21 +63,20 @@ To ensure successful processing, please adhere to the following specifications:
 4. **Check File Status**
 
    Since large files (up to 5GB) may take time to process, you can monitor the progress programmatically.
-
-   * **Endpoint:** `GET /analytics/files/{id}`
-   * **Details:** Retrieve the current processing status (`Available`, `Processing`, `Imported`, `Completed`, or `Failed`) and view import statistics once finished.
-     * **Available:** The file has been successfully validated and is ready to be imported.
-     * **Processing:** The system is currently validating or parsing the file.
-     * **Imported:** The file has been successfully imported and analysed.
-     * **Completed:** The final state of a successful process, indicating that all data has been fully processed and is now Available for reporting.
-     * **Failed:** An error occurred during ingestion.
+   - **Endpoint:** `GET /analytics/files/{id}`
+   - **Details:** Retrieve the current processing status (`Available`, `Processing`, `Imported`, `Completed`, or `Failed`) and view import statistics once finished.
+     - **Available:** The file has been successfully validated and is ready to be imported.
+     - **Processing:** The system is currently validating or parsing the file.
+     - **Imported:** The file has been successfully imported and analysed.
+     - **Completed:** The final state of a successful process, indicating that all data has been fully processed and is now Available for reporting.
+     - **Failed:** An error occurred during ingestion.
 
 5. **Data Integration & Visualization**
 
    Once the status is marked as Complete, your data is automatically merged into our analytics engine where we further process it. Once processing is complete, your custom data will now power your dashboards, providing a unified view of your performance and reconciliation insights.
 
 <Note>
-  **Note on Performance:** Files containing large volumes of data may take longer to process and visualize. We recommend monitoring the file status via the API for high-volume uploads.
+  **Note on Performance:** Files containing large volumes of data may take
+  longer to process and visualize. We recommend monitoring the file status via
+  the API for high-volume uploads.
 </Note>
-
-

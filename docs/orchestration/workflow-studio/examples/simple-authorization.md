@@ -26,7 +26,6 @@ This is the simplest possible authorization workflow. It receives an authorizati
 
 The workflow has one trigger, one action, and four Notify steps -- one for each possible Authorize outcome.
 
-
 ## Step-by-Step Build Instructions
 
 ### 1. Create the Workflow
@@ -41,7 +40,6 @@ The workflow has one trigger, one action, and four Notify steps -- one for each 
 2. Under **Triggers**, select **Start Authorize**.
 3. The trigger appears on the canvas. This is the entry point -- it fires whenever your system sends an authorization request.
 
-
 ### 3. Add the Authorize Step
 
 1. Click **Add step** again.
@@ -49,7 +47,6 @@ The workflow has one trigger, one action, and four Notify steps -- one for each 
 3. Draw a connection line from **Start Authorize** to the **Authorize** step.
 4. Click the **Authorize** step to open its settings panel.
 5. Select your payment provider from the **Provider** dropdown.
-
 
 ### 4. Add Notify Steps for Each Outcome
 
@@ -80,7 +77,6 @@ The Authorize step has four outcomes: **Completed**, **Paused**, **Requested**, 
 2. Connect it to the **Updated** outcome.
 3. Name it "Notify -- Authorization Updated".
 
-
 ### 5. Save and Activate
 
 1. Click **Save** to save the workflow.
@@ -89,25 +85,25 @@ The Authorize step has four outcomes: **Completed**, **Paused**, **Requested**, 
 
 ## Understanding the Outcomes
 
-| Outcome | What It Means | Your System Receives |
-|---|---|---|
-| **Completed** | The authorization finished. The provider returned a final result (approved or declined). | A notification with the authorization result so you can proceed with the order or inform the customer. |
-| **Paused** | The authorization is waiting for an external action, such as a customer completing a redirect or a bank verification. | A notification that the authorization is pending. The workflow resumes automatically when the external action completes. |
-| **Requested** | The authorization was submitted to the provider but the result is not yet available. The provider is processing it asynchronously. | A notification that the authorization is in progress. The final result arrives through a separate event-driven workflow. |
-| **Updated** | The provider sent a status update after the initial authorization response. This can happen when a provider corrects a previous result. | A notification with the updated status so your system can reconcile. |
+| Outcome       | What It Means                                                                                                                           | Your System Receives                                                                                                     |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **Completed** | The authorization finished. The provider returned a final result (approved or declined).                                                | A notification with the authorization result so you can proceed with the order or inform the customer.                   |
+| **Paused**    | The authorization is waiting for an external action, such as a customer completing a redirect or a bank verification.                   | A notification that the authorization is pending. The workflow resumes automatically when the external action completes. |
+| **Requested** | The authorization was submitted to the provider but the result is not yet available. The provider is processing it asynchronously.      | A notification that the authorization is in progress. The final result arrives through a separate event-driven workflow. |
+| **Updated**   | The provider sent a status update after the initial authorization response. This can happen when a provider corrects a previous result. | A notification with the updated status so your system can reconcile.                                                     |
 
 ## What This Workflow Does Not Include
 
 This workflow sends every authorization to a single provider without any pre-processing. It does not include:
 
-- **Fraud screening** -- Transactions are not checked for fraud risk before authorization. See [Authorization with Fraud Screening](workflow-studio-example-authorization-with-fraud) to add this.
-- **3D Secure authentication** -- The cardholder is not prompted for additional verification. See [Authorization with 3D Secure](workflow-studio-example-authorization-with-3ds) to add this.
+- **Fraud screening** -- Transactions are not checked for fraud risk before authorization. See [Authorization with Fraud Screening](./authorization-with-fraud) to add this.
+- **3D Secure authentication** -- The cardholder is not prompted for additional verification. See [Authorization with 3D Secure](./authorization-with-3ds) to add this.
 - **Conditional routing** -- All transactions follow the same path regardless of amount, currency, or card type. Add a Condition step before Authorize to route transactions to different providers.
 
 ## Next Steps
 
 Once this workflow is running, consider enhancing it:
 
-- Add a [Fraud Check](workflow-studio-example-authorization-with-fraud) before the Authorize step to screen transactions for risk.
-- Add [3D Secure](workflow-studio-example-authorization-with-3ds) for cardholder authentication and SCA compliance.
-- Combine both in the [Full Authorization with Fraud and 3DS](workflow-studio-example-full-authorization) workflow for comprehensive security.
+- Add a [Fraud Check](./authorization-with-fraud) before the Authorize step to screen transactions for risk.
+- Add [3D Secure](./authorization-with-3ds) for cardholder authentication and SCA compliance.
+- Combine both in the [Full Authorization with Fraud and 3DS](./full-authorization) workflow for comprehensive security.

@@ -1,0 +1,188 @@
+---
+title: Fawry
+excerpt: >-
+  Fawry is a payment service provider that enables you to process card and
+  FawryPay payments in Egypt.
+deprecated: false
+hidden: true
+metadata:
+  title: ''
+  description: ''
+  robots: index
+next:
+  description: ''
+---
+# Provider data
+
+| Meta-data     | Value                                                                                                              |
+| :------------ | :----------------------------------------------------------------------------------------------------------------- |
+| Website       | [https://www.fawry.com/](https://www.fawry.com/)                                                                   |
+| Testing guide | [https://developer.fawrystaging.com/docs/testing/testing](https://developer.fawrystaging.com/docs/testing/testing) |
+| Config fields | Merchant Code, API Key                                                                                             |
+
+# Supported workflows and modes
+
+<table className="text-left">
+  <thead>
+    <tr>
+      <th className="text-left">
+        Workflow
+      </th>
+
+      <th className="text-left">
+        Supported
+      </th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="text-left">
+        Available via Payrails SDK
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Available via Payrails API
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Delayed / Manual Capture](https://docs.payrails.com/docs/cancel-and-capture-modes#capture-mode)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Instant Capture](        [Instant Capture](/docs/orchestration/workflow-studio/cancel-and-capture-mode#capture-mode)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Cancel / Void](/docs/orchestration/payment-acceptance/cancel-a-payment)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Refund / Reverse](/docs/orchestration/payment-acceptance/refund-a-payment)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Save Instruments](/docs/token-vault/tokenize-payment-instruments/index)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [Merchant Initiated Transaction (MIT)](/docs/resources/payments/authorization-flags)
+      </td>
+
+      <td className="text-left">
+        ✅
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        Interoperability
+      </td>
+
+      <td className="text-left">
+        PSP tokens
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+# Supported payment methods and modes
+
+<table className="text-left">
+  <thead>
+    <tr>
+      <th className="text-left">
+        Payment method
+      </th>
+
+      <th className="text-left">
+        Modes
+      </th>
+
+      <th className="text-left">
+        Region(s)
+      </th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td className="text-left">
+        [Cards](./cards)
+      </td>
+
+      <td className="text-left">
+        * Authorize
+        * Capture (Instant and Delayed)
+        * Customer Initiated Transactions (CITs)
+        * Merchant Initiated Transactions (MITs)
+        * Tokenization
+        * Void / Cancel
+        * Refund / Reverse
+      </td>
+
+      <td className="text-left">
+        :egypt: Egypt
+      </td>
+    </tr>
+
+    <tr>
+      <td className="text-left">
+        [FawryPay](./fawrypay)
+      </td>
+
+      <td className="text-left">
+        * Authorize
+        * Customer Initiated Transactions (CITs)
+        * Void / Cancel
+        * Refund / Reverse
+      </td>
+
+      <td className="text-left">
+        :egypt: Egypt
+      </td>
+    </tr>
+  </tbody>
+</table>

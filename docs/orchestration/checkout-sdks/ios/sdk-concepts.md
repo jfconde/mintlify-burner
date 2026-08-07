@@ -163,7 +163,7 @@ When a user selects an instrument from the list, the button automatically switch
 
 - **Card data is never exposed in plaintext.** The SDK encrypts card fields using PayrailsCSE (a Skyflow vault client) before they leave the device.
 - **The Session token is short-lived.** Tokens are fetched by your backend and passed to the SDK; they are not stored persistently.
-- **Logging is off by default.** The debug overlay and `Payrails.log` output are only visible when explicitly enabled. See [Troubleshooting](troubleshooting) for details.
+- **Logging is off by default.** The debug overlay and `Payrails.log` output are only visible when explicitly enabled. See [Troubleshooting](./troubleshooting) for details.
 
 ---
 
@@ -177,6 +177,6 @@ If the user navigates away during a payment, the in-flight `Task` is cancelled i
 
 ## Next steps
 
-- [Quick Start](ios-sdk) — get to a running integration in 15 minutes
-- [SDK API Reference](sdk-api-reference-1) — complete API surface
-- [Styling Guide](styling-guide-1) — customise the UI
+- [Quick Start](./index) — get to a running integration in 15 minutes
+- [SDK API Reference](./sdk-api-reference) — complete API surface
+- [Styling Guide](./styling-guide) — customise the UI

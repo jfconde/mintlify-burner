@@ -13,16 +13,16 @@ Before you start accepting OVO payments with Payrails, there are a few requireme
 1. Integrate with Payrails using one of our [SDKs](/docs/orchestration/checkout-sdks/index) or our [API](/docs/orchestration/checkout-sdks/accept-payments-via-api)
 2. Configure a new [integration account](/docs/orchestration/integrations/index) for OVO via **dLocal** as a Payment Service Provider. If you do not have a dLocal integration already configured in your workspace, please follow the [dLocal integration setup guide](/docs/orchestration/integrations/dlocal) first.
 3. Enable OVO as a payment method in your dLocal integration configuration. In the Payrails portal, navigate to **Settings → Integrations**, select your dLocal integration instance, and enable the **OVO** checkbox under Payment methods, then save the account.
-4. Enable OVO as a [payment option](set-up-payment-methods) in your workflow.
+4. Enable OVO as a [payment option](./set-up-payment-methods) in your workflow.
 5. Make sure you're sending the OVO-specific meta fields in your requests.
 
 ## Ways to integrate OVO
 
 ### Payrails SDK
 
-The simplest way to use OVO with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with OVO except for handling success/failure screens for your users.
+The simplest way to use OVO with Payrails is to use our [drop-in](/docs/orchestration/checkout-sdks/web-v5-legacy/drop-in) in your checkout flow. With this integration type, no additional work is required to accept payments with OVO except for handling success/failure screens for your users.
 
-For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web/elements#generic-redirect-element) for your client-side implementation.
+For a more flexible implementation using our SDK, you can use our `genericRedirectButton` element. See special instructions [here](/docs/orchestration/checkout-sdks/web-v5-legacy/elements#generic-redirect-element) for your client-side implementation.
 
 ### Server-to-server integration
 

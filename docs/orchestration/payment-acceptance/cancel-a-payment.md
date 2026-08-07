@@ -9,12 +9,12 @@ You can cancel a payment via the **API** or the **Payrails Portal**.
 
 > 📘
 >
-> This action cannot be executed on partial amounts. For those cases, you can send a partial amount request for [capture](doc:capture-a-payment) or [refund](doc:refund-a-payment) actions.
+> This action cannot be executed on partial amounts. For those cases, you can send a partial amount request for [capture](/docs/orchestration/payment-acceptance/capture-a-payment) or [refund](/docs/orchestration/payment-acceptance/refund-a-payment) actions.
 
 # Requirements
 
 - The payment you want to cancel must be authorized or captured
-- Have [notifications](doc:receive-notifications) set up if you wish to receive them for cancellation results
+- Have [notifications](/docs/orchestration/payment-acceptance/receive-notifications) set up if you wish to receive them for cancellation results
 
 # Cancel a payment via API
 
@@ -39,7 +39,7 @@ For the complete response schema, refer to the [Cancel a payment](https://payrai
 
 ## 4. Wait for the cancellation notification
 
-Successfully requested payment cancellations will be processed asynchronously. If you have [notifications](doc:receive-notifications) set up, you’ll receive a notification once the processing is complete, informing you whether the cancellation was a success or failure.
+Successfully requested payment cancellations will be processed asynchronously. If you have [notifications](/docs/orchestration/payment-acceptance/receive-notifications) set up, you’ll receive a notification once the processing is complete, informing you whether the cancellation was a success or failure.
 
 Example notification for a successful cancellation:
 
@@ -162,4 +162,4 @@ Cancel the payment by clicking on "Cancel" at the top right of the page.
 
 You can review the status of the payment by returning to its Payment Details page at any time.
 
-You will also receive a [notification](doc:receive-notifications) on your backend when performing this action on the Portal.
+You will also receive a [notification](/docs/orchestration/payment-acceptance/receive-notifications) on your backend when performing this action on the Portal.

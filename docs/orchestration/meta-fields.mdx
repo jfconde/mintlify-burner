@@ -1,0 +1,38 @@
+---
+title: Meta fields
+description: >-
+  Understand the powerful meta fields of Payrails and how they translate into
+  provider-specific fields.
+hidden: true
+---
+
+Part of Payrails's power comes from its ability to unify the many languages providers speak into one common language. However, this is a huge challenge! So, this document explains how our meta fields work and how we map them to different providers.
+
+# What is a _meta field_?
+
+When using our APIs, some fields are required, and some are optional. We define them according to whether we need them to process your requests or to control our features.
+
+However, when your request includes a call to an external provider, they will also have their own required or optional fields, possibly with different names and formats. Don't worry! Payrails will handle that translation, but we need your help giving us all the information we need to do it in a generic way so that when you add new providers, your requests have minimal to no change.
+
+The place where you send information so Payrails can translate it to provider-specific terminology is what we call **meta fields**. They can be sent in most of our endpoints in a field called `meta`, and have a predefined structure described in our [API docs]().
+
+# Are they optional or required?
+
+Initially, they are all optional because we don't actually need them in Payrails. However, as you add providers to your ecosystem, whatever fields they require become required by Payrails. The same happens if you start using meta fields in your routing rules; we will need them to decide where to process your authorizations so they are marked as required.
+
+Then how can you know if they are required? You must check your **Meta fields** page in the Portal. We show you whether they are required, and if they are, we tell you who is making them required (e.g., a rule, a provider, etc.). Also, you will find the expected format and some example values.
+
+<img
+  className="mx-auto block"
+  src="/images/docs/orchestration/meta-fields.png"
+/>
+
+# How do you do the mapping to different providers?
+
+We divide the meta fields into multiple sections to make it easier. Let's go one by one.
+
+## `order`
+
+It contains information about the order for which the payment is made. Typically, it contains the description of the items in a cart, a delivery or shipping address, the cost breakdown, etc.
+
+Check our order costs guide for detailed use cases about it.

@@ -1,6 +1,6 @@
 # Introduction
 
-All operations in Payrails are defined and executed with customized [Workflows](doc:workflows), which are lists of steps to be performed in sequence. The `payment-acceptance` workflow, for example, is a list of steps for accepting payments, and you must create an execution of this workflow via the Payrails API before initiating a payment.
+All operations in Payrails are defined and executed with customized [Workflows](/docs/overview/workflows), which are lists of steps to be performed in sequence. The `payment-acceptance` workflow, for example, is a list of steps for accepting payments, and you must create an execution of this workflow via the Payrails API before initiating a payment.
 
 After creating an execution, you can [Lookup payment options](https://payrails.readme.io/reference/lookupaction) to present to your customer.
 

@@ -2,6 +2,7 @@
 title: Network Tokens
 description: Learn the benefits of using network tokenization with Payrails as well as how to implement for more secure, efficient, and seamless payments.
 ---
+
 # What is network tokenization?
 
 Network Tokenization is a service introduced by card networks such as Visa, Mastercard, and American Express. It is a payment method in which the card number (PAN) is replaced with a secure token of the network and used in payments with higher security levels than traditional PAN.
@@ -29,8 +30,14 @@ Network tokens ensure a frictionless payment experience with automatic renewal a
 Merchants can use the card art and thorough issuer/card information to design a better user experience and interface in their checkout. With network tokenization, it is possible to request the graphical details of a payment card, as well as BIN data such as card brand, type, issuer name, or country.
 
 <CardGroup cols="1">
-  <Card title="Network Tokenization 101" href="https://www.payrails.com/blog/what-is-network-tokenization" icon="fa-home" target="_blank">
-    Head to payrails.com blogs to read more about how network tokenization works and benefits merchants.
+  <Card
+    title="Network Tokenization 101"
+    href="https://www.payrails.com/blog/what-is-network-tokenization"
+    icon="fa-home"
+    target="_blank"
+  >
+    Head to payrails.com blogs to read more about how network tokenization works
+    and benefits merchants.
   </Card>
 </CardGroup>
 
@@ -42,7 +49,7 @@ The first step is for Payrails to set up the configuration between the merchant 
 
 Each network has a different onboarding process, requiring a different set of information. Payrails handles this complexity and provides a network-agnostic onboarding process to its merchants.
 
-**Visit our [Onboarding to Networks](onboarding-to-networks#/) guide in the next section for more details.**
+**Visit our [Onboarding to Networks](./onboarding-to-networks) guide in the next section for more details.**
 
 ## **Step 2: Provision Network Tokens**
 
@@ -51,15 +58,17 @@ Network tokens are typically created as a token under a payment instrument along
 Once you can create instruments, you will be able to provision a network token. There are multiple ways to do that:
 
 1. Set your rules to selectively provision network tokens automatically. You can define rules based on: network, BIN, issuing country and card type.
-2. Use '**provision network token**' parameter when creating a new instrument. Use  [the API endpoint](/reference/createinstrument#/) to request network token provisioning for a particular instrument.
+2. Use '**provision network token**' parameter when creating a new instrument. Use [the API endpoint](/reference/createinstrument#/) to request network token provisioning for a particular instrument.
 3. Use '**provisioning network token**' [API endpoint](/reference/provisionnetworktokenpublic#/) to provision a network token for an existing payment instrument.
 
-**Visit our [Provision Network Tokens](provision-network-tokens#/) guide in the next sections for more details.**
+**Visit our [Provision Network Tokens](./provision-network-tokens) guide in the next sections for more details.**
 
 When a Network Token provision is requested, card details will be sent to the network via Payrails, and the network token which is considered sensitive data will be stored securely in Payrails Token Vault. Payrails will generate a network token reference and attach it to the payment instrument.
 
 <Note>
-  The service allows merchants to tokenize cards entered by consumers during checkout or existing card held on file. That means, you can start using network tokens anytime, and benefit for including the existing customer base.
+  The service allows merchants to tokenize cards entered by consumers during
+  checkout or existing card held on file. That means, you can start using
+  network tokens anytime, and benefit for including the existing customer base.
 </Note>
 
 ## **Step 3: Use Network Tokens in Authorization**
@@ -72,7 +81,7 @@ In this flow, Payrails helps its merchants identify the optimal rules according 
 
 Payrails orchestration also abstracts the PSP selection logic as well as constructing the corresponding payload for each PSP, alongside when to use a cryptogram.
 
-**Visit this <a href="transacting-with-network-tokens#/1-use-network-tokens-in-orchestration---payment-acceptance" target="_blank">page</a> to read all details and how to integrate this flow.**
+**Visit this <a href="./transacting-with-network-tokens#1-use-network-tokens-in-orchestration---payment-acceptance" target="_blank">page</a> to read all details and how to integrate this flow.**
 
 ### Use Network Token in Proxy Flow
 
@@ -80,7 +89,7 @@ Our [proxy API](/reference/vaultproxy) allows you to use both the network token 
 
 Additionally, in certain cases such as customer-initiated payment (CIT), you will need a cryptogram ready to be used in your proxy request.
 
-**Visit this <a href="transacting-with-network-tokens#/2-use-network-tokens-in-proxy-apis" target="_blank">page</a> to read all details and how to integrate this flow.**
+**Visit this <a href="./transacting-with-network-tokens#2-use-network-tokens-in-proxy-apis" target="_blank">page</a> to read all details and how to integrate this flow.**
 
 # Keeping network tokens up-to-date with the lifecycle management events
 
@@ -88,13 +97,11 @@ When a cardholder or Issuer of the card makes a change in the card that has a ne
 
 Cardholders can interact multiple ways with their card issuers that result in life cycle events to the ecosystem. A few typical use cases are:
 
-* The contract with the issuer is terminated, rendering all cards and related tokens invalid.
-* User reports card lost, stolen, or damaged.
-* Funding card expires.
-* The end user triggers token status life cycle management actions from the issuer side (e.g. issuer mobile banking application).
+- The contract with the issuer is terminated, rendering all cards and related tokens invalid.
+- User reports card lost, stolen, or damaged.
+- Funding card expires.
+- The end user triggers token status life cycle management actions from the issuer side (e.g. issuer mobile banking application).
 
 In such cases, with our integration to the networks, Payrails receives a notification including the context of the change, and initiates the necessary update on the token or the data of the token.
 
-**Visit this <a href="automatic-lifecycle-updates#/" target="_blank">page</a> to read all details of how Payrails manages the life cycle updates of the tokens for each scenario.**
-
-
+**Visit this <a href="./automatic-lifecycle-updates#/" target="_blank">page</a> to read all details of how Payrails manages the life cycle updates of the tokens for each scenario.**

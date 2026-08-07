@@ -36,7 +36,7 @@ Every execution has a status that indicates its current state. Statuses are colo
 
 A workflow execution may pass through multiple statuses as it progresses. For example, an authorization flow might move from **Authorize Requested** (yellow) to **Authorize Successful** (green) as the provider processes the payment.
 
-For a complete list of all status codes and their meanings, see the [Status Codes Reference](workflow-studio-status-codes).
+For a complete list of all status codes and their meanings, see the [Status Codes Reference](./status-codes).
 
 ## Viewing execution details
 

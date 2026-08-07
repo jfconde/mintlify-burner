@@ -1,0 +1,61 @@
+---
+title: Cancel and Capture Modes
+description: Understand how to configure when and how to capture and cancel your payments.
+hidden: true
+---
+
+When designing your Workflows with Payrails, we have many options on how and when to capture and cancel your payments during an Execution.
+
+Although we will agree on a default for your Workflow configuration, you can also change these values per Execution by sending the specific values in the `workflowConfigOverride` object of the [Create Execution API](ref:createexecution).
+
+## Capture Mode
+
+Payrails provides three options for capturing payments, set by the `captureMode` field in the workflow configuration. However, the actual feature availability or specific details may vary depending on which Payment Provider you're routing your payments to.
+
+#### `Instant`
+
+This option involves capturing the payment immediately after authorization. It's a straightforward process where the payment is processed without any delay, transferring the funds instantly.
+
+Depending on the API of the Payment Provider, we may do this in one API operation (usually called "sale") or in an authorization call immediately followed by a capture call.
+
+#### `Manual`
+
+When using this configuration, Payrails won't capture the payment until you decide to call the [Capture API](ref:captureaction) or manually in your Portal.
+
+This provides the most flexibility, enabling you to manage payment capture based on specific conditions or internal business rules you have set. However, remember that downstream providers may have time limits on capture times, so you should capture them as soon as possible.
+
+> 📘
+>
+> If you need to capture a different amount than authorized, then you need to use this option, because the `Instant` and `Delayed` capture modes will capture the initially authorized amount.
+
+#### `Delayed`
+
+The delayed capture option allows you to schedule the capture of the payment for a later time, specified in the `captureDelay` field.
+
+The format for the `captureDelay` field is the [ISO 8601 standard](https://tc39.es/proposal-temporal/docs/duration.html). For example, if you want to capture in 3 hours, you should set the value to "PT3H".
+
+If you set the `captureMode` to this option, but not set a specific value in the `captureDelay` field, the default will be 5 minutes.
+
+If you call the [Capture API](ref:captureaction) or [Cancel API](ref:cancelaction) before the scheduled time, your call will override the delay and execute the action immediately. Alternatively, you can capture or cancel the payment manually on your Portal.
+
+## Cancel Mode
+
+Payrails also offers options for the canceling behavior of your workflow executions with the `cancelMode` field.
+
+#### `Manual`
+
+This option is the default, and it means that Payrails won't cancel your authorizations by default, even if you never decide to capture them. You will need to call the [Cancel API](ref:cancelaction) yourself if you decide to cancel. Alternatively, you can cancel the payment manually on your Portal.
+
+Keep in mind that the customer experience is greatly affected if you don't cancel authorizations that you won't capture, because the funds may be reserved for a time that varies according to the region and card network.
+
+#### `Delayed`
+
+Similar to the delayed capturing behavior, the delayed cancel option allows you to set a delay on canceling uncaptured authorizations. This is very useful to automatically release the customer's funds if you decide not to capture them before a given time.
+
+The format for the `cancelDelay` field is the [ISO 8601 standard](https://tc39.es/proposal-temporal/docs/duration.html). For example, if you want to cancel your authorizations in 3 hours, you should set the value to "PT3H".
+
+If you call the [Capture API](ref:captureaction) or [Cancel API](ref:cancelaction) before the scheduled time, your call will override the delay and execute the action immediately. Alternatively, you can capture or cancel the payment manually on your Portal.
+
+> 📘
+>
+> We recommend not setting **both** the `captureMode` and `cancelMode` configurations to `Delayed`, because it can lead to unexpected behaviors.

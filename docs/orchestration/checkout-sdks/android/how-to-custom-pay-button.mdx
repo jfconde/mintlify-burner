@@ -6,16 +6,16 @@ Drive checkout from your **own** button and method selector while the SDK handle
 post-tap work — the Google Pay sheet, the 3DS / PayPal / redirect Custom Tab, and polling.
 Use this when you want full control of styling, placement, and state but don't want to
 reimplement payment orchestration. The handle that makes this possible is
-[`PayrailsPaymentLauncher`](/docs/sdk-api-reference#payrailspaymentlauncher).
+[`PayrailsPaymentLauncher`](./api-reference#payrailspaymentlauncher).
 
 ## Prerequisites
 
-- An active Payrails session (see [Quick Start](/docs/android-sdk-1))
+- An active Payrails session (see [Quick Start](./index))
 - The `Session` reference returned by `Payrails.createSession(...)`
-- The `com.payrails.android:checkout` dependency (see [Quick Start](/docs/android-sdk-1))
+- The `com.payrails.android:checkout` dependency (see [Quick Start](./index))
 - For the encrypted-card path: a card payload **already encrypted** by your client-side
   encryption library (the SDK exposes no encryption API — see
-  [Why no encryption API](/docs/sdk-concepts#why-no-encryption-api))
+  [Why no encryption API](./sdk-concepts#why-no-encryption-api))
 
 ## Steps
 
@@ -87,7 +87,7 @@ launcher.authorize(encryptedCardData = encrypted, saveInstrument = true)
 
 ### 4. Handle the result
 
-Each `authorize(...)` resolves to exactly one [`ActionResult`](/docs/sdk-api-reference#actionresult),
+Each `authorize(...)` resolves to exactly one [`ActionResult`](./api-reference#actionresult),
 delivered to the callback you supplied in step 1:
 
 ```kotlin
@@ -155,7 +155,7 @@ both frictionless and 3DS.
 
 **Problem**: `ActionResult.Failed` with `code == UNKNOWN_ERROR` (rawError `unsupportedPayment`)
 **Solution**: The selected method is not configured on the session. Confirm availability with
-[`session.getPaymentMethodConfig()`](/docs/sdk-api-reference#sessiongetpaymentmethodconfigfilter)
+[`session.getPaymentMethodConfig()`](./api-reference#sessiongetpaymentmethodconfigfilter)
 before calling `authorize(...)`.
 
 **Problem**: Google Pay never opens
@@ -164,7 +164,8 @@ Google Pay is configured on the session.
 
 ## See also
 
-- [`PayrailsPaymentLauncher` API Reference](/docs/sdk-api-reference#payrailspaymentlauncher) — every method and factory
-- [Custom UI: Launcher vs Client](/docs/sdk-concepts#custom-ui-the-launcher-and-the-internal-client) — how the launcher and the internal networking client relate
-- [How to Execute a Payment Without an SDK Button (Headless)](/docs/how-to-execute-payment-headless) — the same launcher flow framed for headless/ViewModel-driven checkouts
-- [`ActionResult` API Reference](/docs/sdk-api-reference#actionresult) — every terminal payment outcome
+[`PayrailsPaymentLauncher` API Reference](./api-reference#payrailspaymentlauncher) — every method and factory
+
+- [Custom UI: Launcher vs Client](./sdk-concepts#custom-ui-the-launcher-and-the-internal-client) — how the launcher and the internal networking client relate
+- [How to Execute a Payment Without an SDK Button (Headless)](./how-to-execute-payment-headless) — the same launcher flow framed for headless/ViewModel-driven checkouts
+  [`ActionResult` API Reference](./api-reference#actionresult) — every terminal payment outcome

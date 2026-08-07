@@ -52,7 +52,7 @@ To add a rule to a branch:
 2. Expand the branch you want to configure.
 3. Click **Add rule**.
 4. Choose the **field** you want to evaluate from the dropdown (for example, amount, currency, or card brand).
-5. Select an **operator** (for example, equals, greater than, or contains). See [Condition Operators Reference](workflow-studio-condition-operators) for the full list.
+5. Select an **operator** (for example, equals, greater than, or contains). See [Condition Operators Reference](./operators) for the full list.
 6. Enter the **value** to compare against.
 
 

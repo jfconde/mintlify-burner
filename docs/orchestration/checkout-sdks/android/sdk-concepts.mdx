@@ -348,7 +348,7 @@ the prebuilt `CardForm` already feeds an encrypted payload into the same interna
 
 `Session` deliberately exposes no public `authorize`. Whether a charge needs a 3DS step-up is
 decided by the issuer at authorization time — not knowable up front — and
-[`ActionResult`](/docs/sdk-api-reference#actionresult) is always terminal, with no "pending
+[`ActionResult`](./api-reference#actionresult) is always terminal, with no "pending
 challenge" variant a presenter-less caller could resume. A public headless trigger would
 therefore fail unpredictably on 3DS. Instead, `PayrailsPaymentLauncher` (which always has a
 presenter) is the single public path and completes the challenge for you.
@@ -371,7 +371,7 @@ The SDK has two logging channels:
 - **In-memory buffer** — Always active. Stores the last 500 timestamped log entries for the built-in debug viewer.
 - **Logcat** — Off by default. Gated behind `Log.isLoggable("PayrailsSDK", Log.DEBUG)`, so no log output appears in production unless explicitly enabled via `adb shell setprop log.tag.PayrailsSDK DEBUG`.
 
-The SDK never logs raw card data, tokens, or PII through either channel. See [Troubleshooting](/docs/troubleshooting#enabling-sdk-debug-logs) for how to enable Logcat output during development.
+The SDK never logs raw card data, tokens, or PII through either channel. See [Troubleshooting](./troubleshooting#enabling-sdk-debug-logs) for how to enable Logcat output during development.
 
 ### Client Context
 
@@ -493,10 +493,10 @@ Co-branded handling runs only when **both** hold: the backend `featureConfig.coB
 
 ## Further Reading
 
-- **[Quick Start](/docs/android-sdk-1)** — Get a card payment working in 15 minutes
-- **[How to Accept PayPal Payments](/docs/how-to-accept-paypal-payments)** — PayPal redirect flow and stored instruments
-- **[How to Accept Redirect Payments](/docs/how-to-accept-redirect-payments)** — iDEAL, Bancontact, Sofort, and other redirect methods
-- **[How to Tokenize a Card](/docs/how-to-tokenize-card)** — Save a card to vault without charging it
-- **[Troubleshooting](/docs/troubleshooting)** — Common issues and solutions
-- **[Styling Guide](/docs/styling-guide)** — Customize the look and feel
-- **[API Reference](/docs/sdk-api-reference)** — Complete public API documentation
+- **[Quick Start](./index)** — Get a card payment working in 15 minutes
+- **[How to Accept PayPal Payments](./how-to-accept-paypal-payments)** — PayPal redirect flow and stored instruments
+- **[How to Accept Redirect Payments](./how-to-accept-redirect-payments)** — iDEAL, Bancontact, Sofort, and other redirect methods
+- **[How to Tokenize a Card](./how-to-tokenize-card)** — Save a card to vault without charging it
+- **[Troubleshooting](./troubleshooting)** — Common issues and solutions
+- **[Styling Guide](./styling-guide)** — Customize the look and feel
+- **[API Reference](./api-reference)** — Complete public API documentation

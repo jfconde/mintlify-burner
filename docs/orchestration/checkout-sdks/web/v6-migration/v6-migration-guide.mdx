@@ -2,7 +2,7 @@
 title: v6 Migration Guide for Humans
 ---
 
-This guide covers upgrading `@payrails/web-sdk` from 5.x to 6.x: every breaking<br />change, before/after code for each, and how to verify the result. It assumes a<br />working 5.x integration. If an AI coding agent performs the migration for you,<br />point it at the [agent runbook](agent-runbook-v6-migration), which routes through<br />this guide.
+This guide covers upgrading `@payrails/web-sdk` from 5.x to 6.x: every breaking<br />change, before/after code for each, and how to verify the result. It assumes a<br />working 5.x integration. If an AI coding agent performs the migration for you,<br />point it at the [agent runbook](./agent-runbook-v6-migration), which routes through<br />this guide.
 
 ## Upgrade checklist
 
@@ -260,7 +260,7 @@ resolve-`false`-to-reject contract with `preventDefault()`.
 | `onGooglePayAvailable` / `onApplePayAvailable` / `onPaypalAvailable` | `await button.isAvailable` — a promise, not an event; see §5    |
 
 Full payload types and cancelation semantics:
-[Events reference](/docs/orchestration/checkout-sdks/web/api-references/event-api-reference).
+[Events reference](/docs/orchestration/checkout-sdks/web/references/event-api-reference).
 
 ## 5. Wallet availability is a promise, not an event
 
