@@ -1,0 +1,578 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "versions": ["v1", "v2"],
+  "theme": "maple",
+  "fonts": {
+    "family": "Archivo"
+  },
+  "servers": [{ "url": "https://api.payrails.com" }],
+  "displayUpdatedDate": true,
+  "name": "Payrails Docs (Juan test)",
+  "colors": {
+    "primary": "#0a6cff",
+    "light": "#0a6cff",
+    "dark": "#2222ff"
+  },
+  "appearance": {
+    "default": "light"
+  },
+  "background": {
+    "decoration": "grid",
+    "color": {
+      "light": "#fff"
+    }
+  },
+  "anchors": {
+    "eyebrows": "breadcrumbs"
+  },
+  "favicon": "/favicon.png",
+  "metadata": {
+    "timestamp": true
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Payrails (test)",
+        "href": "https://payrails.com"
+      }
+    ]
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/Payrails_com",
+      "github": "https://github.com/payrails",
+      "linkedin": "https://www.linkedin.com/company/payrails"
+    }
+  },
+  "navigation": {
+    "global": {
+      "anchors": []
+    },
+    "tabs": [
+      {
+        "tab": "Home",
+        "icon": "house",
+        "groups": [
+          {
+            "group": "Home",
+            "pages": ["index", "quickstart"]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "icon": "rocket",
+            "pages": [
+              "docs/explore-payrails",
+              {
+                "group": "Overview",
+                "root": "docs/overview/index",
+                "pages": [
+                  "docs/overview/workflows",
+                  "docs/overview/checkout",
+                  "docs/overview/routing",
+                  "docs/overview/routing-configuration",
+                  "docs/overview/payment-options",
+                  "docs/overview/vault"
+                ]
+              },
+              {
+                "group": "Set up your Payrails account and environment",
+                "root": "docs/set-up-your-payrails-account-and-environment/index",
+                "pages": [
+                  "docs/set-up-your-payrails-account-and-environment/api-credentials",
+                  "docs/set-up-your-payrails-account-and-environment/obtaining-api-credentials",
+                  "docs/set-up-your-payrails-account-and-environment/mtls-configuration",
+                  {
+                    "group": "User Management",
+                    "root": "docs/set-up-your-payrails-account-and-environment/user-management/index",
+                    "pages": [
+                      "docs/set-up-your-payrails-account-and-environment/user-management/authentication",
+                      "docs/set-up-your-payrails-account-and-environment/user-management/roles-permissions",
+                      "docs/set-up-your-payrails-account-and-environment/user-management/frequently-asked-questions",
+                      "docs/set-up-your-payrails-account-and-environment/user-management/single-sign-on"
+                    ]
+                  },
+                  "docs/set-up-your-payrails-account-and-environment/organization",
+                  "docs/set-up-your-payrails-account-and-environment/workspaces",
+                  "docs/set-up-your-payrails-account-and-environment/idempotent-requests"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Payment Orchestration",
+            "icon": "circle-nodes",
+            "pages": [
+              "docs/orchestration/getting-started",
+              "docs/orchestration/meta-fields",
+              {
+                "group": "Payrails Checkout SDKs",
+                "root": "docs/orchestration/checkout-sdks/index",
+                "pages": [
+                  "docs/orchestration/checkout-sdks/index",
+                  {
+                    "group": "Web SDK - Quick Start",
+                    "root": "docs/orchestration/checkout-sdks/web/index",
+                    "pages": [
+                      {
+                        "group": "Guides",
+                        "pages": [
+                          "docs/orchestration/checkout-sdks/web/guides/how-to-customize-the-checkouts-appearance",
+                          "docs/orchestration/checkout-sdks/web/guides/how-to-accept-card-payments",
+                          "docs/orchestration/checkout-sdks/web/guides/how-to-add-apple-pay-and-google-pay",
+                          "docs/orchestration/checkout-sdks/web/guides/how-to-collect-card-data-with-secure-fields-collect-container",
+                          "docs/orchestration/checkout-sdks/web/guides/action-required-event"
+                        ]
+                      },
+                      {
+                        "group": "v6 Migration Guide",
+                        "pages": [
+                          "docs/orchestration/checkout-sdks/web/v6-migration/v6-migration-guide",
+                          "docs/orchestration/checkout-sdks/web/v6-migration/agent-runbook-v6-migration"
+                        ]
+                      },
+                      {
+                        "group": "References",
+                        "pages": [
+                          "docs/orchestration/checkout-sdks/web/references/event-api-reference",
+                          "docs/orchestration/checkout-sdks/web/references/appearance-api-reference",
+                          "docs/orchestration/checkout-sdks/web/references/payrails-api-reference"
+                        ]
+                      }
+                    ]
+                  },
+                  "docs/orchestration/checkout-sdks/payrails-web-fraud-sdk",
+                  "docs/orchestration/checkout-sdks/accept-payments-via-api",
+                  {
+                    "group": "iOS SDK - Quick start",
+                    "root": "docs/orchestration/checkout-sdks/ios/index",
+                    "pages": [
+                      "docs/orchestration/checkout-sdks/ios/sdk-concepts",
+                      "docs/orchestration/checkout-sdks/ios/sdk-api-reference",
+                      "docs/orchestration/checkout-sdks/ios/styling-guide",
+                      "docs/orchestration/checkout-sdks/ios/troubleshooting"
+                    ]
+                  },
+                  {
+                    "group": "React Native SDK",
+                    "root": "docs/orchestration/checkout-sdks/react-native/index",
+                    "pages": [
+                      "docs/orchestration/checkout-sdks/react-native/how-to-integrate",
+                      "docs/orchestration/checkout-sdks/react-native/sdk-concepts",
+                      "docs/orchestration/checkout-sdks/react-native/api-references"
+                    ]
+                  },
+                  {
+                    "group": "Android SDK - Quick Start",
+                    "root": "docs/orchestration/checkout-sdks/android/index",
+                    "pages": [
+                      "docs/orchestration/checkout-sdks/android/how-to-accept-paypal-payments",
+                      "docs/orchestration/checkout-sdks/android/how-to-accept-redirect-payments",
+                      "docs/orchestration/checkout-sdks/android/how-to-co-branded-cards",
+                      "docs/orchestration/checkout-sdks/android/how-to-custom-pay-button",
+                      "docs/orchestration/checkout-sdks/android/how-to-execute-payment-headless",
+                      "docs/orchestration/checkout-sdks/android/how-to-query-session-data-at-runtime",
+                      "docs/orchestration/checkout-sdks/android/how-to-tokenize-card",
+                      "docs/orchestration/checkout-sdks/android/api-reference",
+                      "docs/orchestration/checkout-sdks/android/sdk-concepts",
+                      "docs/orchestration/checkout-sdks/android/styling-guide",
+                      "docs/orchestration/checkout-sdks/android/troubleshooting",
+                      "docs/orchestration/checkout-sdks/android/update-checkout-amount"
+                    ]
+                  },
+                  {
+                    "group": "Web SDK - v5",
+                    "tag": "Legacy",
+                    "pages": [
+                      "docs/orchestration/checkout-sdks/web-v5-legacy/secure-fields",
+                      "docs/orchestration/checkout-sdks/web-v5-legacy/elements",
+                      "docs/orchestration/checkout-sdks/web-v5-legacy/drop-in",
+                      "docs/orchestration/checkout-sdks/web-v5-legacy/sdk-events-glossary",
+                      "docs/orchestration/checkout-sdks/web-v5-legacy/headless-integration-using-sdk"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Integrations",
+                "root": "docs/orchestration/integrations/index",
+                "pages": [
+                  "docs/orchestration/integrations/adyen",
+                  "docs/orchestration/integrations/amazon",
+                  "docs/orchestration/integrations/braintree",
+                  "docs/orchestration/integrations/checkout-com",
+                  "docs/orchestration/integrations/dlocal",
+                  "docs/orchestration/integrations/klarna",
+                  "docs/orchestration/integrations/stripe",
+                  "docs/orchestration/integrations/paypal",
+                  "docs/orchestration/integrations/tabby",
+                  "docs/orchestration/integrations/unzer",
+                  "docs/orchestration/integrations/getnet",
+                  "docs/orchestration/integrations/amex",
+                  "docs/orchestration/integrations/2c2p"
+                ]
+              },
+              {
+                "group": "Payment Methods",
+                "pages": [
+                  "docs/orchestration/payment-methods/set-up-payment-methods",
+                  {
+                    "group": "Cards",
+                    "root": "docs/orchestration/payment-methods/cards/index",
+                    "pages": [
+                      "docs/orchestration/payment-methods/cards/co-branded-cards"
+                    ]
+                  },
+                  "docs/orchestration/payment-methods/1voucher",
+                  "docs/orchestration/payment-methods/bank-alfalah",
+                  "docs/orchestration/payment-methods/apple-pay",
+                  "docs/orchestration/payment-methods/apple-pay-express",
+                  "docs/orchestration/payment-methods/alipay",
+                  "docs/orchestration/payment-methods/amazon-pay",
+                  "docs/orchestration/payment-methods/bank-transfers",
+                  "docs/orchestration/payment-methods/cashfree-wallets",
+                  "docs/orchestration/payment-methods/easypaisa",
+                  "docs/orchestration/payment-methods/eft-pro",
+                  "docs/orchestration/payment-methods/fawrypay",
+                  "docs/orchestration/payment-methods/fawrypay-psp",
+                  "docs/orchestration/payment-methods/google-pay",
+                  "docs/orchestration/payment-methods/jazzcash",
+                  "docs/orchestration/payment-methods/konnect",
+                  "docs/orchestration/payment-methods/mercadopago",
+                  "docs/orchestration/payment-methods/mercadopago-psp",
+                  "docs/orchestration/payment-methods/mobile-wallets",
+                  "docs/orchestration/payment-methods/direct-carrier-billing",
+                  "docs/orchestration/payment-methods/mono",
+                  "docs/orchestration/payment-methods/netbanking",
+                  "docs/orchestration/payment-methods/nibss",
+                  "docs/orchestration/payment-methods/opay",
+                  "docs/orchestration/payment-methods/paga-wallet",
+                  "docs/orchestration/payment-methods/payflex",
+                  "docs/orchestration/payment-methods/payjustnow",
+                  "docs/orchestration/payment-methods/payjustnow-psp",
+                  {
+                    "group": "PayPal",
+                    "root": "docs/orchestration/payment-methods/paypal/index",
+                    "pages": [
+                      "docs/orchestration/payment-methods/paypal/paypal-express-flow"
+                    ]
+                  },
+                  "docs/orchestration/payment-methods/paytm",
+                  "docs/orchestration/payment-methods/pix",
+                  "docs/orchestration/payment-methods/upi",
+                  "docs/orchestration/payment-methods/wafacash",
+                  "docs/orchestration/payment-methods/kakaopay",
+                  "docs/orchestration/payment-methods/ideal",
+                  "docs/orchestration/payment-methods/boleto",
+                  "docs/orchestration/payment-methods/picpay",
+                  "docs/orchestration/payment-methods/maya",
+                  "docs/orchestration/payment-methods/ovo",
+                  "docs/orchestration/payment-methods/truemoney",
+                  "docs/orchestration/payment-methods/napas",
+                  "docs/orchestration/payment-methods/pse",
+                  "docs/orchestration/payment-methods/pagoefectivo",
+                  "docs/orchestration/payment-methods/nequi",
+                  "docs/orchestration/payment-methods/grabpay",
+                  "docs/orchestration/payment-methods/duitnow-qr",
+                  "docs/orchestration/payment-methods/shopeepay",
+                  "docs/orchestration/payment-methods/gcash",
+                  "docs/orchestration/payment-methods/touch-n-go",
+                  "docs/orchestration/payment-methods/konbini",
+                  "docs/orchestration/payment-methods/vietqr",
+                  "docs/orchestration/payment-methods/momo",
+                  "docs/orchestration/payment-methods/qris",
+                  "docs/orchestration/payment-methods/promptpay",
+                  "docs/orchestration/payment-methods/spei",
+                  "docs/orchestration/payment-methods/oxxo",
+                  "docs/orchestration/payment-methods/mb-way",
+                  "docs/orchestration/payment-methods/payco",
+                  "docs/orchestration/payment-methods/korean-local-cards",
+                  "docs/orchestration/payment-methods/mobilepay",
+                  "docs/orchestration/payment-methods/multibanco",
+                  "docs/orchestration/payment-methods/blik",
+                  "docs/orchestration/payment-methods/bancontact",
+                  "docs/orchestration/payment-methods/klarna",
+                  "docs/orchestration/payment-methods/thunes"
+                ]
+              },
+              {
+                "group": "Workflow Studio",
+                "pages": [
+                  "docs/orchestration/workflow-studio/overview",
+                  "docs/orchestration/workflow-studio/quick-start",
+                  "docs/orchestration/workflow-studio/triggers",
+                  "docs/orchestration/workflow-studio/actions",
+                  "docs/orchestration/workflow-studio/cancel-and-capture-mode",
+                  {
+                    "group": "Conditions and Branching",
+                    "root": "docs/orchestration/workflow-studio/conditions/index",
+                    "pages": [
+                      "docs/orchestration/workflow-studio/conditions/operators"
+                    ]
+                  },
+                  {
+                    "group": "Monitoring Workflow Executions",
+                    "root": "docs/orchestration/workflow-studio/monitoring/index",
+                    "pages": [
+                      "docs/orchestration/workflow-studio/monitoring/status-codes"
+                    ]
+                  },
+                  {
+                    "group": "Workflow Examples",
+                    "root": "docs/orchestration/workflow-studio/examples/index",
+                    "pages": [
+                      "docs/orchestration/workflow-studio/examples/simple-authorization",
+                      "docs/orchestration/workflow-studio/examples/authorization-with-fraud",
+                      "docs/orchestration/workflow-studio/examples/authorization-with-3ds",
+                      "docs/orchestration/workflow-studio/examples/full-authorization",
+                      "docs/orchestration/workflow-studio/examples/capture-with-fraud-update",
+                      "docs/orchestration/workflow-studio/examples/conditional-refund",
+                      "docs/orchestration/workflow-studio/examples/event-driven-auto-capture",
+                      "docs/orchestration/workflow-studio/examples/provider-routing"
+                    ]
+                  },
+                  "docs/orchestration/workflow-studio/glossary"
+                ]
+              },
+              {
+                "group": "Payment Acceptance",
+                "pages": [
+                  "docs/orchestration/payment-acceptance/create-a-workflow-execution",
+                  "docs/orchestration/payment-acceptance/lookup-payment-options",
+                  "docs/orchestration/payment-acceptance/authorize-a-payment",
+                  "docs/orchestration/payment-acceptance/capture-a-payment",
+                  "docs/orchestration/payment-acceptance/cancel-a-payment",
+                  "docs/orchestration/payment-acceptance/refund-a-payment",
+                  "docs/orchestration/payment-acceptance/test-payments",
+                  "docs/orchestration/payment-acceptance/receive-notifications",
+                  "docs/orchestration/payment-acceptance/3d-secure"
+                ]
+              },
+              "docs/orchestration/in-person"
+            ]
+          },
+          {
+            "group": "Token Vault",
+            "icon": "vault",
+            "pages": [
+              "docs/token-vault/getting-started",
+              {
+                "group": "Vault Proxy",
+                "root": "docs/token-vault/vault-proxy/index",
+                "pages": [
+                  {
+                    "group": "Instant Proxy",
+                    "root": "docs/token-vault/vault-proxy/proxy-payment-instruments/index",
+                    "pages": [
+                      "docs/token-vault/vault-proxy/proxy-payment-instruments/proxy-payment-instruments",
+                      "docs/token-vault/vault-proxy/proxy-payment-instruments/apple-pay-via-proxy",
+                      "docs/token-vault/vault-proxy/proxy-payment-instruments/google-pay-via-proxy"
+                    ]
+                  },
+                  {
+                    "group": "Configurable Proxy",
+                    "root": "docs/token-vault/vault-proxy/proxy-connections/index",
+                    "pages": [
+                      "docs/token-vault/vault-proxy/proxy-connections/managing-connections",
+                      "docs/token-vault/vault-proxy/proxy-connections/invoking-connections"
+                    ]
+                  }
+                ]
+              },
+              "docs/token-vault/tokenize-records",
+              {
+                "group": "Tokenize Cards via SDK",
+                "root": "docs/token-vault/tokenize-payment-instruments/index",
+                "pages": [
+                  "docs/token-vault/tokenize-payment-instruments/tokenize-cards-with-secure-fields",
+                  "docs/token-vault/tokenize-payment-instruments/tokenize-cards-with-client-side-encryption",
+                  "docs/token-vault/tokenize-payment-instruments/tokenize-cards-with-api-only"
+                ]
+              },
+              {
+                "group": "Display Cards via SDK",
+                "root": "docs/token-vault/display-sdk/index",
+                "pages": [
+                  "docs/token-vault/display-sdk/dynamic-styling-based-on-bin"
+                ]
+              },
+              {
+                "group": "Network Tokens",
+                "root": "docs/token-vault/network-tokens/index",
+                "pages": [
+                  "docs/token-vault/network-tokens/onboarding-to-networks",
+                  "docs/token-vault/network-tokens/provision-network-tokens",
+                  "docs/token-vault/network-tokens/transacting-with-network-tokens",
+                  "docs/token-vault/network-tokens/automatic-lifecycle-updates"
+                ]
+              },
+              {
+                "group": "Token Migration",
+                "root": "docs/token-vault/token-migration/index",
+                "pages": [
+                  "docs/token-vault/token-migration/self-serve-migration"
+                ]
+              },
+              "docs/token-vault/frequently-asked-questions"
+            ]
+          },
+          {
+            "group": "Analytics & Reporting",
+            "icon": "chart-line",
+            "pages": [
+              {
+                "group": "Getting Started",
+                "root": "docs/analytics-and-reporting/getting-started/index",
+                "pages": [
+                  {
+                    "group": "Connect your data sources",
+                    "root": "docs/analytics-and-reporting/getting-started/connect-your-data-sources/index",
+                    "pages": [
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/adyen",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/amex",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/braintree",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/checkout",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/dlocal",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/jp-morgan",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/klarna",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/mangopay",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/paypal",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/stripe",
+                      "docs/analytics-and-reporting/getting-started/connect-your-data-sources/tap"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Upload Files",
+                "root": "docs/analytics-and-reporting/upload-files/index",
+                "pages": [
+                  "docs/analytics-and-reporting/upload-files/orders-report"
+                ]
+              },
+              {
+                "group": "Reports",
+                "root": "docs/analytics-and-reporting/reports/index",
+                "pages": [
+                  "docs/analytics-and-reporting/reports/report-payments",
+                  "docs/analytics-and-reporting/reports/report-settlements",
+                  "docs/analytics-and-reporting/reports/report-transactions",
+                  "docs/analytics-and-reporting/reports/transactions-details",
+                  "docs/analytics-and-reporting/reports/report-disputes"
+                ]
+              },
+              "docs/analytics-and-reporting/unified-analytics",
+              "docs/analytics-and-reporting/dashboards"
+            ]
+          },
+          {
+            "group": "Fraud Management",
+            "icon": "shield-virus",
+            "pages": ["docs/fraud-management/fraud-score"]
+          },
+          {
+            "group": "Chargeback",
+            "icon": "rotate",
+            "pages": [
+              "docs/chargeback/getting-started",
+              {
+                "group": "Integrations",
+                "root": "docs/chargeback/integrations/index",
+                "pages": [
+                  "docs/chargeback/integrations/adyen",
+                  "docs/chargeback/integrations/checkout",
+                  "docs/chargeback/integrations/stripe",
+                  "docs/chargeback/integrations/klarna",
+                  "docs/chargeback/integrations/nuvei",
+                  "docs/chargeback/integrations/provider-accounts"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Monitoring",
+            "icon": "heart-pulse",
+            "pages": ["docs/monitoring/configure-alerts"]
+          },
+          {
+            "group": "Resources",
+            "pages": [
+              {
+                "group": "Payments",
+                "root": "docs/resources/payments/index",
+                "pages": [
+                  "docs/resources/payments/payment-status",
+                  "docs/resources/payments/operation-types",
+                  "docs/resources/payments/operation-results",
+                  "docs/resources/payments/authorization-flags"
+                ]
+              },
+              "docs/resources/executions",
+              "docs/resources/holder",
+              "docs/resources/manage-instruments",
+              {
+                "group": "Notifications",
+                "root": "docs/resources/notifications/index",
+                "pages": ["docs/resources/notifications/dispute-notifications"]
+              },
+              "docs/resources/error-codes",
+              "docs/resources/currency-codes"
+            ]
+          },
+          {
+            "group": "Use Cases",
+            "pages": [
+              "docs/use-cases/billing-use-cases",
+              "docs/use-cases/server-to-server-integration-reference-architecture"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "icon": "code",
+        "versions": [
+          {
+            "version": "v1",
+            "groups": [
+              {
+                "group": "Endpoints",
+                "openapi": "/api-oas/openapi.json"
+              }
+            ]
+          },
+          {
+            "version": "v2",
+            "groups": [
+              {
+                "group": "Endpoints",
+                "openapi": "/api-oas/openapi-v2.json"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
