@@ -1,6 +1,9 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "versions": ["v1", "v2"],
+  "versions": [
+    "v1",
+    "v2"
+  ],
   "theme": "maple",
   "fonts": {
     "family": "Archivo"
@@ -75,7 +78,10 @@
         "groups": [
           {
             "group": "Home",
-            "pages": ["index", "quickstart"]
+            "pages": [
+              "index",
+              "quickstart"
+            ]
           }
         ]
       },
@@ -136,9 +142,45 @@
                 "pages": [
                   {
                     "refId": "web-sdk-guides",
-                    "group": "Web-sdk",
+                    "group": "Web SDK - External guides",
                     "root": "web-sdk/getting-started",
-                    "pages": []
+                    "pages": [
+                      "web-sdk/getting-started",
+                      {
+                        "group": "Explanation",
+                        "icon": "rocket",
+                        "pages": [
+                          "web-sdk/explanation/appearance",
+                          "web-sdk/explanation/architecture",
+                          "web-sdk/explanation/google-pay-hosting"
+                        ]
+                      },
+                      {
+                        "group": "How-to",
+                        "icon": "question",
+                        "pages": [
+                          "web-sdk/how-to/add-alternative-payment-methods",
+                          "web-sdk/how-to/add-wallet-payments",
+                          "web-sdk/how-to/customize-appearance",
+                          "web-sdk/how-to/integrate-dropin",
+                          "web-sdk/how-to/integrate-elements",
+                          "web-sdk/how-to/integrate-secure-fields",
+                          "web-sdk/how-to/migration-v6-agent",
+                          "web-sdk/how-to/migration-v6",
+                          "web-sdk/how-to/work-with-stored-instruments"
+                        ]
+                      },
+                      {
+                        "group": "Reference",
+                        "icon": "book",
+                        "pages": [
+                          "web-sdk/reference/appearance-reference",
+                          "web-sdk/reference/browser-support",
+                          "web-sdk/reference/events-reference",
+                          "web-sdk/reference/payrails-reference"
+                        ]
+                      }
+                    ]
                   },
                   {
                     "group": "Web SDK - Quick Start",
@@ -498,7 +540,9 @@
           {
             "group": "Fraud Management",
             "icon": "shield-virus",
-            "pages": ["docs/fraud-management/fraud-score"]
+            "pages": [
+              "docs/fraud-management/fraud-score"
+            ]
           },
           {
             "group": "Chargeback",
@@ -522,7 +566,9 @@
           {
             "group": "Monitoring",
             "icon": "heart-pulse",
-            "pages": ["docs/monitoring/configure-alerts"]
+            "pages": [
+              "docs/monitoring/configure-alerts"
+            ]
           },
           {
             "group": "Resources",
@@ -543,7 +589,9 @@
               {
                 "group": "Notifications",
                 "root": "docs/resources/notifications/index",
-                "pages": ["docs/resources/notifications/dispute-notifications"]
+                "pages": [
+                  "docs/resources/notifications/dispute-notifications"
+                ]
               },
               "docs/resources/error-codes",
               "docs/resources/currency-codes"
