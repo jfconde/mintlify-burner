@@ -1,9 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "versions": [
-    "v1",
-    "v2"
-  ],
+  "versions": ["v1", "v2"],
   "theme": "maple",
   "fonts": {
     "family": "Archivo"
@@ -78,10 +75,7 @@
         "groups": [
           {
             "group": "Home",
-            "pages": [
-              "index",
-              "quickstart"
-            ]
+            "pages": ["index", "quickstart"]
           }
         ]
       },
@@ -140,13 +134,11 @@
                 "group": "Payrails Checkout SDKs",
                 "root": "docs/orchestration/checkout-sdks/index",
                 "pages": [
-                  "docs/orchestration/checkout-sdks/index",
                   {
                     "refId": "web-sdk-guides",
                     "group": "Web-sdk",
-                    "icon": "rocket",
                     "root": "web-sdk/getting-started",
-                  "pages": []
+                    "pages": []
                   },
                   {
                     "group": "Web SDK - Quick Start",
@@ -506,9 +498,7 @@
           {
             "group": "Fraud Management",
             "icon": "shield-virus",
-            "pages": [
-              "docs/fraud-management/fraud-score"
-            ]
+            "pages": ["docs/fraud-management/fraud-score"]
           },
           {
             "group": "Chargeback",
@@ -532,9 +522,7 @@
           {
             "group": "Monitoring",
             "icon": "heart-pulse",
-            "pages": [
-              "docs/monitoring/configure-alerts"
-            ]
+            "pages": ["docs/monitoring/configure-alerts"]
           },
           {
             "group": "Resources",
@@ -555,9 +543,7 @@
               {
                 "group": "Notifications",
                 "root": "docs/resources/notifications/index",
-                "pages": [
-                  "docs/resources/notifications/dispute-notifications"
-                ]
+                "pages": ["docs/resources/notifications/dispute-notifications"]
               },
               "docs/resources/error-codes",
               "docs/resources/currency-codes"
