@@ -128,7 +128,7 @@ Once the instrument has been created, it can be used in the instant proxy in you
 
 If you prefer to use your own client-side implementation for Apple Pay button, where you receive the encrypted Apple Pay token, you can use Payrails APIs with a server-to-server integration to process payments with Apple Pay. Note that, with this approach, you will follow the Apple documentation here to build Apple Pay into your applications.
 
-In this flow, although you receive the Apple Pay token from Apple, you can pass it to Payrails to decrypt it on your behalf, so that you don't have to manage PCI-sensitive data on your servers. In order for Payrails to decyrpt the Apple Pay tokens, follow our [guide](/docs/orchestration/payment-methods/apple-pay#generate-a-payment-processing-certificate) to share your certificate and key with Payrails.
+In this flow, although you receive the Apple Pay token from Apple, you can pass it to Payrails to decrypt it on your behalf, so that you don't have to manage PCI-sensitive data on your servers. In order for Payrails to decrypt the Apple Pay tokens, follow our [guide](/docs/orchestration/payment-methods/apple-pay#generate-a-payment-processing-certificate) to share your certificate and key with Payrails.
 
 Once you are ready with the Apple integration and get an Apple Pay token object, you will create payment instruments to use them in Payrails proxy APIs.
 

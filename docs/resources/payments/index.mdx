@@ -133,7 +133,7 @@ The first group are the **basic financial operations** for payments:
 | :----------- | :-------------------------------------------------------------------------------------------------------- |
 | AUTHORIZE    | One-step payment authorization process containing final authorization and capture.                        |
 | PREAUTHORIZE | Authorize request for a Two-step payment authorization process. Also known as reserve/hold.               |
-| CAPTURE      | Capture request of a Two-step payment payment authorization process.                                      |
+| CAPTURE      | Capture request of a Two-step payment authorization process.                                      |
 | VOID         | Void request of a payment in preauthorized status.                                                        |
 | REFUND       | Refund request of a Captured payment. Can be full or partial.                                             |
 | CANCEL       | Void or Refund request depending on the status of the payment (Pre-authorized or Captured or Authorized). |
@@ -208,12 +208,12 @@ Next, equally important to analyze and optimize if possible, are the **connectio
 
 Next, let's look at the **payment rejection** results, which depending on the provider and other factors, may go from very specific to completely generic.
 
-| Code                  | Description                                                                                                                                                    | Retryable |
-| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------- |
-| GENERIC_REJECTION     | The provider (or any of the actors in the chain) reject the transaction but do not specify a specific reason. This code is often refered to as "do not honor". | `false`   |
-| FRAUD_RISK            | The transaction is rejected because there's a risk of fraud. The check could have been done by any of the players in the chain.                                | `false`   |
-| DUPLICATE_OPERATION   | Payment is rejected because it would be a duplicate to another one. We should check if we were actually retrying it or it was a mistake.                       | `false`   |
-| OPERATION_NOT_ALLOWED | Operation is not allowed, usually related to the current status of the transaction, e.g. trying to capture an already cancelled payment.                       | `false`   |
+| Code                  | Description                                                                                                                                                     | Retryable |
+| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------- |
+| GENERIC_REJECTION     | The provider (or any of the actors in the chain) reject the transaction but do not specify a specific reason. This code is often referred to as "do not honor". | `false`   |
+| FRAUD_RISK            | The transaction is rejected because there's a risk of fraud. The check could have been done by any of the players in the chain.                                 | `false`   |
+| DUPLICATE_OPERATION   | Payment is rejected because it would be a duplicate to another one. We should check if we were actually retrying it or it was a mistake.                        | `false`   |
+| OPERATION_NOT_ALLOWED | Operation is not allowed, usually related to the current status of the transaction, e.g. trying to capture an already cancelled payment.                        | `false`   |
 
 Next, a special type of the payment rejections, the **payment instrument rejections**.
 
@@ -227,12 +227,12 @@ Next, a special type of the payment rejections, the **payment instrument rejecti
 
 Next, we have the **parameter or configuration** errors. These could be similar to the rejections, but could be caused by a problem with formatting, missing required parameters, etc.
 
-| Code                  | Description                                                                                                                                                                                      | Retryable |
-| :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------- |
-| VALIDATION_ERROR      | Before sending the transaction to the provider, we performed a parameter validation and it failed. This code comes together with a list of errors specifying the fields and problems.            | `false`   |
-| PARAMS_ERROR          | After sending the transction to the provider, they decided not to execute it becuase of a problem with the parameters we sent. Could be a required field is missing, incorrectly formatted, etc. | `false`   |
-| PROVIDER_CONFIG_ERROR | When sending the transaction to the provider, they refused to process it because we are missing something required for the operation, e.g. merchant ID, client secret, etc.                      | `false`   |
-| INVALID_SIGNATURE     | For providers that require a signature in the requests, there's a specific result for when the signature was actually invalid.                                                                   | `false`   |
+| Code                  | Description                                                                                                                                                                                       | Retryable |
+| :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------- |
+| VALIDATION_ERROR      | Before sending the transaction to the provider, we performed a parameter validation and it failed. This code comes together with a list of errors specifying the fields and problems.             | `false`   |
+| PARAMS_ERROR          | After sending the transaction to the provider, they decided not to execute it because of a problem with the parameters we sent. Could be a required field is missing, incorrectly formatted, etc. | `false`   |
+| PROVIDER_CONFIG_ERROR | When sending the transaction to the provider, they refused to process it because we are missing something required for the operation, e.g. merchant ID, client secret, etc.                       | `false`   |
+| INVALID_SIGNATURE     | For providers that require a signature in the requests, there's a specific result for when the signature was actually invalid.                                                                    | `false`   |
 
 Last but not least, if something went very wrong during the operation and there was actually an internal server error, we need to indicate it. And, of course, fix it as soon as possible!
 

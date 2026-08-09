@@ -1,3 +1,9 @@
 .DS_Store
 .claude
 .agents
+
+# Vale style packages are fetched by `vale sync` (the CI workflow does this
+# automatically) — don't commit them. Our own vocab config IS tracked, see
+# the negated pattern below.
+/.github/styles/*
+!/.github/styles/config/
