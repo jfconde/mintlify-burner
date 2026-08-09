@@ -141,6 +141,7 @@
                 "root": "docs/orchestration/checkout-sdks/index",
                 "pages": [
                   {
+                    "refId": "web-sdk-guides",
                     "group": "Web SDK - External guides (test name change on UI)",
                     "root": "web-sdk/getting-started",
                     "pages": [
