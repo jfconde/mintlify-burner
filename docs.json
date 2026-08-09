@@ -146,7 +146,7 @@
                     "root": "web-sdk/getting-started",
                     "pages": [
                       {
-                        "group": "Explanation",
+                        "group": "Explanation_1234",
                         "icon": "rocket",
                         "pages": [
                           "web-sdk/explanation/appearance",
