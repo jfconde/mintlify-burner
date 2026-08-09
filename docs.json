@@ -88,7 +88,7 @@
       {
         "tab": "Guides",
         "icon": "book-open",
-        "groups": [
+        "pages": [
           {
             "group": "Getting Started",
             "icon": "rocket",
@@ -141,11 +141,9 @@
                 "root": "docs/orchestration/checkout-sdks/index",
                 "pages": [
                   {
-                    "refId": "web-sdk-guides",
-                    "group": "Web SDK - External guides",
+                    "group": "Web SDK - External guides (test name change on UI)",
                     "root": "web-sdk/getting-started",
                     "pages": [
-                      "web-sdk/getting-started",
                       {
                         "group": "Explanation",
                         "icon": "rocket",
@@ -603,7 +601,8 @@
               "docs/use-cases/billing-use-cases",
               "docs/use-cases/server-to-server-integration-reference-architecture"
             ]
-          }
+          },
+          "untitled-page"
         ]
       },
       {

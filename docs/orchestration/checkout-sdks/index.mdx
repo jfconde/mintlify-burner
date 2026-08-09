@@ -1,5 +1,5 @@
 ---
-title: Payrails Checkout SDKs
+title: "Payrails Checkout SDKs"
 ---
 
 Payrails SDKs provide building blocks to create a checkout experience for your customers.
@@ -8,11 +8,9 @@ They exist for iOS, Android, web, and React Native. Regardless of the platform, 
 
 You can integrate with the SDK in three ways.
 
-- **[Drop-in](./web-v5-legacy/drop-in)**: an all-in-one payment form to accept payments on your website.
-- **[Elements](./web-v5-legacy/elements)**: modular payment UI components you can assemble to build a modular payment form.
-- **[Secure fields](./web-v5-legacy/secure-fields)**: secure input fields for PCI-compliant cardholder data collection.
-
-<Image align="center" src="https://files.readme.io/d87edb4-image.png" />
+- [**Drop-in**](./web-v5-legacy/drop-in): an all-in-one payment form to accept payments on your website.
+- [**Elements**](./web-v5-legacy/elements): modular payment UI components you can assemble to build a modular payment form.
+- [**Secure fields**](./web-v5-legacy/secure-fields): secure input fields for PCI-compliant cardholder data collection.
 
 The **Drop-in** contains one-to-many **Elements** (depending on how many active payment methods you have). Some Elements dealing with cardholder data collection include **Secure Fields**. All three options are included in our SDK.
 
@@ -20,9 +18,8 @@ The **Drop-in** contains one-to-many **Elements** (depending on how many active 
 
 Regardless of which SDK components you want, it starts with the same initialization process.
 
-<Callout icon="🚧" theme="warn">
-  The Payrails SDK requires a secure context (HTTPS). If testing locally, ensure
-  your development server uses HTTPS.
+<Callout icon="🚧">
+  The Payrails SDK requires a secure context (HTTPS). If testing locally, ensure your development server uses HTTPS.
 </Callout>
 
 ## Including the SDK
@@ -265,8 +262,7 @@ const dropin = payrailsClient.dropin(dropinConfig);
 const result = await payrailsClient.binLookup();
 ```
 
-In case complete BIN lookup is not enabled your environment, the API returns the first 8 digits of the PAN.
-If the BIN Lookup is enabled then the complete API response is returned.
+In case complete BIN lookup is not enabled your environment, the API returns the first 8 digits of the PAN. If the BIN Lookup is enabled then the complete API response is returned.
 
 ```json
 // Sample BIN Lookup Response
@@ -312,11 +308,6 @@ In certain countries or regions, it's common for shoppers to pay for purchases i
 
 Our SDK supports collecting installment plan information from the end-user and passing it through to downstream processors. Please contact us if you would like to enable this feature.
 
-<Image
-  align="center"
-  src="https://files.readme.io/8d4d19bcbd6b2a7b0d024f902cf839259c617a5747d4e2fb9c1c86a3055a821a-installments.png"
-/>
-
 <br />
 
 ### Config options for installments dropdown
@@ -359,7 +350,7 @@ With dropin it is possible to show address component to the end user. You can us
 
 ### Example code for billing address config
 
-```
+```text
 const dropinConfig = {
   "translations": {
     "addressSelector": {
@@ -400,7 +391,6 @@ const dropinConfig = {
     },
   }
 }
-
 ```
 
 # Performance optimizations
@@ -420,11 +410,11 @@ Payrails.preloadCardForm();
 
 You can pass custom return URLs to SDK configuration. This controls the redirect behavior after authorization. This is specifically useful for payment methods needing full-page redirection or 3DS processes.
 
-| Property  | Type     | Description                                           |
-| :-------- | :------- | :---------------------------------------------------- |
-| `cancel`  | `string` | URL to redirect to if the customer canceled the flow. |
-| `success` | `string` | URL to redirect to after a successful flow.           |
-| `error`   | `string` | URL to redirect to after a failed flow.               |
+| Property | Type | Description |
+| :-- | :-- | :-- |
+| `cancel` | `string` | URL to redirect to if the customer canceled the flow. |
+| `success` | `string` | URL to redirect to after a successful flow. |
+| `error` | `string` | URL to redirect to after a failed flow. |
 
 # Content security policy
 
