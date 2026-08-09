@@ -1,0 +1,41 @@
+name: Docs style check
+
+on:
+  pull_request:
+    paths:
+      - "docs/**/*.md"
+      - "docs/**/*.mdx"
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: vale-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  vale:
+    name: Vale (style & grammar)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Vale
+        uses: vale-cli/vale-action@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Only lint docs/ — matches the workflow's path trigger above.
+          files: docs
+          glob: "*.{md,mdx}"
+          # Only annotate lines actually touched by the PR, not
+          # pre-existing issues elsewhere in the file.
+          filter_mode: added
+          # Post inline PR review comments for every suggestion/warning/error.
+          reporter: github-pr-review
+          # Only block the merge on Vale "error"-level alerts; warnings and
+          # suggestions are reported but don't fail the check.
+          fail_on_error: true
+          fail_level: error
