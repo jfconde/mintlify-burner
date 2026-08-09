@@ -34,6 +34,14 @@ Drop-in
 [Ww]ebhooks?
 PSPs?
 
+# Workflows / orchestration engine
+MWF
+AND
+OR
+IF
+ELSE
+NOT
+
 # PSPs, payment methods, and other third-party providers/brands mentioned
 # throughout the docs
 APMs
