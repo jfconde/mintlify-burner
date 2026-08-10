@@ -88,7 +88,7 @@
       {
         "tab": "Guides",
         "icon": "book-open",
-        "groups": [
+        "pages": [
           {
             "group": "Getting Started",
             "icon": "rocket",
@@ -137,17 +137,16 @@
               "docs/orchestration/getting-started",
               "docs/orchestration/meta-fields",
               {
-                "group": "Payrails Checkout SDKs",
+                "group": "Payrails Checkout SDKs -1 23123",
                 "root": "docs/orchestration/checkout-sdks/index",
                 "pages": [
                   {
                     "refId": "web-sdk-guides",
-                    "group": "Web SDK - External guides",
+                    "group": "Web SDK - External guides (test name change on UI)",
                     "root": "web-sdk/getting-started",
                     "pages": [
-                      "web-sdk/getting-started",
                       {
-                        "group": "Explanation",
+                        "group": "Explanation_1234",
                         "icon": "rocket",
                         "pages": [
                           "web-sdk/explanation/appearance",
@@ -603,7 +602,8 @@
               "docs/use-cases/billing-use-cases",
               "docs/use-cases/server-to-server-integration-reference-architecture"
             ]
-          }
+          },
+          "untitled-page"
         ]
       },
       {

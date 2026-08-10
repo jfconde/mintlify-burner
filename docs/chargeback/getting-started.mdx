@@ -1,25 +1,24 @@
 ---
-title: Getting started
+title: "Getting started"
 ---
-## Introduction
 
-Payrails offers a unified and provider-agnostic dispute management infrastructure designed to handle the full chargeback lifecycle across integrations. Unlike conventional approaches where each PSP requires dedicated  
-integration and manual intervention, Payrails abstracts provider-specific dispute logic behind a single orchestration layer—giving merchants a consistent interface regardless of which integrations process their transactions.
+## Introduction - This is just a change done through the editor
+
+Payrails offers a unified and provider-agnostic dispute management infrastructure designed to handle the full chargeback lifecycle across integrations. Unlike conventional approaches where each PSP requires dedicated<br />integration and manual intervention, Payrails abstracts provider-specific dispute logic behind a single orchestration layer—giving merchants a consistent interface regardless of which integrations process their transactions.
 
 What sets Payrails apart is its end-to-end approach to dispute resolution: from real-time ingestion of chargeback notifications to automated defense workflows, evidence submission, and outcome tracking. Merchants can configure representment strategies, set defense deadlines, and monitor dispute status across all their integrations from a single platform—without building bespoke integrations for each one.
 
 ## Key Features
 
-* **Unified Ingestion**: Receive and normalize chargeback notifications from all connected integrations through a single, consistent event model.
-* **Automated Defense Workflows**: Configure representment plans with evidence submission rules, triggering automated defense actions before deadlines expire.
-* **Real-Time Lifecycle Tracking**: Webhook-driven status updates keep your system in sync at every stage—from notification of chargeback through to reversal or loss.
-* **Liability Shift Detection:** Automatically detect 3DS liability shifts to inform defense eligibility and representment strategy.
-* **Evidence Management**: Attach, store, and submit evidence packages (documents, receipts, transaction data) directly through the platform.
-* **Audit Trail**: Every status change, defense action, and provider communication is logged as an activity for full auditability.
+- **Unified Ingestion**: Receive and normalize chargeback notifications from all connected integrations through a single, consistent event model.
+- **Automated Defense Workflows**: Configure representment plans with evidence submission rules, triggering automated defense actions before deadlines expire.
+- **Real-Time Lifecycle Tracking**: Webhook-driven status updates keep your system in sync at every stage—from notification of chargeback through to reversal or loss.
+- **Liability Shift Detection:** Automatically detect 3DS liability shifts to inform defense eligibility and representment strategy.
+- **Evidence Management**: Attach, store, and submit evidence packages (documents, receipts, transaction data) directly through the platform.
+- **Audit Trail**: Every status change, defense action, and provider communication is logged as an activity for full auditability.
 
 # How it works
 
 Chargebacks in Payrails are managed as a workflow, just like payment acceptance or fraud management.
 
 You configure your integration(s) in the Payrails system, and Payrails will automatically receive and process chargeback notifications from those integrations. Each chargeback moves through a defined lifecycle—from the initial chargeback notification through defense, representment, and final resolution—with your configured workflows determining which actions to take at each stage.
-
