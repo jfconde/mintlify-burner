@@ -1,3 +1,8 @@
+.editor-note {
+  display: none;
+  visibility: hidden;
+}
+
 .hero {
   padding: 32px;
   position: relative;
