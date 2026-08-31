@@ -4,7 +4,7 @@
     "v1",
     "v2"
   ],
-  "theme": "palm",
+  "theme": "luma",
   "fonts": {
     "family": "Archivo"
   },
@@ -16,12 +16,13 @@
   "displayUpdatedDate": true,
   "name": "Payrails Docs (Juan test)",
   "colors": {
-    "primary": "#0a6cff",
-    "light": "#0a6cff",
-    "dark": "#2222ff"
+    "primary": "#D63D00",
+    "light": "#ffffff",
+    "dark": "#000000"
   },
   "appearance": {
-    "default": "light"
+    "default": "light",
+    "strict": false
   },
   "background": {
     "decoration": "grid",
@@ -631,5 +632,8 @@
         ]
       }
     ]
+  },
+  "icons": {
+    "library": "tabler"
   }
 }
