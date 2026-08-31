@@ -266,7 +266,7 @@
                   {
                     "group": "New Group",
                     "pages": [
-                      "my-new-page"
+                      "web-sdk/my-new-page"
                     ]
                   }
                 ]
