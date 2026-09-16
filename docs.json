@@ -262,6 +262,12 @@
                       "docs/orchestration/checkout-sdks/web-v5-legacy/sdk-events-glossary",
                       "docs/orchestration/checkout-sdks/web-v5-legacy/headless-integration-using-sdk"
                     ]
+                  },
+                  {
+                    "group": "New Group",
+                    "pages": [
+                      "web-sdk/my-new-page"
+                    ]
                   }
                 ]
               },
